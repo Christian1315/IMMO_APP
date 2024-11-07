@@ -157,7 +157,7 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('setting', "Setting")->name("setting");
     Route::get('/{agency}/paiement', "Paiement")->name("paiement");
     Route::get('/{agency}/initiation', "AgencyInitiation")->name("agency-initiation");
-    Route::get('/{agency}/factures', "LocationFactures")->name("locationFacture");
+    Route::match(["GET","POST"],'/{agency}/factures', "LocationFactures")->name("locationFacture");
     Route::get('/{agency}/caisses', "Caisses")->name("caisses");
     Route::get('/{agency}/{agency_account}/caisse-mouvements', "CaisseMouvements")->name("caisse-mouvements");
     Route::any('{agencyAccount}/agency_mouvements', '_RetrieveAgencyAccountMouvements'); ## RECUPERATION DES MOUVEMENTS D'UN COMPTE

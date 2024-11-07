@@ -72,6 +72,7 @@
                         <tr>
                             <th class="text-center">N°</th>
                             <th class="text-center">Maison</th>
+                            <th class="text-center">Superviseurs</th>
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Nom</th>
                             <th class="text-center">Prénom</th>
@@ -87,6 +88,11 @@
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center text-red"> <strong class=""> {{$location->House->name}}</strong></td>
+                            <td class="text-center">
+                                @foreach ($locator->Locations as $location)
+                                {{ $location->House->Supervisor->name }}
+                                @endforeach
+                            </td>
                             <td class="text-center"> <strong class=""> {{$location->Room->number}}</strong></td>
                             <td class="text-center">{{$location["Locataire"]["name"]}}</td>
                             <td class="text-center">{{$location["Locataire"]["prenom"]}}</td>

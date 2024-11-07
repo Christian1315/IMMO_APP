@@ -22,7 +22,7 @@
                     @endif
 
                     <br>
-                    <a href="/{{crypId($agency['id'])}}/{{$agency_account['id']}}/caisse-mouvements" target="_blank" class="btn btn-sm bg-red">Mouvements</a>
+                    <a href="/{{crypId($agency['id'])}}/{{$agency_account['id']}}/caisse-mouvements"  class="btn btn-sm bg-red">Mouvements</a>
                 </div>
             </div>
         </div>

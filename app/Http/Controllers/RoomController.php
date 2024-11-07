@@ -208,6 +208,7 @@ class RoomController extends Controller
     {
         $formData = $request->all();
 
+
         #####_____VALIDATION
         $rules = self::room_rules();
         $messages = self::room_messages();
@@ -236,19 +237,10 @@ class RoomController extends Controller
             return back()->withInput();
         }
 
-        if ($request->water == $request->electricity) {
-            alert()->error("Echec", "Veuillez choisir soit l'eau, soit l'électricité");
-            return back()->withInput();
-        }
         ###___
 
         if ($request->water) {
-            // ##__ANNULONS LES ELEMENTS LIES A L'ELECTRICITE
-            $formData["electricity_conventionnal_counter"]  = 0;
-            $formData["electricity_discounter"]  = 0;
-            $formData["electricity_counter_start_index"]  = 0;
-            $formData["electricity_counter_number"]  = 0;
-
+            
             ###____
             if ($request->get("forage")) {
                 $rules = self::forage_rules();
@@ -257,7 +249,6 @@ class RoomController extends Controller
             }
 
             ###____
-            // dd($request->water_conventionnal_counter);
             if ($request->get("water_conventionnal_counter")) {
                 $rules = self::conven_counter_water_rules();
                 $messages = self::conven_counter_water_messages();
@@ -283,16 +274,6 @@ class RoomController extends Controller
                 $messages = self::electricity_discounter_messages();
                 Validator::make($formData, $rules, $messages)->validate();
             }
-
-            // // ##__ANNULONS LES ELEMENTS LIES A L'EAU
-            $formData["water_discounter"]  = 0;
-            $formData["unit_price"]  = null;
-            $formData["water_card_counter"]  = 0;
-            $formData["water_conventionnal_counter"]  = 0;
-            $formData["water_counter_number"]  = 0;
-            $formData["water_counter_start_index"]  = 0;
-            $formData["forage"]  = 0;
-            $formData["forfait_forage"]  = 0;
         }
 
 
@@ -305,6 +286,9 @@ class RoomController extends Controller
         }
 
         #ENREGISTREMENT DE LA CARTE DANS LA DB
+        $formData["gardiennage"] = $request->gardiennage ? $request->gardiennage: 0;
+        $formData["vidange"] = $request->vidange ? $request->vidange: 0;
+
         $formData["owner"] = $user->id;
         $formData["water"] = $request->water ? 1 : 0;
         $formData["water_discounter"] = $request->water_discounter ? 1 : 0;
@@ -325,8 +309,6 @@ class RoomController extends Controller
 
 
         $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
-
-        // dd($formData);
 
         Room::create($formData);
 
@@ -436,16 +418,5 @@ class RoomController extends Controller
 
         alert()->success("Succès", "Chambre supprimée avec succès!");
         return back();
-    }
-
-    function SearchRoom(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->search($request);
     }
 }

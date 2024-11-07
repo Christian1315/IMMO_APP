@@ -2,6 +2,44 @@
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
+            <small>
+                <button data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Prestation par période</button>
+            </small>
+
+            <!-- FILTRE BY PERIOD -->
+            <div class="modal fade" id="ShowSearchLocatorsByHouseForm" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <p class="" id="exampleModalLabel">Générer par période</p>
+                        </div>
+                        <div class="modal-body">
+                            <form action="{{route('location._ManagePrestationStatistiqueForAgencyByPeriod', crypId($agency->id))}}" method="POST">
+                                @csrf
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <span>Date de début</span>
+                                        <input type="date" required name="first_date" class="form-control" id="">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <span class="">Date de fin</span>
+                                        <input type="date" required name="last_date" class="form-control" id="">
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="text-center">
+                                    <button type="submit" class="w-100 text-center bg-red btn btn-sm"><i class="bi bi-funnel"></i> Génerer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br><br>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
             <div class="table-responsive">
                 <h4 class="">Total: <strong class="text-red"> {{count($factures)}} </strong> </h4>
                 <table id="myTable" class="table table-striped table-sm">

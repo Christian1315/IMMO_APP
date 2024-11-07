@@ -14,7 +14,6 @@
 
         <link rel="canonical" href="https://getbootstrap.com/docs/4.1/examples/dashboard/">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <!-- Bootstrap core CSS -->
 
         <link href="{{asset('fichiers/bootstrap.css')}}" rel="stylesheet">
@@ -29,7 +28,10 @@
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-        <link rel="stylesheet" href="https://cdn.datatables.net/2.1.3/css/dataTables.dataTables.css" />
+        <!-- <link rel="stylesheet" href="https://cdn.datatables.net/2.1.3/css/dataTables.dataTables.css" /> -->
+        <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css"> -->
+        <script src="https://cdn.datatables.net/1.13.10/css/jquery.dataTables.css"></script>
+
         @livewireStyles
     </head>
 
@@ -63,26 +65,15 @@
 
         <div class="container-fluid">
             <div class="row">
-
                 <div class="offcanvas bg-dark offcanvas-start" style="width: 250px!important;" data-bs-scroll="true" tabindex="-1" id="offcanvasSideBar" aria-labelledby="offcanvasWithBothOptionsLabel">
                     <div class="offcanvas-header">
-                        @if($active=="dashbord")
-                        <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">
-                            <a class="nav-link bg-white text-danger" style="font-weight: bold;font-style:oblique" href="/{{crypId($agency['id'])}}/manage-agency">
+                        <p class="offcanvas-title w-100" id="offcanvasWithBothOptionsLabel">
+                            <a class="nav-link bg-white text-danger" style="font-weight: bold;font-style:oblique;font-size:15px" href="/{{crypId($agency['id'])}}/manage-agency">
                                 <i class="bi bi-house-add-fill"></i>
                                 {{$agency["name"]}}
                             </a>
-                        </h5>
-
-                        @else
-                        <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">
-                            <a class="nav-link bg-white text-danger" style="font-weight: bold;font-style:oblique" href="/{{crypId($agency['id'])}}/manage-agency">
-                                <i class="bi bi-house-add-fill"></i>
-                                {{$agency["name"]}}
-                            </a>
-                        </h5>
-                        @endif
-                        <button type="button" class="btn-close text-red btn btn-sm btn-light" data-bs-dismiss="offcanvas" aria-label="Close"><i class="bi bi-x"></i></button>
+                        </p>
+                        <!-- <button type="button" class="btn-close text-red btn btn-sm btn-light" data-bs-dismiss="offcanvas" aria-label="Close"><i class="bi bi-x"></i></button> -->
                     </div>
                     <div class="offcanvas-body">
                         <div class="">
@@ -407,13 +398,19 @@
     <!-- Bootstrap core JavaScript
             ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="fichiers/jquery.min.js"></script>
+    <script src="{{asset('fichiers/jquery.min.js')}}"></script>
     <!-- <script src="fichiers/popper.min.js"></script>
             <script src="fichiers/bootstrap.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/2.1.3/js/dataTables.js"></script>
     <script src="{{asset('fichiers/axios.min.js')}}"></script>
+
+    <!-- <script src="https://cdn.datatables.net/2.1.3/js/dataTables.js"></script> -->
+    <!-- <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script> -->
+    <script src="https://cdn.datatables.net/1.13.10/js/jquery.dataTables.js"></script>
+    <!-- API DE GESTION DES SUM DES COLUMS DES DATATABLES -->
+    <script src="https://cdn.datatables.net/plug-ins/2.1.8/api/sum().js"></script>
+
 
     <!-- #### DATA TABLES -->
     <script>

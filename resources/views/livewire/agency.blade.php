@@ -93,7 +93,7 @@
             <div class="col-12">
                 <div class="alert bg-dark text-white">
                     Cautions générées avec succès! Cliquez sur le lien ci-dessous pour la télécharger: <br>
-                    <a class="text-red" href="{{$cautions_link}}" target="_blank" rel="noopener noreferrer">Télécharger</a>
+                    <a class="text-red" href="{{$cautions_link}}"  rel="noopener noreferrer">Télécharger</a>
                 </div>
             </div>
         </div>
@@ -106,7 +106,7 @@
             <div class="col-12">
                 <div class="alert bg-dark text-white">
                     Statistique des prestations générées avec succès! Cliquez sur le lien ci-dessous pour la télécharger: <br>
-                    <a class="text-red" href="{{$cautions_link}}" target="_blank" rel="noopener noreferrer">Télécharger</a>
+                    <a class="text-red" href="{{$cautions_link}}"  rel="noopener noreferrer">Télécharger</a>
                 </div>
             </div>
         </div>
@@ -243,23 +243,23 @@
                             <td class="text-center">{{$agency->city}}</td>
                             <td class="text-center">
                                 @if($agency->rccm_file)
-                                <a href="{{$agency->rccm_file}}" class="text-danger" target="_blank" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
+                                <a href="{{$agency->rccm_file}}" class="text-danger"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
                                 @else
                                 ---
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a target="_blank" href="/{{$agency['id']}}/show_prestation_statistique"  class="btn btn-sm bg-dark shadow-lg"><i class="bi bi-list-ol"></i> Prestation</a>
+                                <a  href="/{{$agency['id']}}/show_prestation_statistique"  class="btn btn-sm bg-dark shadow-lg"><i class="bi bi-list-ol"></i> Prestation</a>
                             </td>
-                            <td class="text-center"> <a href="{{$agency->ifu_file}}" class="text-danger" target="_blank" rel="noopener noreferrer"><i class="bi bi-eye"></i></a> </td>
+                            <td class="text-center"> <a href="{{$agency->ifu_file}}" class="text-danger"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a> </td>
                             <td class="text-center">
                                 <div class="dropdown">
                                     <button class="btn btn-light textx-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-hand-index-thumb"></i> Gérer
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a target="_blank" class="text-dark btn btn-sm" href="/{{$agency['id']}}/caution_html" class="shadow-lg"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les Cautions</a></li>
-                                        <li><a target="_blank" href="/{{crypId($agency['id'])}}/manage-agency" class="btn btn-sm bg-warning text-dark text-uppercase">
+                                        <li><a  class="text-dark btn btn-sm" href="/{{$agency['id']}}/caution_html" class="shadow-lg"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les Cautions</a></li>
+                                        <li><a target="_blank"  href="/{{crypId($agency['id'])}}/manage-agency" class="btn btn-sm bg-warning text-dark text-uppercase">
                                                 <i class="bi bi-house-x-fill"></i> Gérer l'agence
                                             </a>
                                         </li>

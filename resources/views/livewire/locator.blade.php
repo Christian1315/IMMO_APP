@@ -239,6 +239,7 @@
                             <th class="text-center">Adresse</th>
                             <th class="text-center">Contrat</th>
                             <th class="text-center">Maisons</th>
+                            <th class="text-center">Superviseurs</th>
                             <th class="text-center">Chambres</th>
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Actions</th>
@@ -255,12 +256,21 @@
                             <td class="text-center">{{$locator["card_id"]}}</td>
                             <td class="text-center">{{$locator["phone"]}}</td>
                             <td class="text-center">{{$locator["adresse"]}}</td>
-                            <td class="text-center"><a href="{{$locator['mandate_contrat']}}" class="btn btn-sm btn-light" target="_blank" rel="noopener noreferrer"><i class="bi bi-eye-fill"></i></a>
+                            <td class="text-center"><a href="{{$locator['mandate_contrat']}}" class="btn btn-sm btn-light"  rel="noopener noreferrer"><i class="bi bi-eye-fill"></i></a>
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#showHouses" onclick="showHouses_fun({{$locator['id']}})">
                                     <i class="bi bi-eye-fill"></i>
                                 </button>
+                            </td>
+                            <td class="text-center">
+                                @if(count($locator->Locations)>0)
+                                @foreach ($locator->Locations as $location)
+                                {{ $location->House->Supervisor->name }}
+                                @endforeach
+                                @else
+                                ---
+                                @endif
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#showRooms" onclick="showRooms_fun({{$locator['id']}})">
@@ -365,7 +375,7 @@
                                     <label for="" class="d-block">Type</label>
                                     <select id="card_type" class="form-select form-control" name="card_type" aria-label="Default select example">
                                         @foreach($card_types as $type)
-                                        <option value="{{$type['id']}}" @if($type['id']==$locator['card_type']) selected @endif>{{$type['name']}}</option>
+                                        <option value="{{$type['id']}}" >{{$type['name']}}</option>
                                         @endforeach
                                     </select>
                                 </div><br>
@@ -374,7 +384,7 @@
                                     <select id="country" class="form-select form-control" name="country" aria-label="Default select example">
                                         @foreach($countries as $countrie)
                                         @if($countrie['id']==4)
-                                        <option value="{{$countrie['id']}}" @if($countrie['id']==$locator['country']) selected @endif>{{$countrie['name']}}</option>
+                                        <option value="{{$countrie['id']}}" >{{$countrie['name']}}</option>
                                         @endif
                                         @endforeach
                                     </select>
@@ -383,7 +393,7 @@
                                     <label for="" class="d-block">Département</label>
                                     <select id="departement" class="form-select form-control" name="departement" aria-label="Default select example">
                                         @foreach($departements as $departement)
-                                        <option value="{{$departement['id']}}" @if($departement['id']==$locator['departement']) selected @endif>{{$departement['name']}}</option>
+                                        <option value="{{$departement['id']}}">{{$departement['name']}}</option>
                                         @endforeach
                                     </select>
                                 </div>

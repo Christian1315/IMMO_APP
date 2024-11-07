@@ -6,7 +6,7 @@
     </div>
 
     <div id="show_action_buttons" hidden>
-        <a class="btn btn-sm btn-light" target="_blank" href="{{route('taux._ShowAgencyTaux10_Simple',crypId($agency->id))}}"><i class="bi bi-house-dash"></i> Pour cette agence</a>
+        <a class="btn btn-sm btn-light"  href="{{route('taux._ShowAgencyTaux10_Simple',crypId($agency->id))}}"><i class="bi bi-house-dash"></i> Pour cette agence</a>
         <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#showTauxBySupervisor"><i class="bi bi-people"></i> Par Sperviseur </button>
         <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#showTauxByHouse"><i class="bi bi-house-check-fill"></i>Par maison </button>
     </div>
@@ -20,7 +20,7 @@
                     <p class="">Taux par maison:</p>
                     <ul class="list-group">
                         @foreach($supervisors as $supervisor)
-                        <li class="list-group-item" style="justify-content: space-between!important">{{$supervisor->name}} &nbsp; <a target="_blank" href="{{route('taux._ShowAgencyTaux10_By_Supervisor',['agencyId'=>crypId($agency->id),'supervisor'=>crypId($supervisor->id)])}}" class="btn btn-sm btn-light text-red"><i class="bi bi-eye"></i></a> </li>
+                        <li class="list-group-item" style="justify-content: space-between!important">{{$supervisor->name}} &nbsp; <a  href="{{route('taux._ShowAgencyTaux10_By_Supervisor',['agencyId'=>crypId($agency->id),'supervisor'=>crypId($supervisor->id)])}}" class="btn btn-sm btn-light text-red"><i class="bi bi-eye"></i></a> </li>
                         @endforeach
                     </ul>
                 </div>
@@ -35,7 +35,7 @@
                     <p class="">Taux par maison:</p>
                     <ul class="list-group">
                         @foreach($houses as $house)
-                        <li class="list-group-item" style="justify-content: space-between!important">{{$house->name}} &nbsp; <a target="_blank" href="{{route('taux._ShowAgencyTaux10_By_House',['agencyId'=>crypId($agency->id),'house'=>crypId($house->id)])}}" class="btn btn-sm btn-light text-red"><i class="bi bi-eye"></i></a> </li>
+                        <li class="list-group-item" style="justify-content: space-between!important">{{$house->name}} &nbsp; <a  href="{{route('taux._ShowAgencyTaux10_By_House',['agencyId'=>crypId($agency->id),'house'=>crypId($house->id)])}}" class="btn btn-sm btn-light text-red"><i class="bi bi-eye"></i></a> </li>
                         @endforeach
                     </ul>
 

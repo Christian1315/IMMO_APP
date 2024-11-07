@@ -75,6 +75,7 @@
         </h2>
     </div>
     @endif
+
     <!-- ADD ROOM -->
     <div class="modal fade" id="addRoom" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -125,7 +126,7 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <span class=""> Photo de la chambre </span>
-                                    <input required value="{{old('photo')}}" type="file" name="photo" class="form-control">
+                                    <input value="{{old('photo')}}" type="file" name="photo" class="form-control">
                                     @error("photo")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -160,7 +161,7 @@
 
                                     <div class="mb-3" hidden id="show_forage_inputs">
                                         <span for="" class="d-block">Forfait forage</span>
-                                        <input type="text" value="{{old('forfait_forage')}}" name="forfait_forage" placeholder="Forfait forage" class="form-control" id="">
+                                        <input type="text" value="{{old('forfait_forage')}}" name="forfait_forage" placeholder="Forfait forage" class="form-control" id="forfait_forage">
                                         @error("forfait_forage")
                                         <span class="text-red">{{$message}}</span>
                                         @enderror
@@ -168,7 +169,7 @@
 
                                     <div class="mb-3" id="water_discounter_inputs" hidden>
                                         <span for="" class="d-block">Prix unitaire par mêtre cube</span>
-                                        <input value="{{old('unit_price')}}" type="text" name="unit_price" placeholder="Prix unitaire en mèttre cube" class="form-control" id="">
+                                        <input value="{{old('unit_price')}}" type="text" name="unit_price" placeholder="Prix unitaire en mèttre cube" class="form-control" id="unit_price">
                                         @error("unit_price")
                                         <span class="text-red">{{$message}}</span>
                                         @enderror
@@ -176,20 +177,18 @@
 
                                     <div class="mb-3" id="show_water_conventionnal_counter_inputs" hidden>
                                         <span for="" class="d-block">Numéro du compteur</span>
-                                        <input value="{{old('water_counter_number')}}" type="text" name="water_counter_number" placeholder="Numéro compteur" class="form-control" id="">
+                                        <input value="{{old('water_counter_number')}}" type="text" name="water_counter_number" placeholder="Numéro compteur" class="form-control" id="water_counter_number">
                                         @error("water_counter_number")
                                         <span class="text-red">{{$message}}</span>
                                         @enderror
 
                                         <div class="">
                                             <span for="" class="d-block">Index du compteur d'eau</span>
-                                            <input value="{{old('water_counter_start_index')?old('water_counter_start_index'):0}}" type="text" name="water_counter_start_index" placeholder="Index début ...." class="form-control" id="">
+                                            <input value="{{old('water_counter_start_index')?old('water_counter_start_index'):0}}" type="text" name="water_counter_start_index" placeholder="Index début ...." class="form-control" id="water_counter_start_index">
                                             @error("water_counter_start_index")
                                             <span class="text-red">{{$message}}</span>
                                             @enderror
                                         </div>
-                                    </div>
-                                    <div class="mb-3" id="water_counter_start_index" hidden>
                                     </div>
                                 </div>
                             </div>
@@ -274,27 +273,26 @@
                                     <div id="show_electricity_discountInputs" hidden>
                                         <div class="mb-3">
                                             <span for="" class="d-block">Numéro compteur</span>
-                                            <input value="{{old('electricity_counter_number')}}" type="text" name="electricity_counter_number" placeholder="Numéro compteur" class="form-control" id="">
-                                            @error("nature")
+                                            <input value="{{old('electricity_counter_number')}}" type="text" name="electricity_counter_number" placeholder="Numéro compteur" class="form-control" id="electricity_counter_number">
+                                            @error("electricity_counter_number")
                                             <span class="text-red">{{$message}}</span>
                                             @enderror
                                         </div>
                                         <div class="mb-3">
                                             <span for="" class="d-block">Prix unitaire</span>
-                                            <input value="{{old('electricity_unit_price')}}" type="text" name="electricity_unit_price" placeholder="Prix unitaire par kilowatheure " class="form-control" id="">
+                                            <input value="{{old('electricity_unit_price')}}" type="text" name="electricity_unit_price" placeholder="Prix unitaire par kilowatheure " class="form-control" id="electricity_unit_price">
                                             @error("electricity_unit_price")
                                             <span class="text-red">{{$message}}</span>
                                             @enderror
                                         </div>
                                         <div class="mb-3">
                                             <span for="" class="d-block">Index de début</span>
-                                            <input value="{{old('electricity_counter_start_index')}}" type="text" name="electricity_counter_start_index" placeholder="Index début ...." class="form-control" id="">
+                                            <input value="{{old('electricity_counter_start_index')}}" type="text" name="electricity_counter_start_index" placeholder="Index début ...." class="form-control" id="electricity_counter_start_index">
                                             @error("electricity_counter_start_index")
                                             <span class="text-red">{{$message}}</span>
                                             @enderror
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
@@ -304,6 +302,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
+
                 </div>
             </div>
         </div>
@@ -320,6 +319,7 @@
                             <th class="text-center">N°</th>
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Maison</th>
+                            <th class="text-center">Superviseur</th>
                             <th class="text-center">Loyer</th>
                             <th class="text-center">Image</th>
                             <th class="text-center">Loyer Total</th>
@@ -336,8 +336,9 @@
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center">{{$room["number"]}}</td>
                             <td class="text-center">{{$room["House"]["name"]}}</td>
+                            <td class="text-center">{{$room["House"]["Supervisor"]["name"]}}</td>
                             <td class="text-center">{{$room["loyer"]}}</td>
-                            <td class="text-center"><a href="{{$room['photo']}}" target="_blank" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
+                            <td class="text-center"><a href="{{$room['photo']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
                             <td class="text-center">{{$room["total_amount"]}}</td>
                             <td class="text-center">{{$room["Type"]['name']}}</td>
                             <td class="text-center">
@@ -354,7 +355,6 @@
                         </tr>
                         @endforeach
                     </tbody>
-
                 </table>
             </div>
         </div>
@@ -407,8 +407,8 @@
                                 <div class="mb-3">
                                     <label for="" class="d-block">Ordures</label>
                                     <input type="text" id="rubbish" name="rubbish" placeholder="Les ordures ..." class="form-control">
-
                                 </div><br>
+
                                 <div class="mb-3">
                                     <label for="" class="d-block">Vidange</label>
                                     <input type="text" id="vidange" name="vidange" placeholder="La vidange ..." class="form-control">
@@ -498,7 +498,7 @@
             axios.get("{{env('API_BASE_URL')}}room/" + id + "/retrieve").then((response) => {
                 var room = response.data
                 var room_fullname = room["number"];
-                
+
                 $("#update_room_fullname").html(room_fullname)
 
                 $("#loyer").val(room["loyer"])
@@ -525,7 +525,6 @@
             })
         }
 
-
         $(document).ready(function() {
             $("#showWaterInfo").click();
         })
@@ -535,9 +534,18 @@
             var value = $('#showWaterInfo')[0].checked
             if (value) {
                 $('#show_water_info').removeAttr('hidden');
-                $('#showElectricityInfo_block').attr('hidden', "hidden");
             } else {
                 $('#show_water_info').attr("hidden", "hidden");
+
+                //  on annule tous les champs relatifs à l'eau
+                document.getElementById("water_discounter").checked = false;
+                document.getElementById("showWaterConventionnalCounterInputs").checked = false;
+                document.getElementById("forage").checked = false;
+
+                $("#unit_price").val(null)
+                $("#forfait_forage").val(null)
+                $("#water_counter_number").val(null)
+                $("#water_counter_start_index").val(null)
             }
         }
 
@@ -547,6 +555,7 @@
                 $('#water_discounter_inputs').removeAttr('hidden');
             } else {
                 $('#water_discounter_inputs').attr("hidden", "hidden");
+                $("#unit_price").val(null)
             }
         }
 
@@ -556,26 +565,38 @@
                 $('#show_water_conventionnal_counter_inputs').removeAttr('hidden');
             } else {
                 $('#show_water_conventionnal_counter_inputs').attr("hidden", "hidden");
+                $("#water_counter_start_index").val(null)
+                $("#water_counter_number").val(null)
             }
         }
 
         function show_forage_inputs_fun() {
-            show_forage_inputs
             var value = $('#forage')[0].checked
             if (value) {
                 $('#show_forage_inputs').removeAttr('hidden');
             } else {
                 $('#show_forage_inputs').attr("hidden", "hidden");
+                $("#forfait_forage").val(null)
             }
         }
+
         // ELECTRICITY
         function showElectricityInfo_fun() {
             var value = $('#btncheck_electricity')[0].checked
             if (value) {
                 $('#showElectricityInfo_block').removeAttr('hidden');
-                $('#show_water_info').attr("hidden", "hidden");
+                // $('#show_water_info').attr("hidden", "hidden");
             } else {
                 $('#showElectricityInfo_block').attr("hidden", "hidden");
+
+                //  on annule tous les champs relatifs à l'electricité
+                document.getElementById("electricity_decounter_flexCheckChecked").checked = false;
+                document.getElementById("electricity_card_flexCheckDefault").checked = false;
+                document.getElementById("electricity_card_conven_flexCheckChecked").checked = false;
+
+                $("#electricity_unit_price").val(null)
+                $("#electricity_counter_number").val(null)
+                $("#electricity_counter_start_index").val(null)
             }
         }
 
@@ -585,6 +606,9 @@
                 $('#show_electricity_discountInputs').removeAttr('hidden');
             } else {
                 $('#show_electricity_discountInputs').attr("hidden", "hidden");
+                $("#electricity_unit_price").val(null)
+                $("#electricity_counter_number").val(null)
+                $("#electricity_counter_start_index").val(null)
             }
         }
     </script>

@@ -33,7 +33,7 @@ class AgencyController extends Controller
             'rccm' => ['required'],
             'phone' => ['required', "numeric"],
 
-            'email' => ['required', 'email', Rule::unique('users')],
+            // 'email' => ['required', 'email', Rule::unique('users')],
             'country' => ['required', "integer"],
             'city' => ['required'],
         ];
@@ -51,9 +51,9 @@ class AgencyController extends Controller
             'phone.required' => "Le phone de l'agence est réquis!",
             'phone.numeric' => "Le phone de l'agence doit être de type numérique!",
 
-            'email.required' => "Le mail de l'agence est réquis!",
-            'email.email' => "Le mail de l'agence doit être de type mail!",
-            'email.unique' => 'Un compte existe déjà au nom de ce mail!',
+            // 'email.required' => "Le mail de l'agence est réquis!",
+            // 'email.email' => "Le mail de l'agence doit être de type mail!",
+            // 'email.unique' => 'Un compte existe déjà au nom de ce mail!',
 
             'country.required' => "Le pays de l'agence est réquis!",
             'country.integer' => "Le champ *country* de l'agence doit être de type entier!",
@@ -117,27 +117,10 @@ class AgencyController extends Controller
             $formData["owner"] = $request->get("owner");
         }
 
+        $formData["email"] = $request->email ? $request->email : "null";
+
         #ENREGISTREMENT DE L'AGENCE DANS LA DB
         $created_agency = Agency::create($formData);
-
-        // 
-        #ENREGISTREMENT DE L'AGENCE ENTANT QUE USER DANS LA DB
-        // $userData = [
-        //     "user_agency" => $created_agency->id,
-        //     "owner" => $formData["owner"],
-        //     "name" => $created_agency->name,
-        //     "username" => $created_agency->number,
-        //     "password" => $created_agency->number,
-        //     "phone" => $created_agency->phone,
-        //     "email" => $created_agency->email,
-
-        //     "rang_id" => 2,
-        //     "profil_id" => 5,
-        // ];
-
-        // ###__
-        // $agency_user = User::create($userData);
-
 
         ###___GENERATION DES COMPTES DE CETTE AGENCE
         $all_accounts = ImmoAccount::all();
@@ -151,15 +134,6 @@ class AgencyController extends Controller
         }
         ###___
 
-        // try {
-        //     Send_Notification(
-        //         $agency_user,
-        //         "Création de compte sur Perfect ERP",
-        //         "Votre compte agence a été crée avec succès sur Perfect ERP",
-        //     );
-        // } catch (\Throwable $th) {
-        //     //throw $th;
-        // }
 
         alert()->success('Succès', "Agence ajoutée avec succès!!");
         return redirect()->back()->withInput();
@@ -285,7 +259,7 @@ class AgencyController extends Controller
                 alert()->error('Echèc', "Désolé! Cette maison n'existe pas!");
                 return redirect()->back()->withInput();
             }
-        }else {
+        } else {
             $formData["house"] = null;
         }
 

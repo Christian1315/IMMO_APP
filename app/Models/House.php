@@ -28,7 +28,8 @@ class House extends Model
         "owner",
         "proprio_payement_echeance_date",
         "geolocalisation",
-        "commission_percent"
+        "commission_percent",
+        "image"
     ];
 
     function _Agency() : BelongsTo {

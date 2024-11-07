@@ -90,7 +90,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a target="_blank" href="{{route('house.ShowHouseStateImprimeHtml',crypId($house['id']))}}" class="btn text-dark btn-sm bg-light"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer les états</button>
+                                <a  href="{{route('house.ShowHouseStateImprimeHtml',crypId($house['id']))}}" class="btn text-dark btn-sm bg-light"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer les états</button>
                             </td>
                         </tr>
 

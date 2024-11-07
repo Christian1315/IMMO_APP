@@ -24,7 +24,8 @@ class Proprietor extends Model
         'city',
         'country',
         'card_type',
-        "owner"
+        "owner",
+        "piece_file"
     ];
 
     function Owner(): BelongsTo

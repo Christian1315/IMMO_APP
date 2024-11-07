@@ -54,6 +54,7 @@
         </div>
     </div>
     @endif
+
     <!-- ADD HOUSE -->
     <div class="modal fade" id="addHouse" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -63,7 +64,7 @@
                     <button type="button" class="btn btn-sm text-red" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i></button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('house._AddHouse')}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce">
+                    <form action="{{route('house._AddHouse')}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="agency" value="{{$current_agency->id}}">
                         <div class="row">
@@ -130,6 +131,13 @@
                                     <input type="text" value="{{old('geolocalisation')}}" name="geolocalisation" class="form-control" placeholder="Entrez le lien de géolocalisation de la maison">
                                     @error("geolocalisation")
                                     <span class="text-red"> {{$message}} </span>
+                                    @enderror
+                                </div><br>
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Une image de la maison</label>
+                                    <input type="file" required value="{{old('image')}}" name="image" class="form-control">
+                                    @error('image')
+                                    <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
                             </div>
@@ -237,6 +245,7 @@
                             <th class="text-center">Propriétaire</th>
                             <th class="text-center">Chambres</th>
                             <th class="text-center"><i class="bi bi-geo-fill"></i></th>
+                            <th class="text-center"><i class="bi bi-card-image"></i></th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -255,12 +264,16 @@
                                     <i class="bi bi-eye-fill"></i> &nbsp; Voir
                                 </button>
                             </td>
+
                             <td class="text-center">
                                 @if($house['geolocalisation'])
-                                <a href="{{$house['geolocalisation']}}" class="btn btn-sm shadow-lg roundered" target="_blank" rel="noopener noreferrer"><i class="bi bi-eye-fill"></i> <i class="bi bi-geo-fill"></i></a>
+                                <a title="Voir la localisation" target="_blank" href="{{$house['geolocalisation']}}" class="btn btn-sm shadow-lg roundered" rel="noopener noreferrer"><i class="bi bi-eye-fill"></i> <i class="bi bi-geo-fill"></i></a>
                                 @else
                                 ---
                                 @endif
+                            </td>
+                            <td class="text-center">
+                                <a title="Voir l'image" href="{{$house['image']}}" target="_blank" class="btn btn-sm shadow-lg roundered" rel="noopener noreferrer"><i class="bi bi-eye-fill"></i> <i class="bi bi-geo-fill"></i></a>
                             </td>
                             <td class="text-center">
                                 <div class="btn-group dropstart">
@@ -280,7 +293,7 @@
 
                                         @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                                         <li>
-                                            <a target="_blank" href="/house/{{crypId($house['id'])}}/{{crypId($current_agency['id'])}}/stopHouseState" class="btn btn-sm bg-warning text-dark"><i class="bi bi-sign-stop-fill"></i>&nbsp; Arrêter les états</a>
+                                            <a href="/house/{{crypId($house['id'])}}/{{crypId($current_agency['id'])}}/stopHouseState" class="btn btn-sm bg-warning text-dark"><i class="bi bi-sign-stop-fill"></i>&nbsp; Arrêter les états</a>
                                         </li>
                                         @endif
 
@@ -304,7 +317,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title fs-5" id="exampleModalLabel">Maison: <strong> <em class="text-red" id="house_fullname"> {{$house['name']}}</em> </strong> </h6>
+                    <h6 class="modal-title fs-5" id="exampleModalLabel">Maison: <strong> <em class="text-red" id="house_fullname"> </em> </strong> </h6>
                 </div>
                 <div class="modal-body">
                     <h6 class="">Total de chambre: <em class="text-red" id="house_rooms_count"> </em> </h6>
@@ -315,7 +328,6 @@
             </div>
         </div>
     </div>
-
 
     <!-- ###### MODEL DE MODIFICATION ###### -->
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

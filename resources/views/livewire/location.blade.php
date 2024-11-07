@@ -38,7 +38,7 @@
     </div>
 
     <small>
-        <a type="button" target="_blank" href="{{route('location._ManageCautions',crypId($current_agency->id))}}" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les états des cautions </a> &nbsp;
+        <a type="button"  href="{{route('location._ManageCautions',crypId($current_agency->id))}}" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les états des cautions </a> &nbsp;
         <button data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Prestation par période</button>
     </small>
 
@@ -400,6 +400,7 @@
                         <tr>
                             <th class="text-center">N°</th>
                             <th class="text-center">Maison</th>
+                            <th class="text-center">Superviseur</th>
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Locataire</th>
                             <th class="text-center">Contrat</th>
@@ -417,9 +418,12 @@
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index+1}}</td>
                             <td class="text-center">{{$location["House"]["name"]}}</td>
+                            <td class="text-center">
+                                {{ $location->House->Supervisor->name }}
+                            </td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
                             <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</td>
-                            <td class="text-center"> <a target="_blank" href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
+                            <td class="text-center"> <a  href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
                             </td>
                             <td class="text-center">{{$location["loyer"]}}</td>
                             <!-- <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{$location["latest_loyer_date"]}}</small> </td> -->
@@ -453,7 +457,7 @@
                                             <button class="btn btn-sm btn-light text-dark" data-bs-toggle="modal" data-bs-target="#shoFactures_{{$location['id']}}">Gérer les factures</button>
                                         </li>
                                         <li>
-                                            <a target="_blank" href="{{route('location.imprimer',crypId($location['id']))}}" class="btn btn-sm bg-secondary text-white"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer rapport</a>
+                                            <a  href="{{route('location.imprimer',crypId($location['id']))}}" class="btn btn-sm bg-secondary text-white"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer rapport</a>
                                         </li>
 
                                     </ul>
@@ -590,7 +594,7 @@
                                                 <li class="list-group-item mb-3 "> <strong>Code :</strong> {{$facture->facture_code}};
                                                     <strong>Statut :</strong> <span class="@if($facture->status==2) bg-success @elseif($facture->status==3 || $facture->status==4)  bg-danger @else bg-warning @endif">{{$facture->Status->name}} </span> ;
                                                     <strong>Montant: </strong> {{$facture->amount}};
-                                                    <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light" target="_blank" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
+                                                    <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
                                                     <strong>Date d'écheance: </strong> {{Change_date_to_text($facture->echeance_date)}};
                                                     <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> ;
                                                     <strong>Traitement: </strong><br>
@@ -637,7 +641,7 @@
                                                         <label for="" class="d-block">Maison</label>
                                                         <select class="form-select form-control" name="house" aria-label="Default select example">
                                                             @foreach($houses as $house)
-                                                            <option value="{{$house['id']}}" @if($location->house==$house['id']) selected @endif>{{$house['name']}}</option>
+                                                            <option value="{{$house['id']}}" >{{$house['name']}}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -647,7 +651,7 @@
                                                         <label class="d-block" for="">Chambre</label>
                                                         <select class="form-select form-control" name="room" aria-label="Default select example">
                                                             @foreach($rooms as $room)
-                                                            <option value="{{$room['id']}}" @if($location->room==$room['id']) selected @endif>{{$room['number']}}</option>
+                                                            <option value="{{$room['id']}}">{{$room['number']}}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -657,7 +661,7 @@
                                                         <label class="d-block" for="">Locataire</label>
                                                         <select class="form-select form-control" name="locataire" aria-label="Default select example">
                                                             @foreach($locators as $locator)
-                                                            <option value="{{$locator['id']}}" @if($location->locataire==$locator['id']) selected @endif>{{$locator['name']}} {{$locator['prenom']}}</option>
+                                                            <option value="{{$locator['id']}}">{{$locator['name']}} {{$locator['prenom']}}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -666,7 +670,7 @@
                                                         <label class="d-block" for="">Type</label>
                                                         <select class="form-select form-control" name="type">
                                                             @foreach($location_types as $type)
-                                                            <option value="{{$type['id']}}" @if($location->type==$type['id']) selected @endif>{{$type['name']}}</option>
+                                                            <option value="{{$type['id']}}" >{{$type['name']}}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -741,7 +745,6 @@
         </div>
     </div>
     @endif
-
 
 
     <script type="text/javascript">

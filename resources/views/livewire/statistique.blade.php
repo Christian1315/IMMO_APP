@@ -29,8 +29,8 @@
                             <td class="text-center"> <button class="btn btn-sm btn-light"> {{$house["Proprietor"]["lastname"]}} {{$house["Proprietor"]["firstname"]}}</button> </td>
 
                             <td class="text-center">
-                                <a target="_blank" href="{{route('location.FiltreBeforeStateDateStoped', crypId($house['id']))}}" class="btn btn-sm btn-dark"><i class="bi bi-caret-left-square"></i></a> &nbsp;
-                                <a target="_blank" href="{{route('location.FiltreAfterStateDateStoped', crypId($house['id']))}}" class="btn btn-sm bg-red"><i class="bi bi-caret-right-square"></i></a>
+                                <a  href="{{route('location.FiltreBeforeStateDateStoped', crypId($house['id']))}}" class="btn btn-sm btn-dark"><i class="bi bi-caret-left-square"></i></a> &nbsp;
+                                <a  href="{{route('location.FiltreAfterStateDateStoped', crypId($house['id']))}}" class="btn btn-sm bg-red"><i class="bi bi-caret-right-square"></i></a>
                                 &nbsp;
                             </td>
                         </tr>

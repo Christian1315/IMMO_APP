@@ -25,6 +25,7 @@
                         <input type="hidden" name="agency" value="{{$current_agency['id']}}">
                         <div class="row">
                             <div class="col-md-6">
+
                                 <div class="mb-3">
                                     <label for="" class="d-block">Nom</label>
                                     <input type="text" name="firstname" placeholder="Nom" value="{{old('firstname')}}" class="form-control">
@@ -40,7 +41,7 @@
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
-                                    <label for="" class="d-block">Prénom</label>
+                                    <label for="" class="d-block">Téléphone</label>
                                     <input type="phone" name="phone" value="{{old('phone')}}" placeholder="Téléphone" class="form-control">
                                     @error('phone')
                                     <span class="text-red">{{$message}}</span>
@@ -67,6 +68,13 @@
                                     <label for="" class="d-block">Numéro de pièce d'identité</label>
                                     <input type="text" name="piece_number" value="{{old('piece_number')}}" placeholder="Numéro de pièce d'identité" class="form-control">
                                     @error('piece_number')
+                                    <span class="text-red">{{$message}}</span>
+                                    @enderror
+                                </div><br>
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Télécharger la pièce d'identité</label>
+                                    <input type="file" required value="{{old('piece_file')}}" name="piece_file" class="form-control">
+                                    @error('piece_file')
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
@@ -135,6 +143,7 @@
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
+
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -162,9 +171,9 @@
                             <th class="text-center">Prénom</th>
                             <th class="text-center">Téléphone</th>
                             <th class="text-center">Email</th>
-                            <th class="text-center">N° Pièce</th>
+                            <th class="text-center">Pièce</th>
                             <th class="text-center">Contrat</th>
-                            <th class="text-center">Adresse</th>
+                            <!-- <th class="text-center">Adresse</th> -->
                             <th class="text-center">Maisons</th>
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Actions</th>
@@ -179,10 +188,10 @@
                             <td class="text-center">{{$proprietor["firstname"]}}</td>
                             <td class="text-center">{{$proprietor["phone"]}}</td>
                             <td class="text-center">{{$proprietor["email"]}}</td>
-                            <td class="text-center">{{$proprietor["piece_number"]}}</td>
-                            <td class="text-center"> <a target="_blank" href="{{$proprietor['mandate_contrat']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i></a>
+                            <td class="text-center"> <a title="Voir pièce d'identité" href="{{$proprietor['piece_file']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i></a>
+                            <td class="text-center"> <a title="Voir Contrat" href="{{$proprietor['mandate_contrat']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i></a>
                             </td>
-                            <td class="text-center">{{$proprietor["adresse"]}}</td>
+                            <!-- <td class="text-center">{{$proprietor["adresse"]}}</td> -->
                             <td class="text-center">
                                 <button type="button" data-bs-toggle="modal" onclick="show_houses_fun({{$proprietor['id']}})" data-bs-toggle="modal" data-bs-target="#show_houses" class="btn btn-sm bg-warning">
                                     <i class="bi bi-eye-fill"></i> &nbsp; Voir
@@ -307,7 +316,6 @@
         }
 
         function updateModal_fun(id) {
-
             axios.get("{{env('API_BASE_URL')}}proprietor/" + id + "/retrieve").then((response) => {
                 var proprietor = response.data
                 var proprio_fullname = proprietor["firstname"] + " " + proprietor["lastname"];

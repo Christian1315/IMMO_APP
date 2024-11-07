@@ -107,7 +107,7 @@
                                     <td class="text-center">{{$facture["Location"]["Room"]["number"]}} </td>
                                     <td class="text-center">{{$facture["Location"]["Locataire"]["name"]}} {{$facture["Location"]["Locataire"]["prenom"]}}</td>
                                     <td class="text-center">
-                                        <a target="_blank" href="{{$facture['facture']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i> </a>
+                                        <a  href="{{$facture['facture']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i> </a>
                                     </td>
                                     <td class="text-center">{{$facture['amount']}}</td>
                                     <td class="text-center">

@@ -29,11 +29,13 @@ class ProprietorController extends Controller
             'firstname' => ['required'],
             'lastname' => ['required'],
             'phone' => ['required', "numeric"],
-            'email' => ['required', "email"],
+            // 'email' => ['required', "email"],
+
             'sexe' => ['required'],
             'piece_number' => ['required'],
+            'piece_file' => ['required', "file"],
             'mandate_contrat' => ['required', "file"],
-            'comments' => ['required'],
+            // 'comments' => ['required'],
             'adresse' => ['required'],
 
             'city' => ['required', 'integer'],
@@ -49,12 +51,17 @@ class ProprietorController extends Controller
             'firstname.required' => 'Veuillez précisez le prénom!',
             'lastname.required' => 'Veuillez précisez le nom!',
             'phone.required' => 'Veuillez précisez le phone!',
-            'email.required' => 'Veuillez précisez le mail!',
+            // 'email.required' => 'Veuillez précisez le mail!',
             'sexe.required' => 'Veuillez précisez le sexe!',
+
             'piece_number.required' => 'Veuillez précisez le numéro de la pièce!',
+
+            'piece_file.required' => "La pièce d'identité est réquise",
+            'piece_file.file' => 'Ce champ est un fichier',
+
             'mandate_contrat.required' => 'Veuillez précisez le contrat de location!',
             'mandate_contrat.file' => 'Ce champ doit doit être un fichier!',
-            'comments.required' => 'Veuillez précisez un commantaire!',
+            // 'comments.required' => 'Veuillez précisez un commantaire!',
             'adresse.required' => 'Veuillez précisez l\'adresse!',
             'city.required' => 'Veuillez précisez la ville!',
             'country.required' => 'Veuillez précisez le pays!',
@@ -68,7 +75,7 @@ class ProprietorController extends Controller
             'agency.integer' => "L'agence doit être de type entier!",
 
             'phone.numeric' => 'Ce champ doit doit être de type numeric!',
-            'email.email' => 'Ce champ doit doit être de type mail!',
+            // 'email.email' => 'Ce champ doit doit être de type mail!',
         ];
     }
 
@@ -119,13 +126,20 @@ class ProprietorController extends Controller
             return redirect()->back()->withInput();
         }
 
-        ###__TRAITEMENT DE L'IMAGE
+        ###__TRAITEMENT DU CONTRAT
         $mandate_contrat = $request->file("mandate_contrat");
         $file_name = $mandate_contrat->getClientOriginalName();
         $mandate_contrat->move("contrats", $file_name);
 
-        #ENREGISTREMENT DE LA CARTE DANS LA DB
+        ###__TRAITEMENT DE LA CARTE D'IDENTITE
+        $piece_file = $request->file("piece_file");
+        $piece_file_name = $piece_file->getClientOriginalName();
+        $piece_file->move("contrats", $piece_file_name);
+
+        #ENREGISTREMENT DES FICHIERS DANS LA DB
         $formData["mandate_contrat"] = asset("contrats/" . $file_name);
+        $formData["piece_file"] = asset("contrats/" . $piece_file_name);
+
         $formData["owner"] = $user->id;
 
         ####____CREATION D'UN PROPRIETAIRE
@@ -165,7 +179,7 @@ class ProprietorController extends Controller
         };
 
         if (!auth()->user()->is_master && !auth()->user()->is_admin) {
-            if ($proprietor->owner!=$user->id) {
+            if ($proprietor->owner != $user->id) {
                 alert()->error("Echec", "Ce propriétaire ne vous appartient pas");
                 return redirect()->back()->withInput();
             };

@@ -183,7 +183,7 @@
                                             <li class="list-group-item mb-3 ">
                                                 <strong>Date d'arrêt: </strong> {{$state->state_stoped_day}}
                                                 <br>
-                                                <a target="_blank" href="{{route('house_state.ShowWaterStateImprimeHtml',crypId($state->id))}}" class="btn btn-sm bg-red"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer</a>
+                                                <a  href="{{route('house_state.ShowWaterStateImprimeHtml',crypId($state->id))}}" class="btn btn-sm bg-red"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer</a>
                                             </li>
                                             @endforeach
                                         </ul>

@@ -112,13 +112,11 @@ class AdminController extends Controller
             alert()->error("Echec", "Cette agence n'existe pas!");
         }
         ####____
-
         return view("admin.rooms", compact("agency"));
     }
 
     function Locator(Request $request, $agencyId)
     {
-
         $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
         if (!$agency) {
             alert()->error("Echec", "Cette agence n'existe pas!");
@@ -320,8 +318,8 @@ class AdminController extends Controller
         }
 
         ###___
-        alert()->success("Succès","Filtre éffectué avec succès!");
-        return back()->withInput()->with(["any_date"=>$date,"locators"=>$locators]);
+        alert()->success("Succès", "Filtre éffectué avec succès!");
+        return back()->withInput()->with(["any_date" => $date, "locators" => $locators]);
     }
 
 
@@ -361,7 +359,7 @@ class AdminController extends Controller
     {
         return view("admin.statistiques");
     }
-   
+
     function Rights(Request $request)
     {
         return view("admin.rights");
@@ -451,6 +449,26 @@ class AdminController extends Controller
         if (!$agency) {
             alert()->error("Echec", "Cette agence n'existe pas!");
         };
-        return view("admin.factures", compact(["agency"]));
+
+        $factures = [];
+        foreach ($agency->_Locations as $location) {
+
+            if ($request->method() == "GET") {
+                $locations = $location->Factures;
+            } else {
+                alert()->success("Succès", "Filtre éffectué avec succès");
+                $locations = $location->Factures->whereBetween("created_at", [$request->debut, $request->fin]);
+            }
+            foreach ($locations as $facture) {
+                if (!$facture["state_facture"]) {
+                    $factures[] =  $facture;
+                }
+            }
+        }
+
+        ###___
+        $factures = collect($factures);
+        $montantTotal = $factures->sum("amount");
+        return view("admin.factures", compact(["agency", "factures","montantTotal"]));
     }
 }

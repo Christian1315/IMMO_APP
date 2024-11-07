@@ -271,7 +271,7 @@ class LocationController extends Controller
         $type = LocationType::find($formData["type"]);
         $agency = Agency::find($formData["agency"]);
 
-        ##__LES INFOS LIEES AU COMPTERUELECTRIQUE D'UNE LOCATION REVIENNENT AUX INFOS ELECYTRICQUE DE LMA CHAMBRE CHOISIE
+        ##__LES INFOS LIEES AU COMPTEUEr LECTRIQUE D'UNE LOCATION REVIENNENT AUX INFOS ELECYTRICQUE DE LMA CHAMBRE CHOISIE
         $formData["discounter"] = $room->electricity ? true : false;
         $formData["kilowater_price"] = $room->electricity ? ($room->electricity_unit_price ? $room->electricity_unit_price : 0) : 0;
         ###___

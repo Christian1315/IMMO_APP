@@ -34,7 +34,7 @@ class HouseController extends Controller
             'agency' => ['required'],
             'name' => ['required'],
             'proprio_payement_echeance_date' => ['required', "date"],
-            // 'comments' => ['required'],
+            'image' => ['required'],
 
             'proprietor' => ['required', "integer"],
             'type' => ['required', "integer"],
@@ -54,7 +54,10 @@ class HouseController extends Controller
             'name.required' => 'Le nom de la maison est réquis!',
             'proprio_payement_echeance_date.required' => "La date d'écheance du payement du propriétaire est réquise!",
             'proprio_payement_echeance_date.date' => "Ce champ doit être de type date",
-            // 'comments.required' => "Le commentaire est réquis!",
+
+            'image.required' => "L'image' est réquise!",
+            // 'image.file' => "Ce champ doit être un fichier",
+
             'proprietor.required' => "Le propriétaire est réquis",
             'type.required' => "Le type de la chambre est réquis",
             'city.required' => "La ville est réquise",
@@ -149,9 +152,16 @@ class HouseController extends Controller
             return redirect()->back()->withInput();
         }
 
+        ###__TRAITEMENT DE LA CARTE D'IDENTITE
+        $image = $request->file("image");
+        $image_name = $image->getClientOriginalName();
+        $image->move("houses_images", $image_name);
+
         #ENREGISTREMENT DE LA CARTE DANS LA DB
         $formData["owner"] = $user->id;
-        $house = House::create($formData);
+        $formData["image"] = asset("houses_images/" . $image_name);
+
+        House::create($formData);
 
         alert()->success("Succès", "Maison ajoutée avec succès");
         return redirect()->back()->withInput();
