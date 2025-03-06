@@ -302,6 +302,8 @@ class RoomController extends Controller
         $formData["electricity_conventionnal_counter"] = $request->electricity_conventionnal_counter ? 1 : 0;
         $formData["electricity_card_counter"] = $request->electricity_card_counter ? 1 : 0;
         $formData["electricity_counter_number"] = $request->electricity_counter_number ? $request->electricity_counter_number : "--";
+        $formData["electricity_counter_start_index"] = $request->electricity_counter_start_index ? $request->electricity_counter_start_index : 0;
+        
 
         $formData["cleaning"] = $request->cleaning ? $request->cleaning : 0;
         $formData["comments"] = $request->comments ? $request->comments : "---";
