@@ -2,6 +2,16 @@
 /node_modules
 /public/build
 /public/hot
+
+/public/caution_bordereaus
+/public/contrats
+/public/factures
+/public/houses_images
+/public/img_contrats
+/public/img_prestations
+/public/pieces
+/public/room_images
+
 /public/storage
 /storage/*.key
 /vendor
