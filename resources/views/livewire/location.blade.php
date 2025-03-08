@@ -502,7 +502,7 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <span>Date ou mois pour lequel vous voulez encaisser pour cette location</span>
-                                                    <input disabled value="{{Change_date_to_text($location['next_loyer_date'])}}" class="form-control">
+                                                    <input disabled value="{{ \Carbon\Carbon::parse($location['next_loyer_date'])->locale('fr')->isoFormat('MMMM YYYY')}}" class="form-control">
                                                 </div>
 
                                                 @if($location->Locataire->prorata)
