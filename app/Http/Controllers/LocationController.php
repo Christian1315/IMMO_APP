@@ -318,7 +318,7 @@ class LocationController extends Controller
         }
 
         $room_location = Location::where(["room" => $formData["room"]])->first();
-        if ($room_location && $room_location->status != 3) {
+        if ($room_location) {
             alert()->error("Echec", "Cette chambre est déjà occupée!");
             return back()->withInput();
         }
@@ -715,7 +715,6 @@ class LocationController extends Controller
         $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
         $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
         ###__
-
 
         ###___INCREMENTATION DU COMPTE LOYER
 

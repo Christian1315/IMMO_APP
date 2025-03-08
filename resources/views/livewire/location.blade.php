@@ -336,7 +336,6 @@
                                 @enderror
                             </div>
 
-
                             <div class="mb-3" id="encaisse_date_info" hidden>
                                 <span>Date ou mois pour lequel vous voulez encaisser pour cette location</span>
                                 <input id="encaisse_date" disabled value="" class="form-control">
