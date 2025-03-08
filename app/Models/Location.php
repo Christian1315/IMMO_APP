@@ -69,9 +69,21 @@ class Location extends Model
         "previous_echeance_date"
     ];
 
+    // si cette location est en impayé ou pas
+    public function paid()
+    {
+        $now = strtotime(date("Y/m/d", strtotime(now())));
+        $location_echeance_date = strtotime(date("Y/m/d", strtotime($this->echeance_date)));
+        if ($location_echeance_date > $now) {
+            return true;
+        }else{
+            return false;
+        };
+    }
+
     function _Agency(): BelongsTo
     {
-        return $this->belongsTo(Agency::class, "agency")->where(["visible"=>1]);
+        return $this->belongsTo(Agency::class, "agency")->where(["visible" => 1]);
     }
 
     function Owner(): BelongsTo
@@ -81,12 +93,12 @@ class Location extends Model
 
     function House(): BelongsTo
     {
-        return $this->belongsTo(House::class, "house")->with(["Owner", "Proprietor", "Type", "Supervisor", "City", "Country", "Departement", "Quartier", "Zone"])->where(["visible"=>1]);
+        return $this->belongsTo(House::class, "house")->with(["Owner", "Proprietor", "Type", "Supervisor", "City", "Country", "Departement", "Quartier", "Zone"])->where(["visible" => 1]);
     }
 
     function Locataire(): BelongsTo
     {
-        return $this->belongsTo(Locataire::class, "locataire")->with(["Owner", "CardType", "Departement", "Country"])->where(["visible"=>1]);
+        return $this->belongsTo(Locataire::class, "locataire")->with(["Owner", "CardType", "Departement", "Country"])->where(["visible" => 1]);
     }
 
     function Type(): BelongsTo
@@ -101,12 +113,12 @@ class Location extends Model
 
     function Room(): BelongsTo
     {
-        return $this->belongsTo(Room::class, "room")->with(["Owner", "House", "Nature", "Type"])->where(["visible"=>1]);
+        return $this->belongsTo(Room::class, "room")->with(["Owner", "House", "Nature", "Type"])->where(["visible" => 1]);
     }
 
     function Factures(): HasMany
     {
-        return $this->hasMany(Facture::class, "location")->whereNull("state")->with(["Owner", "Location", "Type", "Status", "State"])->orderBy("id","desc");
+        return $this->hasMany(Facture::class, "location")->whereNull("state")->with(["Owner", "Location", "Type", "Status", "State"])->orderBy("id", "desc");
     }
 
     function AllFactures(): HasMany
@@ -121,15 +133,16 @@ class Location extends Model
 
     function WaterFactures(): HasMany
     {
-        return $this->hasMany(LocationWaterFacture::class, "location")->with(["Location"])->whereNull(["state"])->where(["state_facture"=>0])->orderBy("id", "desc");
+        return $this->hasMany(LocationWaterFacture::class, "location")->with(["Location"])->whereNull(["state"])->where(["state_facture" => 0])->orderBy("id", "desc");
     }
 
     function ElectricityFactures(): HasMany
     {
-        return $this->hasMany(LocationElectrictyFacture::class, "location")->with(["Location"])->whereNull(["state"])->where(["state_facture"=>0])->orderBy("id", "desc");
+        return $this->hasMany(LocationElectrictyFacture::class, "location")->with(["Location"])->whereNull(["state"])->where(["state_facture" => 0])->orderBy("id", "desc");
     }
 
-    function Agency() : BelongsTo {
-        return $this->belongsTo(Agency::class, "agency")->where(["visible"=>1])->orderBy("id", "desc");
+    function Agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class, "agency")->where(["visible" => 1])->orderBy("id", "desc");
     }
 }
