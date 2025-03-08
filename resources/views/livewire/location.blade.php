@@ -415,7 +415,7 @@
                     <tbody>
                         @foreach($locations as $location)
                         <tr class="align-items-center @if (!$location->paid()) 'bg-warning' @elseif($location->status==3) 'bg-secondary' @endif ">
-                            <td class="text-center">{{$loop->index+1}}</td>
+                            <td class="text-center">{{$loop->index+1}} ({{ $location->paid() }})</td>
                             <td class="text-center">{{$location["House"]["name"]}}</td>
                             <td class="text-center">
                                 {{ $location->House->Supervisor->name }}
