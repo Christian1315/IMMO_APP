@@ -208,7 +208,7 @@
                     <div class="container-fluid bg-white shadow-lg py-3 bg-white mt-5">
                         <div class="row">
                             <div class="col-md-12 px-0 mx-0">
-                                <p class="text-center">© Copyright 2024 - Réalisé par HSMC</p>
+                                <p class="text-center">© Copyright {{ date("Y") }} - Réalisé par Code4Christ</p>
                             </div>
                         </div>
                     </div>

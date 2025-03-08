@@ -32,26 +32,6 @@ class HouseStopState extends Component
         $this->house = GET_HOUSE_DETAIL($house);
     }
 
-    function StopHouseState()
-    {
-        $data = [
-            "owner" => $this->userId,
-            "recovery_rapport" => $this->recovery_rapport,
-            "house" => $this->house["id"],
-        ];
-
-        $response = Http::withHeaders($this->headers)->post($this->BASE_URL . "immo/house_state/stop", $data)->json();
-
-        if (!$response) {
-            $this->generalError = "Désolé! Une erreure est survenue, veuille réessayer plus tard!";
-        }
-        if (!$response["status"]) {
-            $this->generalError = $response["erros"];
-        } else {
-            ##___
-            $this->refresh($response["message"]);
-        }
-    }
     public function render()
     {
         return view('livewire.house-stop-state');

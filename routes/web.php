@@ -75,7 +75,7 @@ Route::controller(UserController::class)->group(function () {
     ##___
     Route::any('users', 'Users');
     Route::any('users/{id}', 'RetrieveUser');
-    Route::any('{id}/password/update', 'UpdatePassword');
+    Route::any('{id}/password/update', 'UpdatePassword')->name("user.updatePassword");
 
     Route::any('attach-user', 'AttachRightToUser'); #Attacher un droit au user 
 
@@ -119,7 +119,6 @@ Route::prefix("house")->group(function () {
 
         Route::get('/{id}/{agencyId}/stopHouseState', "StopHouseState")->name("stopHouseState");
         Route::post('/{houseId}/generate_cautions_for_house_by_period', "GenerateCautionByPeriod")->name("house.GenerateCautionByPeriod");
-
 
         ##=========__ ARRETER LES ETATS DES MAISON ======
         Route::post('stop/{houseId}', 'PostStopHouseState')->name("house.PostStopHouseState"); ####___ARRET DES ETATS D'UNE MAISON;
@@ -190,6 +189,7 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('/{agency}/locator', "Locator")->name("locator");
     Route::get('/{agency}/paid_locators', "PaidLocator")->name("paid-locator");
     Route::get('/{agency}/unpaid_locators', "UnPaidLocator")->name("unpaid-locator");
+    Route::get('/{agency}/removed_locators', "RemovedLocators")->name("removed-locators");
     Route::get('/{agency}/location', "Location")->name("location");
 
     Route::get('/{agency}/electricity/locations', "Electricity")->name("electricity");

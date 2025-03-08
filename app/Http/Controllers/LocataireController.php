@@ -738,6 +738,9 @@ class LocataireController extends Controller
         return back()->withInput()->with(["filteredLocators", $locataires]);
     }
 
+
+
+    
     #####______TAUX 05 AGENCE
     function _ShowAgencyTaux05_Simple(Request $request, $agencyId)
     {

@@ -146,6 +146,17 @@ class AdminController extends Controller
         return view("admin.unpaid-locators", compact("agency"));
     }
 
+    function RemovedLocators(Request $request, $agencyId)
+    {
+        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+        };
+
+        ####____
+        return view("admin.removed-locators", compact("agency"));
+    }
+
     function Location(Request $request, $agencyId)
     {
         $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));

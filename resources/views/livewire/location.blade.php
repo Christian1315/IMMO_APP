@@ -403,11 +403,11 @@
                             <th class="text-center">Superviseur</th>
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Locataire</th>
-                            <th class="text-center">Contrat</th>
+                            <th class="text-center">Dernier mois Payé</th>
                             <th class="text-center">Loyer</th>
                             <!-- <th class="text-center">Echéance actuelle</th> -->
                             <th class="text-center">Echeance</th>
-                            <th class="text-center">Commentaire</th>
+                            {{-- <th class="text-center">Commentaire</th> --}}
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Actions</th>
                             @endif
@@ -423,14 +423,13 @@
                             </td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
                             <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</td>
-                            <td class="text-center"> <a  href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
-                            </td>
+
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center">{{$location["loyer"]}}</td>
-                            <!-- <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{$location["latest_loyer_date"]}}</small> </td> -->
-                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{$location["next_loyer_date"]}}</small> </td>
-                            <td class="text-center">
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["next_loyer_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> </td>
+                            {{-- <td class="text-center">
                                 <textarea name="" rows="1" class="form-control" id="">{{$location["comments"]}}</textarea>
-                            </td>
+                            </td> --}}
 
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center">
@@ -458,6 +457,10 @@
                                         </li>
                                         <li>
                                             <a  href="{{route('location.imprimer',crypId($location['id']))}}" class="btn btn-sm bg-secondary text-white"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer rapport</a>
+                                        </li>
+
+                                        <li>
+                                            <a  href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light" rel="noopener noreferrer">Contrat <i class="bi bi-eye"></i></a>
                                         </li>
 
                                     </ul>

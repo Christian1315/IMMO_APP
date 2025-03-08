@@ -13,32 +13,36 @@ use Illuminate\Support\Facades\Crypt;
 
 
 #####========= ROLES ======####
-function IS_USER_HAS_SUPERVISOR_ROLE($user) {
-    if (in_array(env("SUPERVISOR_ROLE_ID"),$user->roles->pluck("id")->toArray())) {
+function IS_USER_HAS_SUPERVISOR_ROLE($user)
+{
+    if (in_array(env("SUPERVISOR_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
         return true;
     }
 
     return false;
 }
 
-function IS_USER_HAS_ACCOUNT_AGENT_ROLE($user) {
-    if (in_array(env("ACCOUNT_AGENT_ROLE_ID"),$user->roles->pluck("id")->toArray())) {
+function IS_USER_HAS_ACCOUNT_AGENT_ROLE($user)
+{
+    if (in_array(env("ACCOUNT_AGENT_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
         return true;
     }
 
     return false;
 }
 
-function IS_USER_HAS_ACCOUNT_CHIEF_ROLE($user) {
-    if (in_array(env("ACCOUNT_CHIEF_ROLE_ID"),$user->roles->pluck("id")->toArray())) {
+function IS_USER_HAS_ACCOUNT_CHIEF_ROLE($user)
+{
+    if (in_array(env("ACCOUNT_CHIEF_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
         return true;
     }
 
     return false;
 }
 
-function IS_USER_HAS_MASTER_ROLE($user) {
-    if (in_array(env("MASTER_ROLE_ID"),$user->roles->pluck("id")->toArray())) {
+function IS_USER_HAS_MASTER_ROLE($user)
+{
+    if (in_array(env("MASTER_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
         return true;
     }
 
@@ -308,7 +312,7 @@ function GET_HOUSE_DETAIL($house)
     ####_____DERNIER ETAT DE CETTE MAISON
     $house_last_state = $house->States->last();
 
-    $locations = $house->Locations;
+    $locations = $house->Locations->where("status", "!=", 3);
 
     ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
     foreach ($locations as $location) {
@@ -503,7 +507,7 @@ function GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house)
         $location_factures = [];
         if ($house_last_state) {
             $location_factures = Facture::where(["location" => $location->id, "state" => $house_last_state->id, "state_facture" => 0])->get();
-    
+
             foreach ($location_factures as $facture) {
                 array_push($house_factures_nbr_array, $facture);
                 array_push($house_amount_nbr_array, $facture->amount);

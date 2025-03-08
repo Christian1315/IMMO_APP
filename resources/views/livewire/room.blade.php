@@ -91,7 +91,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="" class="d-block">Loyer</label>
-                                    <input type="text" name="loyer" value="{{old('loyer')}}" placeholder="Le loyer" class="form-control">
+                                    <input type="number" name="loyer" value="{{old('loyer')}}" placeholder="Le loyer" class="form-control">
                                     @error("loyer")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -105,21 +105,21 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Gardiennage</label>
-                                    <input type="text" value="{{old('gardiennage')}}" name="gardiennage" placeholder="Gardiennage ..." class="form-control">
+                                    <input type="number" value="{{old('gardiennage')}}" name="gardiennage" placeholder="Gardiennage ..." class="form-control">
                                     @error("gardiennage")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Ordures</label>
-                                    <input type="text" value="{{old('rubbish')}}" name="rubbish" placeholder="Les ordures ..." class="form-control">
+                                    <input type="number" value="{{old('rubbish')}}" name="rubbish" placeholder="Les ordures ..." class="form-control">
                                     @error("rubbish")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Vidange</label>
-                                    <input type="text" value="{{old('vidange')}}" name="vidange" placeholder="La vidange ..." class="form-control">
+                                    <input type="number" value="{{old('vidange')}}" name="vidange" placeholder="La vidange ..." class="form-control">
                                     @error("vidange")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -161,7 +161,7 @@
 
                                     <div class="mb-3" hidden id="show_forage_inputs">
                                         <span for="" class="d-block">Forfait forage</span>
-                                        <input type="text" value="{{old('forfait_forage')}}" name="forfait_forage" placeholder="Forfait forage" class="form-control" id="forfait_forage">
+                                        <input type="number" value="{{old('forfait_forage')}}" name="forfait_forage" placeholder="Forfait forage" class="form-control" id="forfait_forage">
                                         @error("forfait_forage")
                                         <span class="text-red">{{$message}}</span>
                                         @enderror

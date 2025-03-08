@@ -513,6 +513,12 @@ class UserController extends Controller
         $user->update($request->all());
         ###___
 
+        // pour une modification de mot de passe on passe à une deconnection
+        if ($request->password) {
+            alert()->success('Succès', 'Mot de passe modifié avec succès!');
+            return redirect()->route("logout");
+        }
+
         alert()->success('Succès', 'Compte modifié avec succès!');
         return redirect()->back();
     }
