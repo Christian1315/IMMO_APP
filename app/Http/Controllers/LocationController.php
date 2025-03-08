@@ -368,15 +368,15 @@ class LocationController extends Controller
         // dd($formData);
         if ($formData["pre_paid"]) {
             ##__En pre-payé, la date d'echeance revient à la date
-            ##__de prise d'effet (date d'intégration)
-            $echeance_date = date("Y/m/d", strtotime($formData["effet_date"]));
-        } elseif ($formData["post_paid"]) {
-            ##__En post-payé, la date d'echeance revient à la date
-            ##__de prise d'effet (date d'intégration) + 1mois
+            ##__de prise d'effet + 1 mois (date d'intégration)
             $integration_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($formData["effet_date"]));
             $echeance_date = date("Y/m/d", $integration_date_timestamp_plus_one_month);
+        } elseif ($formData["post_paid"]) {
+            ##__En post-payé, la date d'echeance revient à la date
+            ##__de prise d'effet (date d'intégration) + 2 mois
+            $integration_date_timestamp_plus_one_month = strtotime("+2 month", strtotime($formData["effet_date"]));
+            $echeance_date = date("Y/m/d", $integration_date_timestamp_plus_one_month);
         }
-
 
         $formData["integration_date"] = $formData["effet_date"];
 
@@ -385,9 +385,7 @@ class LocationController extends Controller
         $formData["latest_loyer_date"] = $formData["effet_date"];
 
         ####___DESORMAIS LA DATE DU PROCHAIN REVIENT A LA DATE PAIEMENT D'ECHEANCE 
-        $formData["next_loyer_date"] = $formData["echeance_date"];
-
-
+        $formData["next_loyer_date"] = date("Y/m/d", strtotime("+1 month", strtotime($formData["latest_loyer_date"]))) ;
         $location = Location::create($formData);
 
         ###___FORMATION DE LA PROCHAINE DATE DE LOYER
