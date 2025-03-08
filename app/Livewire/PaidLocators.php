@@ -73,7 +73,6 @@ class PaidLocators extends Component
         ###____
 
         $locations = $this->current_agency->_Locations;
-
         $now = strtotime(date("Y/m/d", strtotime(now())));
 
         foreach ($locations as $location) {
