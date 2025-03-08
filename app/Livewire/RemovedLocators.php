@@ -79,7 +79,7 @@ class RemovedLocators extends Component
         ###___
         // $locataires = [];
         ###____
-        $locataires = $agency->_Locations->where("status", 3)->filter(function ($query) {
+        $locataires = $agency->_Locations->whereNotNull("status", 3)->filter(function ($query) {
             return $query->Locataire;
         });
         ##___

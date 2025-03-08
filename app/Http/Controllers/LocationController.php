@@ -602,7 +602,8 @@ class LocationController extends Controller
         }
 
         $formData["move_date"] = now();
-        $formData["visible"] = 0;
+        $formData["status"] = 3;
+        // $formData["visible"] = 1;
 
         $location->update($formData);
 
