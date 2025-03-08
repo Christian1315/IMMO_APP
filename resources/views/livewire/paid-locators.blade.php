@@ -89,9 +89,7 @@
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center text-red"> <strong class=""> {{$location->House->name}}</strong></td>
                             <td class="text-center">
-                                @foreach ($location->Locations as $location)
                                 {{ $location->House->Supervisor->name }}
-                                @endforeach
                             </td>
                             <td class="text-center"> <strong class=""> {{$location->Room->number}}</strong></td>
                             <td class="text-center">{{$location["Locataire"]["name"]}}</td>
