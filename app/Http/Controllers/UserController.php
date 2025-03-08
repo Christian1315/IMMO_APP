@@ -56,7 +56,8 @@ class UserController extends Controller
             'username' => 'required',
             'phone' => ['required', 'numeric'],
             'agency' => ['required', 'integer'],
-            'email' => ['required', 'email', Rule::unique('users')],
+            // 'email' => ['required', 'email', Rule::unique('users')],
+            'email' => ['required', 'email'],
             'profil' => ['required', 'integer'],
             'rang' => ['required', 'integer'],
             'agency' => ['required', 'integer'],
@@ -72,7 +73,7 @@ class UserController extends Controller
             'username.required' => 'L\'identifiant(uersname) est réquis!',
             'email.required' => 'Le champ Email est réquis!',
             'email.email' => 'Ce champ est un mail!',
-            'email.unique' => 'Un compte existe déjà au nom de ce mail!',
+            // 'email.unique' => 'Un compte existe déjà au nom de ce mail!',
             // 'phone.unique' => 'Un compte existe déjà au nom de ce phone',
             'phone.required' => 'Le phone est réquis!',
             'phone.numeric' => 'Le phone doit être de type numéric!',
@@ -153,11 +154,11 @@ class UserController extends Controller
         try {
             Send_Notification(
                 $create_user,
-                "Création de compte sur Perfect ERP",
-                "Votre compte à été crée avec succès sur Perfect ERP. Veuillez utiliser cet identifiant pour vous connecter : " . $formData['username'],
+                "Création de compte sur IMMO ERP",
+                "Votre compte à été crée avec succès sur IMMO ERP. Veuillez utiliser cet identifiant pour vous connecter : " . $formData['username'],
             );
         } catch (\Throwable $th) {
-            //throw $th;
+            throw $th;
         }
 
         alert()->success('Succès', "Utilisateur ajouté avec succès!!");

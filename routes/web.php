@@ -15,6 +15,10 @@ use App\Http\Controllers\PaiementInitiationController;
 use App\Http\Controllers\ProprietorController;
 use App\Http\Controllers\RightController;
 use App\Http\Controllers\RoomController;
+use App\Models\User;
+use App\Notifications\SendNotification;
+use Illuminate\Support\Facades\Notification;
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +31,19 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+Route::get("/mail", function () {
+    $data = [
+        "subject" => "Test de mail",
+        "message" => "Salut Christ! ça va j'espère!",
+    ];
+
+    $receiver  = User::findOrFail(1);
+
+    Notification::send($receiver, new SendNotification($data));
+
+    return "Mail Sended....";
+});
 
 ######============ HOME ROUTE ============#########################
 Route::controller(HomeController::class)->group(function () {
@@ -157,7 +174,7 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('setting', "Setting")->name("setting");
     Route::get('/{agency}/paiement', "Paiement")->name("paiement");
     Route::get('/{agency}/initiation', "AgencyInitiation")->name("agency-initiation");
-    Route::match(["GET","POST"],'/{agency}/factures', "LocationFactures")->name("locationFacture");
+    Route::match(["GET", "POST"], '/{agency}/factures', "LocationFactures")->name("locationFacture");
     Route::get('/{agency}/caisses', "Caisses")->name("caisses");
     Route::get('/{agency}/{agency_account}/caisse-mouvements', "CaisseMouvements")->name("caisse-mouvements");
     Route::any('{agencyAccount}/agency_mouvements', '_RetrieveAgencyAccountMouvements'); ## RECUPERATION DES MOUVEMENTS D'UN COMPTE
