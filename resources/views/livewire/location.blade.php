@@ -425,7 +425,7 @@
 
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center">{{$location["loyer"]}}</td>
-                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["next_loyer_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> ({{ $location->pre_paye?"PRE_PAYE":"POST_PAYE" }}) </td>
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["next_loyer_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> <span class="text-dark">({{ $location->pre_paye?"PRE_PAYE":"POST_PAYE" }})</span>  </td>
                             {{-- <td class="text-center">
                                 <textarea name="" rows="1" class="form-control" id="">{{$location["comments"]}}</textarea>
                             </td> --}}
