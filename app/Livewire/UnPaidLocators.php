@@ -71,15 +71,13 @@ class UnPaidLocators extends Component
     function refreshThisAgencyLocators()
     {
         $user = request()->user();
-        $agency = Agency::find($this->current_agency->id);
-        if (!$agency) {
-            return self::sendError("Cette agence n'existe pas!", 404);
-        }
-
+        $agency = Agency::findOrFail($this->current_agency->id);
+    
+ 
         ###___
         $locataires = [];
-        ###____
-        $locations = $agency->_Locations;
+        ###____execpation des locations demenagées
+        $locations = $agency->_Locations->where("status","!=",3);
 
         foreach ($locations as $location) {
             ###__la location
@@ -104,7 +102,13 @@ class UnPaidLocators extends Component
             } else {
                 ###___s'il n'a même pas de facture,
                 ##__cela revient qu'il est en impayé
-                array_push($locataires, $location);
+                ##__on verifie si on a depassé la date d'echeance
+                $echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+                $now = strtotime(date("Y/m/d", strtotime(now())));
+
+                if($echeance_date<$now){
+                    array_push($locataires, $location);
+                }
             }
         }
 
