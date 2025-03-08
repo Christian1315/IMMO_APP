@@ -708,10 +708,14 @@ class LocationController extends Controller
         ####__ACTUALISATION DE LA LOCATION
         // AJOUT D'UN MOIS DE PLUS SUR LA DERNIERE DATE DE LOYER
         $location_next_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->next_loyer_date));
+        $location_echeance_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->echeance_date));
+
         $location_next_loyer_date = date("Y/m/d", $location_next_loyer_timestamp_plus_one_month);
+        $location_echeance_date = date("Y/m/d", $location_echeance_date_timestamp_plus_one_month);
 
         $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
         $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
+        $location->echeance_date = $location_echeance_date;
         ###__
 
         ###___INCREMENTATION DU COMPTE LOYER
