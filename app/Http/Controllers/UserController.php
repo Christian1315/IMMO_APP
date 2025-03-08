@@ -37,7 +37,7 @@ class UserController extends Controller
         ]);
 
         $this->middleware(["Check_If_User_Has_A_Master_Role"])->only([
-            "UpdateCompte",
+            // "UpdateCompte",
             "AttachRightToUser",
             "DesAttachRightToUser",
             "ArchiveAccount",
