@@ -421,7 +421,7 @@
                                 {{ $location->House->Supervisor->name }}
                             </td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</td>
+                            <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</td>
 
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center">{{$location["loyer"]}}</td>
