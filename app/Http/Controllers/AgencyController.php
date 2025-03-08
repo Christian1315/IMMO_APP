@@ -29,8 +29,8 @@ class AgencyController extends Controller
     {
         return [
             'name' => ['required'],
-            'ifu' => ['required'],
-            'rccm' => ['required'],
+            // 'ifu' => ['required'],
+            // 'rccm' => ['required'],
             'phone' => ['required', "numeric"],
 
             // 'email' => ['required', 'email', Rule::unique('users')],
@@ -44,9 +44,9 @@ class AgencyController extends Controller
         return [
             'name.required' => "Le nom de l'agence est réquis!",
 
-            'ifu.required' => "L'ifu nom de l'agence est réquis!",
+            // 'ifu.required' => "L'ifu nom de l'agence est réquis!",
 
-            'rccm.required' => "Le rccm de l'agence est réquis!",
+            // 'rccm.required' => "Le rccm de l'agence est réquis!",
 
             'phone.required' => "Le phone de l'agence est réquis!",
             'phone.numeric' => "Le phone de l'agence doit être de type numérique!",
