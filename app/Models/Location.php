@@ -74,7 +74,7 @@ class Location extends Model
     {
         $now = strtotime(date("Y/m/d", strtotime(now())));
         $location_echeance_date = strtotime(date("Y/m/d", strtotime($this->echeance_date)));
-        if ($location_echeance_date < $now) {
+        if ($location_echeance_date > $now) {
             return true;
         }else{
             return false;
