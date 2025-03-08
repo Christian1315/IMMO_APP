@@ -26,7 +26,7 @@ class LocationController extends Controller
     #VERIFIONS SI LE USER EST AUTHENTIFIE
     public function __construct()
     {
-        $this->middleware(['auth'])->except(["_ManageCautions", "_ShowCautionsForHouseByPeriod","_ShowCautionsByPeriod"]);
+        $this->middleware(['auth'])->except(["_ManageCautions", "_ShowCautionsForHouseByPeriod", "_ShowCautionsByPeriod"]);
     }
 
     ########==================== ROOM TYPE VALIDATION ===================#####
@@ -317,8 +317,8 @@ class LocationController extends Controller
             return back()->withInput();
         }
 
-        $room_location = Location::where(["room" => $formData["room"]])->first();
-        if ($room_location) {
+        $room_location = Location::where(["room" => $formData["room"], "house" => $formData["house"]])->first();
+        if ($room_location && $room_location->status != 3) {
             alert()->error("Echec", "Cette chambre est déjà occupée!");
             return back()->withInput();
         }
@@ -385,7 +385,7 @@ class LocationController extends Controller
         $formData["latest_loyer_date"] = $formData["effet_date"];
 
         ####___DESORMAIS LA DATE DU PROCHAIN REVIENT A LA DATE PAIEMENT D'ECHEANCE 
-        $formData["next_loyer_date"] = date("Y/m/d", strtotime("+1 month", strtotime($formData["latest_loyer_date"]))) ;
+        $formData["next_loyer_date"] = date("Y/m/d", strtotime("+1 month", strtotime($formData["latest_loyer_date"])));
         $location = Location::create($formData);
 
         ###___FORMATION DE LA PROCHAINE DATE DE LOYER
