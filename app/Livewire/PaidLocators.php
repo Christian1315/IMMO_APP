@@ -92,11 +92,11 @@ class PaidLocators extends Component
                 ####___est inférieure ou égale à la date d'écheance de la location,
                 ###___alors ce locataire est à jour
 
-                $is_location_paid_before_today = $last_facture_created_date > $location_previous_echeance_date; ###__quand le paiement a été effectué avant aujourd'hui
+                // $is_location_paid_before_today = $last_facture_created_date > $location_previous_echeance_date; ###__quand le paiement a été effectué avant aujourd'hui
                 // $is_location_paid_at_echeance_date = $last_facture_created_date <= $location_previous_echeance_date; ###__quand le paiement a été effectué exactement à la date d'écheance
 
                 // return $is_location_paid_at_echeance_date;
-                if ($is_location_paid_before_today) {
+                if ($last_facture_created_date > $location_previous_echeance_date) {
                     array_push($locataires, $location);
                 }
             } 

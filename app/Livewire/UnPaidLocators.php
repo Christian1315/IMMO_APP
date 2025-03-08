@@ -106,9 +106,9 @@ class UnPaidLocators extends Component
             } else {
                 ###___s'il n'a même pas de facture,
                 ##__on verifie si on a depassse sa previous date d'echeance
-                if ($location->previous_echeance_date < $now) {
+                // if ($location->previous_echeance_date < $now) {
                     array_push($locataires, $location);
-                }
+                // }
             }
         }
 
