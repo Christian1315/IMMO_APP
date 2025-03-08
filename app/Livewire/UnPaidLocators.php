@@ -106,7 +106,7 @@ class UnPaidLocators extends Component
                 $echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                 // $now = strtotime(date("Y/m/d", strtotime(now())));
 
-                if($echeance_date<now()){
+                if($echeance_date>now()){
                     array_push($locataires, $location);
                 }
             }
