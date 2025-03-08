@@ -317,11 +317,11 @@ class LocationController extends Controller
             return back()->withInput();
         }
 
-        $room_location = Location::where(["room" => $formData["room"], "house" => $formData["house"]])->first();
-        if ($room_location && $room_location->status != 3) {
-            alert()->error("Echec", "Cette chambre est déjà occupée!");
-            return back()->withInput();
-        }
+        // $room_location = Location::where(["room" => $formData["room"], "house" => $formData["house"]])->first();
+        // if ($room_location && $room_location->status != 3) {
+        //     alert()->error("Echec", "Cette chambre est déjà occupée!");
+        //     return back()->withInput();
+        // }
 
         ##___TRAITEMENT DES IMAGES
         if ($request->file("caution_bordereau")) {
