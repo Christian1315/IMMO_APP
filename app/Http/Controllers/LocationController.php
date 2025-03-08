@@ -398,8 +398,6 @@ class LocationController extends Controller
         ###__DETERMIONONS LA DATE DU DERNIER LOYE PAYE (ça revient à la date d'effet aui n'est rien d'autre que la date d'intégration)
         $location->latest_loyer_date = $location->integration_date; ##(date d'effet)
 
-
-
         $location->save();
         ###___
         alert()->success("Succès", "Location ajoutée avec succès!!");
