@@ -508,7 +508,7 @@ class LocataireController extends Controller
         ####____
         $supervisor = User::find($request->supervisor);
         if (!$supervisor) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
+            alert()->error("Echec", "Ce superviseur n'existe pas!");
             return back()->withInput();
         }
 
@@ -521,27 +521,13 @@ class LocataireController extends Controller
 
         foreach ($locations as $location) {
             ###__la location
-            $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            ###__derniere facture de la location
-            $last_facture = $location->Factures->last();
-            if ($last_facture) {
-                $last_facture_created_date = strtotime(date("Y/m/d", strtotime($last_facture->created_at)));
-                $last_facture_echeance_date = strtotime(date("Y/m/d", strtotime($last_facture->echeance_date)));
+            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
 
-                // return $location_previous_echeance_date;##1722211200
-                // return $now;##1714435200
-                ###__si la date de payement de la dernière facture de la location
-                ####___est égale à la date d'écheance de la location,
-                ###___alors ce locataire est à jour
-
-                $is_location_paid_before_or_after_echeance_date = $last_facture_created_date == $last_facture_echeance_date; ###__quand le paiement a été effectué avant ou après la date d'écheance 
-                $is_location_paid_at_echeance_date = $last_facture_created_date == $location_previous_echeance_date; ###__quand le paiement a été effectué exactement à la date d'écheance
-
-                // return $is_location_paid_at_echeance_date;
-                if ($is_location_paid_at_echeance_date) {
-                    if ($location->House->Supervisor->id == $supervisor->id) {
-                        array_push($locataires, $location);
-                    }
+            if ($location_echeance_date > $now) {
+                // on recupere les location de cette maisons
+                if ($location->House->Supervisor->id == $supervisor->id) {
+                    array_push($locataires, $location);
                 }
             }
         }
@@ -566,7 +552,7 @@ class LocataireController extends Controller
         }
 
         ####____
-        $house = User::find($request->house);
+        $house = House::find($request->house);
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back()->withInput();
@@ -581,27 +567,13 @@ class LocataireController extends Controller
 
         foreach ($locations as $location) {
             ###__la location
-            $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            ###__derniere facture de la location
-            $last_facture = $location->Factures->last();
-            if ($last_facture) {
-                $last_facture_created_date = strtotime(date("Y/m/d", strtotime($last_facture->created_at)));
-                $last_facture_echeance_date = strtotime(date("Y/m/d", strtotime($last_facture->echeance_date)));
+            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
 
-                // return $location_previous_echeance_date;##1722211200
-                // return $now;##1714435200
-                ###__si la date de payement de la dernière facture de la location
-                ####___est égale à la date d'écheance de la location,
-                ###___alors ce locataire est à jour
-
-                $is_location_paid_before_or_after_echeance_date = $last_facture_created_date == $last_facture_echeance_date; ###__quand le paiement a été effectué avant ou après la date d'écheance 
-                $is_location_paid_at_echeance_date = $last_facture_created_date == $location_previous_echeance_date; ###__quand le paiement a été effectué exactement à la date d'écheance
-
-                // return $is_location_paid_at_echeance_date;
-                if ($is_location_paid_at_echeance_date) {
-                    if ($location->House->id == $house->id) {
-                        array_push($locataires, $location);
-                    }
+            if ($location_echeance_date > $now) {
+                // on recupere les location de cette maisons
+                if ($location->House->id == $house->id) {
+                    array_push($locataires, $location);
                 }
             }
         }
@@ -642,31 +614,17 @@ class LocataireController extends Controller
 
         foreach ($locations as $location) {
             ###__la location
-            $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
 
-            ###__derniere facture de la location
-            $last_facture = $location->Factures->last();
-            if ($last_facture) {
-                $last_facture_created_date = strtotime(date("Y/m/d", strtotime($last_facture->created_at)));
-                $last_facture_echeance_date = strtotime(date("Y/m/d", strtotime($last_facture->echeance_date)));
-
-                // return $location_previous_echeance_date;##1722211200
-                // return $now;##1714435200
-                ###__si la date de payement de la dernière facture de la location
-                ####___est égale à la date d'écheance de la location,
-                ###___alors ce locataire est à jour
-
-                $is_location_paid_before_or_after_echeance_date = $last_facture_created_date == $last_facture_echeance_date; ###__quand le paiement a été effectué avant ou après la date d'écheance 
-                $is_location_paid_at_echeance_date = $last_facture_created_date == $location_previous_echeance_date; ###__quand le paiement a été effectué exactement à la date d'écheance
-
-                // return $is_location_paid_at_echeance_date;
-                if (!$is_location_paid_at_echeance_date) {
-                    if ($location->House->Supervisor->id == $supervisor->id) {
-                        array_push($locataires, $location);
-                    }
+            if ($location_echeance_date < $now) {
+                // on recupere les location de cette maisons
+                if ($location->House->Supervisor->id == $supervisor->id) {
+                    array_push($locataires, $location);
                 }
             }
         }
+
 
         if (count($locataires) == 0) {
             alert()->error("Echèc", "Aucun résultat trouvé");
@@ -688,7 +646,7 @@ class LocataireController extends Controller
         }
 
         ####____
-        $house = User::find($request->house);
+        $house = House::find($request->house);
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back()->withInput();
@@ -700,31 +658,15 @@ class LocataireController extends Controller
         $locations = $agency->_Locations;
 
         $now = strtotime(date("Y/m/d", strtotime(now())));
-
         foreach ($locations as $location) {
             ###__la location
-            $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            ###__derniere facture de la location
+            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
 
-            $last_facture = $location->Factures->last();
-            if ($last_facture) {
-                $last_facture_created_date = strtotime(date("Y/m/d", strtotime($last_facture->created_at)));
-                $last_facture_echeance_date = strtotime(date("Y/m/d", strtotime($last_facture->echeance_date)));
-
-                // return $location_previous_echeance_date;##1722211200
-                // return $now;##1714435200
-                ###__si la date de payement de la dernière facture de la location
-                ####___est égale à la date d'écheance de la location,
-                ###___alors ce locataire est à jour
-
-                $is_location_paid_before_or_after_echeance_date = $last_facture_created_date == $last_facture_echeance_date; ###__quand le paiement a été effectué avant ou après la date d'écheance 
-                $is_location_paid_at_echeance_date = $last_facture_created_date == $location_previous_echeance_date; ###__quand le paiement a été effectué exactement à la date d'écheance
-
-                // return $is_location_paid_at_echeance_date;
-                if (!$is_location_paid_at_echeance_date) {
-                    if ($location->House->id == $house->id) {
-                        array_push($locataires, $location);
-                    }
+            if ($location_echeance_date < $now) {
+                // on recupere les location de cette maisons
+                if ($location->House->id == $house->id) {
+                    array_push($locataires, $location);
                 }
             }
         }
@@ -740,7 +682,7 @@ class LocataireController extends Controller
 
 
 
-    
+
     #####______TAUX 05 AGENCE
     function _ShowAgencyTaux05_Simple(Request $request, $agencyId)
     {
@@ -1008,7 +950,7 @@ class LocataireController extends Controller
     }
 
     #####______TAUX Qualitatif AGENCE PAR SUPERVISEUR
-    function _ShowAgencyTauxQualitatif_By_Supervisor(Request $request, $agencyId,$supervisorId)
+    function _ShowAgencyTauxQualitatif_By_Supervisor(Request $request, $agencyId, $supervisorId)
     {
         $formData = $request->all();
         ###__
