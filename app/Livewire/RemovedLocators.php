@@ -71,15 +71,12 @@ class RemovedLocators extends Component
     function refreshThisAgencyLocators()
     {
         $user = request()->user();
-        $agency = Agency::find($this->current_agency->id);
-        if (!$agency) {
-            return self::sendError("Cette agence n'existe pas!", 404);
-        }
+        $agency = Agency::findOrFail($this->current_agency->id);
 
         ###___
         // $locataires = [];
         ###____
-        $locataires = $agency->_Locations->whereNotNull("status", 3)->filter(function ($query) {
+        $locataires = $agency->_Locations->where("status", 3)->filter(function ($query) {
             return $query->Locataire;
         });
         ##___

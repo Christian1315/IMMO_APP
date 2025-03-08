@@ -441,6 +441,7 @@
                                         <i class="bi bi-kanban-fill"></i> &nbsp; Gérer
                                     </button>
                                     <ul class="dropdown-menu">
+                                        @if ($location->status!=3)
                                         <li>
                                             <button data-bs-toggle="modal" data-bs-target="#encaisse_{{$location['id']}}" class="btn btn-sm bg-dark">
                                                 Encaisser
@@ -451,10 +452,11 @@
                                                 Démenager
                                             </button>
                                         </li>
-
+                                        
                                         <li>
                                             <button class="btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$location['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
                                         </li>
+                                        @endif
                                         <li>
                                             <button class="btn btn-sm btn-light text-dark" data-bs-toggle="modal" data-bs-target="#shoFactures_{{$location['id']}}">Gérer les factures</button>
                                         </li>
@@ -472,6 +474,7 @@
                             @endif
                         </tr>
 
+                        @if ($location->status!=3)
                         <!-- ###### MODEL D'ENCAISSEMENT ###### -->
                         <div class="modal fade" id="encaisse_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
@@ -553,7 +556,6 @@
                             </div>
                         </div>
 
-
                         <!-- ###### MODEL DE DEMENAGEMENT ###### -->
                         <div class="modal fade" id="demenage_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
@@ -581,50 +583,7 @@
                             </div>
                         </div>
 
-                        <!-- ###### MODEL DE SHOW DES FACTURES ###### -->
-                        <div class="modal fade" id="shoFactures_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-scrollable">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h6 class="modal-title fs-5" id="exampleModalLabel">Factures </h6>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="">
-                                            <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
-                                            <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
-                                            <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
-                                        </div>
-                                        <div>
-                                            <ul class="list-group">
-                                                @foreach($location->Factures as $facture)
-                                                <li class="list-group-item mb-3 "> <strong>Code :</strong> {{$facture->facture_code}};
-                                                    <strong>Statut :</strong> <span class="@if($facture->status==2) bg-success @elseif($facture->status==3 || $facture->status==4)  bg-danger @else bg-warning @endif">{{$facture->Status->name}} </span> ;
-                                                    <strong>Montant: </strong> {{$facture->amount}};
-                                                    <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
-                                                    <strong>Date d'écheance: </strong> {{Change_date_to_text($facture->echeance_date)}};
-                                                    <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> ;
-                                                    <strong>Traitement: </strong><br>
-                                                    <form action="{{route('location.UpdateFactureStatus',crypId($facture->status))}}" method="post">
-                                                        @csrf
-                                                        <select required name="status" class="form-select form-control" aria-label="Default select example">
-                                                            @foreach($factures_status as $status)
-                                                            <option value="{{$status['id']}}" @if($status['id']==$facture->id) selected @endif>{{$status["name"]}}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        <button type="submit" class="btn btn-sm bg-red"> <i class="bi bi-check-all"></i> Traiter</button>
-                                                    </form>
-                                                </li>
-                                                @endforeach
-                                            </ul>
-                                            @if(count($location->Factures)==0)
-                                            <p class="text-center text-red">Aucune facture disponible</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                        
                         <!-- ###### MODEL DE MODIFICATION ###### -->
                         <div class="modal fade" id="updateModal_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
@@ -742,8 +701,50 @@
                                 </div>
                             </div>
                         </div>
-
-
+                        @endif
+                        <!-- ###### MODEL DE SHOW DES FACTURES ###### -->
+                        <div class="modal fade" id="shoFactures_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-scrollable">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h6 class="modal-title fs-5" id="exampleModalLabel">Factures </h6>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="">
+                                            <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
+                                            <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
+                                            <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
+                                        </div>
+                                        <div>
+                                            <ul class="list-group">
+                                                @foreach($location->Factures as $facture)
+                                                <li class="list-group-item mb-3 "> <strong>Code :</strong> {{$facture->facture_code}};
+                                                    <strong>Statut :</strong> <span class="@if($facture->status==2) bg-success @elseif($facture->status==3 || $facture->status==4)  bg-danger @else bg-warning @endif">{{$facture->Status->name}} </span> ;
+                                                    <strong>Montant: </strong> {{$facture->amount}};
+                                                    <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
+                                                    <strong>Date d'écheance: </strong> {{Change_date_to_text($facture->echeance_date)}};
+                                                    <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> ;
+                                                    <strong>Traitement: </strong><br>
+                                                    <form action="{{route('location.UpdateFactureStatus',crypId($facture->status))}}" method="post">
+                                                        @csrf
+                                                        <select required name="status" class="form-select form-control" aria-label="Default select example">
+                                                            @foreach($factures_status as $status)
+                                                            <option value="{{$status['id']}}" @if($status['id']==$facture->id) selected @endif>{{$status["name"]}}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm bg-red"> <i class="bi bi-check-all"></i> Traiter</button>
+                                                    </form>
+                                                </li>
+                                                @endforeach
+                                            </ul>
+                                            @if(count($location->Factures)==0)
+                                            <p class="text-center text-red">Aucune facture disponible</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         @endforeach
                     </tbody>
                 </table>
