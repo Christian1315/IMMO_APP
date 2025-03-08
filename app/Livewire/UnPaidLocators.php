@@ -85,30 +85,36 @@ class UnPaidLocators extends Component
         foreach ($locations as $location) {
             ###__la location
             $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            // $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
             ###__derniere facture de la location
-            $last_facture = $location->Factures->last();
-            if ($last_facture) {
-                $last_facture_created_date = strtotime(date("Y/m/d", strtotime($last_facture->created_at)));
-                $last_facture_echeance_date = strtotime(date("Y/m/d", strtotime($last_facture->echeance_date)));
-                $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
 
-                ###__si la date de payement de la dernière facture de la location
-                ####___est suppérieure à la date d'écheance de la location,
-                ###___alors ce locataire est en impayé
+            // $last_facture = $location->Factures->last();
+            // if ($last_facture) {
+            //     $last_facture_created_date = strtotime(date("Y/m/d", strtotime($last_facture->created_at)));
+            //     $last_facture_echeance_date = strtotime(date("Y/m/d", strtotime($last_facture->echeance_date)));
 
-                // $is_location_paid_before_or_after_echeance_date = $last_facture_created_date == $last_facture_echeance_date; ###__quand le paiement a été effectué avant ou après la date d'écheance 
-                // $is_location_paid_after_echeance_date = $last_facture_created_date < $location_previous_echeance_date; ###_
+            //     ###__si la date de payement de la dernière facture de la location
+            //     ####___est suppérieure à la date d'écheance de la location,
+            //     ###___alors ce locataire est en impayé
 
-                // s'il n'a pas payé après la date d'echéance de la location
-                if ($last_facture_created_date < $location_previous_echeance_date) {
-                    array_push($locataires, $location);
-                }
-            } else {
-                ###___s'il n'a même pas de facture,
-                ##__on verifie si on a depassse sa previous date d'echeance
-                // if ($location->previous_echeance_date < $now) {
-                    array_push($locataires, $location);
-                // }
+            //     // $is_location_paid_before_or_after_echeance_date = $last_facture_created_date == $last_facture_echeance_date; ###__quand le paiement a été effectué avant ou après la date d'écheance 
+            //     // $is_location_paid_after_echeance_date = $last_facture_created_date < $location_previous_echeance_date; ###_
+
+            //     // s'il n'a pas payé après la date d'echéance de la location
+            //     if ($last_facture_created_date < $location_previous_echeance_date) {
+            //         array_push($locataires, $location);
+            //     }
+            // } else {
+            //     ###___s'il n'a même pas de facture,
+            //     ##__on verifie si on a depassse sa previous date d'echeance
+            //     if ($location->previous_echeance_date < $now) {
+            //         array_push($locataires, $location);
+            //     }
+            // }
+
+            if ($location_previous_echeance_date < $now) {
+                array_push($locataires, $location);
             }
         }
 
