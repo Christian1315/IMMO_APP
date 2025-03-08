@@ -418,7 +418,7 @@
                             $now = strtotime(date("Y/m/d", strtotime(now())));
                             $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                         @endphp
-                        <tr class="align-items-center @if ($location_echeance_date < $now) 'bg-warning' @elseif($location->status==3) 'bg-secondary' @endif ">
+                        <tr class="align-items-center @if ($location_echeance_date < $now) bg-warning @elseif($location->status==3) bg-secondary @endif ">
                             <td class="text-center">{{$loop->index+1}} </td>
                             <td class="text-center">{{$location["House"]["name"]}}</td>
                             <td class="text-center">
