@@ -84,8 +84,8 @@ class UnPaidLocators extends Component
 
         foreach ($locations as $location) {
             ###__la location
-            $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            // $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
             ###__derniere facture de la location
             // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
 
@@ -113,7 +113,7 @@ class UnPaidLocators extends Component
             //     }
             // }
 
-            if ($location_previous_echeance_date < $now) {
+            if ($location_echeance_date < $now) {
                 array_push($locataires, $location);
             }
         }
