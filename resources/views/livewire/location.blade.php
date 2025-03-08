@@ -414,7 +414,7 @@
                     </thead>
                     <tbody>
                         @foreach($locations as $location)
-                        <tr class="align-items-center @if (!$location->paid? 'bg-warning':'') @endif ">
+                        <tr class="align-items-center @if (!$location->paid()? 'bg-warning':'') @endif ">
                             <td class="text-center">{{$loop->index+1}}</td>
                             <td class="text-center">{{$location["House"]["name"]}}</td>
                             <td class="text-center">
