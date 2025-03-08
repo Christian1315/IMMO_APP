@@ -3,31 +3,35 @@
     <label class="btn btn-light" for="displayLocatorsOptions"><i class="bi bi-funnel"></i>FILTRER LES LOCATAIRES</label>
 
     <div id="display_filtre_options" hidden>
-        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsBySupervisorForm"><i class="bi bi-people"></i> Par Sperviseur</button>
-        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm"><i class="bi bi-house-check-fill"></i> Par Maison</button>
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal"
+            data-bs-target="#ShowSearchLocatorsBySupervisorForm"><i class="bi bi-people"></i> Par Sperviseur</button>
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal"
+            data-bs-target="#ShowSearchLocatorsByHouseForm"><i class="bi bi-house-check-fill"></i> Par Maison</button>
     </div>
 
     <!-- FILTRE BY SUPERVISOR -->
-    <div class="modal fade" id="ShowSearchLocatorsBySupervisorForm" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="ShowSearchLocatorsBySupervisorForm" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <p class="" id="exampleModalLabel">Filter par superviseur</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('locator.PaidFiltreBySupervisor',$current_agency->id)}}" method="POST">
+                    <form action="{{ route('locator.PaidFiltreBySupervisor', $current_agency->id) }}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
-                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    @foreach ($supervisors as $supervisor)
+                                        <option value="{{ $supervisor['id'] }}"> {{ $supervisor['name'] }} </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i>
+                            Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -35,26 +39,28 @@
     </div>
 
     <!-- FILTRE BY HOUSE -->
-    <div class="modal fade" id="ShowSearchLocatorsByHouseForm" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="ShowSearchLocatorsByHouseForm" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <p class="" id="exampleModalLabel">Filter par maison</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('locator.PaidFiltreByHouse',$current_agency->id)}}" method="POST">
+                    <form action="{{ route('locator.PaidFiltreByHouse', $current_agency->id) }}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
                                 <label>Choisissez une maison</label>
                                 <select required name="house" class="form-control">
-                                    @foreach($current_agency->_Houses as $house)
-                                    <option value="{{$house['id']}}"> {{$house["name"]}} </option>
+                                    @foreach ($current_agency->_Houses as $house)
+                                        <option value="{{ $house['id'] }}"> {{ $house['name'] }} </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i>
+                            Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -63,13 +69,25 @@
     <br><br>
 
     <!-- TABLEAU DE LISTE -->
-    <h4 class="">Total: <strong class="text-red"> {{session()->get("filteredLocators")? count(session()->get("filteredLocators")):count($locators)}} </strong> </h4>
+    <h4 class="">Total: <strong class="text-red">
+            {{ session()->get('filteredLocators') ? count(session()->get('filteredLocators')) : count($locators) }}
+        </strong> </h4>
     <div class="row">
         <div class="col-12">
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
                         <tr>
+                            <th class="text-center">N°</th>
+                            <th class="text-center">Maison</th>
+                            <th class="text-center">Superviseur</th>
+                            <th class="text-center">Chambre</th>
+                            <th class="text-center">Locataire</th>
+                            <th class="text-center">Dernier mois Payé</th>
+                            <th class="text-center">Loyer</th>
+                            <!-- <th class="text-center">Echéance actuelle</th> -->
+                            <th class="text-center">Echeance</th>
+                            {{--                             
                             <th class="text-center">N°</th>
                             <th class="text-center">Maison</th>
                             <th class="text-center">Superviseurs</th>
@@ -81,25 +99,31 @@
                             <th class="text-center">Phone</th>
                             <th class="text-center">Adresse</th>
                             <th class="text-center">Dernier mois payé</th>
+                            <th class="text-center">Echeance</th> --}}
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach((session()->get("filteredLocators")?session()->get("filteredLocators"):$locators) as $location)
-                        <tr class="align-items-center">
-                            <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center text-red"> <strong class=""> {{$location->House->name}}</strong></td>
-                            <td class="text-center">
-                                {{ $location->House->Supervisor->name }}
-                            </td>
-                            <td class="text-center"> <strong class=""> {{$location->Room->number}}</strong></td>
-                            <td class="text-center">{{$location["Locataire"]["name"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["prenom"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["email"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["card_id"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["phone"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["adresse"]}}</td>
-                            <td class="text-center"> <button class="btn btn-sm shadow bg-light text-red"> {{$location["latest_loyer_date"]}} </button> </td>
-                        </tr>
+                        @foreach (session()->get('filteredLocators') ? session()->get('filteredLocators') : $locators as $location)
+                            <tr class="align-items-center">
+                                <td class="text-center">{{ $loop->index + 1 }}</td>
+                                <td class="text-center">{{ $location['House']['name'] }}</td>
+                                <td class="text-center">
+                                    {{ $location->House->Supervisor->name }}
+                                </td>
+                                <td class="text-center">{{ $location['Room']['number'] }}</td>
+                                <td class="text-center">{{ $location['Locataire']['name'] }}
+                                    {{ $location['Locataire']['prenom'] }} ({{ $location['Locataire']['phone'] }})
+                                </td>
+
+                                <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
+                                        {{ \Carbon\Carbon::parse($location['latest_loyer_date'])->locale('fr')->isoFormat('MMMM YYYY') }}</small>
+                                </td>
+                                <td class="text-center">{{ $location['loyer'] }}</td>
+                                <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
+                                        {{ \Carbon\Carbon::parse($location['echeance_date'])->locale('fr')->isoFormat('D MMMM YYYY') }}</small>
+                                    <small class="text-dark">({{ $location->pre_paid ? 'PRE_PAYE' : '' }}
+                                        {{ $location->post_paid ? 'POST_PAYE' : '' }})</small> </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>

@@ -75,33 +75,29 @@
                         <tr>
                             <th class="text-center">N°</th>
                             <th class="text-center">Maison</th>
-                            <th class="text-center">Superviseurs</th>
+                            <th class="text-center">Superviseur</th>
                             <th class="text-center">Chambre</th>
-                            <th class="text-center">Nom</th>
-                            <th class="text-center">Prénom</th>
-                            <th class="text-center">Email</th>
-                            <th class="text-center">Numéro de pièce</th>
-                            <th class="text-center">Phone</th>
-                            <th class="text-center">Adresse</th>
-                            <th class="text-center">Dernier mois payé</th>
+                            <th class="text-center">Locataire</th>
+                            <th class="text-center">Dernier mois Payé</th>
+                            <th class="text-center">Loyer</th>
+                            <!-- <th class="text-center">Echéance actuelle</th> -->
+                            <th class="text-center">Echeance</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach((session()->get("filteredLocators")?session()->get("filteredLocators"):$locators) as $location)
                         <tr class="align-items-center">
-                            <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center text-red"> <strong class="shadow p-2 btn btn-sm"> {{$location["House"]["name"]}}</strong></td>
+                            <td class="text-center">{{$loop->index+1}}</td>
+                            <td class="text-center">{{$location["House"]["name"]}}</td>
                             <td class="text-center">
                                 {{ $location->House->Supervisor->name }}
                             </td>
-                            <td class="text-center"> <strong class="shadow p-2"> {{$location["Room"]["number"]}}</strong></td>
-                            <td class="text-center">{{$location["Locataire"]["name"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["prenom"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["email"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["card_id"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["phone"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["adresse"]}}</td>
-                            <td class="text-center"> <button class="btn btn-sm shadow bg-light text-red"> {{$location["latest_loyer_date"]}} </button> </td>
+                            <td class="text-center">{{$location["Room"]["number"]}}</td>
+                            <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</td>
+
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
+                            <td class="text-center">{{$location["loyer"]}}</td>
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> <small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>  </td>
                         </tr>
                         @endforeach
                     </tbody>
