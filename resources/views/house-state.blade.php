@@ -132,6 +132,7 @@
                                                     return (int) $location->Room->gardiennage + (int) $location->Room->rubbish + (int) $location->Room->vidange + (int) $location->Room->cleaning;
                                                 })
                                                 
+                                                var_dump($locatives);
                                                 ;?>
                                             <strong class="text-red">{{$locatives}}</strong>
                                         </tr>
