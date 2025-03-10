@@ -91,9 +91,9 @@
                                         <th class="text-center">Montant total récouvré</th>
                                         <th class="text-center">Commission</th>
                                         <th class="text-center">Dépense totale</th>
+                                        <th class="text-center">Charge locatives</th>
                                         <th class="text-center">Net à payer</th>
                                         {{-- <th class="text-center">Date d'arrêt d'état</th> --}}
-                                        <th class="text-center">Charge locatives</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -110,12 +110,13 @@
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{$house["last_depenses"]}} fcfa </strong> </button>
                                         </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["net_to_paid"]}} fcfa </strong> </button>
-                                        </td>
 
                                         <td class="text-center">
                                             <strong class="text-red">{{$house->LocativeCharge()}} fcfa</strong>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["net_to_paid"]}} fcfa </strong> </button>
                                         </td>
                                     </tr>
                                 </tbody>
