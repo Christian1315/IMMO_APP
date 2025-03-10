@@ -156,7 +156,7 @@
                                         <td class="text-center">{{$location["_locataire"]["nbr_month_paid"]}}</td>
                                         <td class="text-center">{{$location["_locataire"]["nbr_facture_amount_paid"]}}</td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                                         </td>
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </button>
