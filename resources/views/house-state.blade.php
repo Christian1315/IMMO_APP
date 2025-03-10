@@ -72,11 +72,12 @@
                         <h6 class="">Maison : <strong> <em class="text-red"> {{$house["name"]}} </em> </strong> </h6>
                         <h6 class="">Superviseur : <strong> <em class="text-red"> {{$house->Supervisor->name}} </em> </strong> </h6>
                         <h6 class="">Propriétaire : <strong> <em class="text-red"> {{$house->Proprietor->lastname}} {{$house->Proprietor->firstname}}</em> </strong> </h6>
+                        <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </h5>
                     </div>
                 </div>
 
-                <br>
-                <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </h5>
+                {{-- <br>
+                <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </h5> --}}
                 <br>
 
                 <!-- les totaux -->
@@ -91,7 +92,7 @@
                                         <th class="text-center">Commission</th>
                                         <th class="text-center">Dépense totale</th>
                                         <th class="text-center">Net à payer</th>
-                                        <th class="text-center">Date d'arrêt d'état</th>
+                                        {{-- <th class="text-center">Date d'arrêt d'état</th> --}}
                                         <th class="text-center">Status</th>
                                     </tr>
                                 </thead>
@@ -150,7 +151,7 @@
                                         <th class="text-center">Montant payé</th>
                                         <th class="text-center">Dernier loyé</th>
                                         <th class="text-center">Mois d'effet</th>
-                                        <th class="text-center text-red">Prorata</th>
+                                        {{-- <th class="text-center text-red">Prorata</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -163,10 +164,10 @@
                                         <td class="text-center">{{$location["_locataire"]["nbr_month_paid"]}}</td>
                                         <td class="text-center">{{$location["_locataire"]["nbr_facture_amount_paid"]}}</td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$location["latest_loyer_date"]}} </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                                         </td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$location["effet_date"]}} </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse({{$location["effet_date"]}})->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                                         </td>
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow text-red"> <i class="bi bi-calendar-check-fill"></i> <strong>{{$location->Locataire->prorata?$location->Locataire->prorata_date:"---" }}  </strong> </button>
