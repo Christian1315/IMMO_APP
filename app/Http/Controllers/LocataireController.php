@@ -10,6 +10,7 @@ use App\Models\House;
 use App\Models\Locataire;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 class LocataireController extends Controller
@@ -532,13 +533,17 @@ class LocataireController extends Controller
             }
         }
 
+
         if (count($locataires) == 0) {
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
 
+        Session::forget("filteredLocators");
+        session(["filteredLocators" => $locataires]);
+        // dd(count(session('filteredLocators')));
         alert()->success("Succès", "Locataire filtré par superviseur avec succès!");
-        return back()->withInput()->with(["filteredLocators", $locataires]);
+        return back()->withInput();
     }
 
     #LOCATAIRES A JOUR PAR MAISON
@@ -582,9 +587,12 @@ class LocataireController extends Controller
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
+        
+        Session::forget("filteredLocators");
+        session(["filteredLocators" => $locataires]);
 
         alert()->success("Succès", "Locataire filtré par maison avec succès!");
-        return back()->withInput()->with(["filteredLocators", $locataires]);
+        return back()->withInput();
     }
 
     #LOCATAIRES NON A JOUR PAR SUPERVISEUR
@@ -631,6 +639,9 @@ class LocataireController extends Controller
             return back()->withInput();
         }
 
+        Session::forget("filteredLocators");
+        session(["filteredLocators" => $locataires]);
+
         alert()->success("Succès", "Locataire impayés filtré par superviseur avec succès!");
         return back()->withInput()->with(["filteredLocators", $locataires]);
     }
@@ -676,7 +687,92 @@ class LocataireController extends Controller
             return back()->withInput();
         }
 
+        Session::forget("filteredLocators");
+        session(["filteredLocators" => $locataires]);
         alert()->success("Succès", "Locataire impayés filtré par maison avec succès!");
+        return back()->withInput()->with(["filteredLocators", $locataires]);
+    }
+
+    #LOCATAIRES DEMENAGES PAR SUPERVISEUR
+    function RemovedFiltreBySupervisor(Request $request, $agency)
+    {
+        $user = request()->user();
+        $agency = Agency::find($agency);
+
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        ####____
+        $supervisor = User::find($request->supervisor);
+        if (!$supervisor) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        $locataires = [];
+        ###____
+
+        $locations = $agency->_Locations->where("status", 3);
+
+        foreach ($locations as $location) {
+            // on recupere les location de ce superviseur
+            // dd($location,$location->House->Supervisor->id,$request->supervisor);
+            if ($location->House->Supervisor->id == $supervisor->id) {
+                array_push($locataires, $location);
+            }
+        }
+
+        if (count($locataires) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            return back()->withInput();
+        }
+
+        Session::forget("filteredLocators");
+        session(["filteredLocators" => $locataires]);
+
+        alert()->success("Succès", "Locataire démenagé filtré par superviseur avec succès!");
+        return back()->withInput()->with(["filteredLocators", $locataires]);
+    }
+
+    #LOCATAIRES DEMENAGES PAR MAISON
+    function RemovedFiltreByHouse(Request $request, $agency)
+    {
+        $user = request()->user();
+        $agency = Agency::find($agency);
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        ####____
+        $house = House::find($request->house);
+        if (!$house) {
+            alert()->error("Echec", "Cette maison n'existe pas!");
+            return back()->withInput();
+        }
+
+        $locataires = [];
+        ###____
+
+        $locations = $agency->_Locations->where("status", 3);
+
+        foreach ($locations as $location) {
+            // on recupere les location de cette maisons
+            if ($location->House->id == $house->id) {
+                array_push($locataires, $location);
+            }
+        }
+
+        if (count($locataires) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            return back()->withInput();
+        }
+
+        Session::forget("filteredLocators");
+        session(["filteredLocators" => $locataires]);
+        alert()->success("Succès", "Locataire demenagés filtré par maison avec succès!");
         return back()->withInput()->with(["filteredLocators", $locataires]);
     }
 

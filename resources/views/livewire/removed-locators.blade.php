@@ -16,14 +16,14 @@
                     <p class="" id="exampleModalLabel">Filter par superviseur</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('locator.UnPaidFiltreBySupervisor',$current_agency->id)}}" method="POST">
+                    <form action="{{route('locator.RemovedFiltreBySupervisor',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
                                     @foreach($supervisors as $supervisor)
-                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} ({{$supervisor['id']}}) </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -43,7 +43,7 @@
                     <p class="" id="exampleModalLabel">Filter par maison</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('locator.UnPaidFiltreByHouse',$current_agency->id)}}" method="POST">
+                    <form action="{{route('locator.RemovedFiltreByHouse',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -68,7 +68,7 @@
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{session()->get("filteredLocators")? count(session()->get("filteredLocators")):count($locators)}} </strong> </h4>
+            <h4 class="">Total: <strong class="text-red"> {{session("filteredLocators")? count(session("filteredLocators")):count($locators)}} </strong> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
@@ -87,9 +87,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach((session()->get("filteredLocators")?session()->get("filteredLocators"):$locators) as $location)
+                        @foreach(session("filteredLocators")?session("filteredLocators"):$locators as $location)
                         <tr class="align-items-center">
-                            <td class="text-center">{{$loop->index + 1}}</td>
+                            <td class="text-center">{{$loop->index + 1}} </td>
                             <td class="text-center text-red"> <strong class="shadow p-2 btn btn-sm"> {{$location["House"]["name"]}}</strong></td>
                             <td class="text-center">
                                 {{ $location->House->Supervisor->name }}

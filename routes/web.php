@@ -255,6 +255,10 @@ Route::prefix("locataire")->group(function () {
         Route::post('{agency}/unpaid/filtre_by_supervisor', 'UnPaidFiltreBySupervisor')->name("locator.UnPaidFiltreBySupervisor"); #LOCATAIRE NON A JOUR FILTRER PAR SUPERVISEUR
         Route::post('{agency}/unpaid/filtre_by_house', 'UnPaidFiltreByHouse')->name("locator.UnPaidFiltreByHouse"); #LOCATAIRE NON A JOUR FILTRER PAR MAISON
 
+        ####___DEMENAGES
+        Route::post('{agency}/removed/filtre_by_supervisor', 'RemovedFiltreBySupervisor')->name("locator.RemovedFiltreBySupervisor"); #LOCATAIRE DEMENAGES FILTRER PAR SUPERVISEUR
+        Route::post('{agency}/removed/filtre_by_house', 'RemovedFiltreByHouse')->name("locator.RemovedFiltreByHouse"); #LOCATAIRE DEMENAGES FILTRER PAR MAISON
+
 
 
 

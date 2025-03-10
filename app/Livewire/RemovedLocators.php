@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Agency;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 use Livewire\Component;
@@ -76,9 +76,11 @@ class RemovedLocators extends Component
         ###___
         // $locataires = [];
         ###____
-        $locataires = $agency->_Locations->where("status", 3)->filter(function ($query) {
-            return $query->Locataire;
+        $locataires = $agency->_Locations->where("status", 3)->map(function ($query) {
+            return $query;
         });
+
+        Session::forget("filteredLocators");
         ##___
         $this->locators_count = count($locataires);
         $this->locators = $locataires;

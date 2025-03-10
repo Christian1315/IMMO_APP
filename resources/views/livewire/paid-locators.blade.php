@@ -25,7 +25,7 @@
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
                                     @foreach ($supervisors as $supervisor)
-                                        <option value="{{ $supervisor['id'] }}"> {{ $supervisor['name'] }} </option>
+                                    <option value="{{ $supervisor['id'] }}"> {{ $supervisor['name'] }} </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -54,7 +54,7 @@
                                 <label>Choisissez une maison</label>
                                 <select required name="house" class="form-control">
                                     @foreach ($current_agency->_Houses as $house)
-                                        <option value="{{ $house['id'] }}"> {{ $house['name'] }} </option>
+                                    <option value="{{ $house['id'] }}"> {{ $house['name'] }} </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -70,7 +70,7 @@
 
     <!-- TABLEAU DE LISTE -->
     <h4 class="">Total: <strong class="text-red">
-            {{ session()->get('filteredLocators') ? count(session()->get('filteredLocators')) : count($locators) }}
+            {{ session('filteredLocators') ? count(session('filteredLocators')) : count($locators) }}
         </strong> </h4>
     <div class="row">
         <div class="col-12">
@@ -87,7 +87,7 @@
                             <th class="text-center">Loyer</th>
                             <!-- <th class="text-center">Echéance actuelle</th> -->
                             <th class="text-center">Echeance</th>
-                            {{--                             
+                            {{--
                             <th class="text-center">N°</th>
                             <th class="text-center">Maison</th>
                             <th class="text-center">Superviseurs</th>
@@ -103,27 +103,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (session()->get('filteredLocators') ? session()->get('filteredLocators') : $locators as $location)
-                            <tr class="align-items-center">
-                                <td class="text-center">{{ $loop->index + 1 }}</td>
-                                <td class="text-center">{{ $location['House']['name'] }}</td>
-                                <td class="text-center">
-                                    {{ $location->House->Supervisor->name }}
-                                </td>
-                                <td class="text-center">{{ $location['Room']['number'] }}</td>
-                                <td class="text-center">{{ $location['Locataire']['name'] }}
-                                    {{ $location['Locataire']['prenom'] }} ({{ $location['Locataire']['phone'] }})
-                                </td>
+                        
+                        @foreach (session('filteredLocators') ? session("filteredLocators") : $locators as $location)
+                        <tr class="align-items-center">
+                            <td class="text-center">{{ $loop->index + 1 }}</td>
+                            <td class="text-center">{{ $location['House']['name'] }}</td>
+                            <td class="text-center">
+                                {{ $location->House->Supervisor->name }}
+                            </td>
+                            <td class="text-center">{{ $location['Room']['number'] }}</td>
+                            <td class="text-center">{{ $location['Locataire']['name'] }}
+                                {{ $location['Locataire']['prenom'] }} ({{ $location['Locataire']['phone'] }})
+                            </td>
 
-                                <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
-                                        {{ \Carbon\Carbon::parse($location['latest_loyer_date'])->locale('fr')->isoFormat('MMMM YYYY') }}</small>
-                                </td>
-                                <td class="text-center">{{ $location['loyer'] }}</td>
-                                <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
-                                        {{ \Carbon\Carbon::parse($location['echeance_date'])->locale('fr')->isoFormat('D MMMM YYYY') }}</small>
-                                    <small class="text-dark">({{ $location->pre_paid ? 'PRE_PAYE' : '' }}
-                                        {{ $location->post_paid ? 'POST_PAYE' : '' }})</small> </td>
-                            </tr>
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
+                                    {{ \Carbon\Carbon::parse($location['latest_loyer_date'])->locale('fr')->isoFormat('MMMM YYYY') }}</small>
+                            </td>
+                            <td class="text-center">{{ $location['loyer'] }}</td>
+                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
+                                    {{ \Carbon\Carbon::parse($location['echeance_date'])->locale('fr')->isoFormat('D MMMM YYYY') }}</small>
+                                <small class="text-dark">({{ $location->pre_paid ? 'PRE_PAYE' : '' }}
+                                    {{ $location->post_paid ? 'POST_PAYE' : '' }})</small>
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>

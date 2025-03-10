@@ -68,7 +68,7 @@
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{session()->get("filteredLocators")? count(session()->get("filteredLocators")):count($locators)}} </strong> </h4>
+            <h4 class="">Total: <strong class="text-red"> {{session('filteredLocators')? count(session('filteredLocators')):count($locators)}} </strong> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
@@ -85,7 +85,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach((session()->get("filteredLocators")?session()->get("filteredLocators"):$locators) as $location)
+                        @foreach(session('filteredLocators')?session('filteredLocators'):$locators as $location)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index+1}}</td>
                             <td class="text-center">{{$location["House"]["name"]}}</td>
