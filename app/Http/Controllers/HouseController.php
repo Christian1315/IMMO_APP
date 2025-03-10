@@ -501,6 +501,7 @@ class HouseController extends Controller
             return back();
         }
 
+
         $nbr_month_paid = 0;
         $total_amount_paid = 0;
 
@@ -652,7 +653,6 @@ class HouseController extends Controller
         ###___
 
         $state = $house_last_state;
-
 
         return view("house-state", compact(["house", "state"]));
     }

@@ -32,6 +32,14 @@ class House extends Model
         "image"
     ];
 
+    function LocativeCharge() {
+        $locatives =  $this->Locations->where("status","!=",3)->sum(function ($location) {
+            return ($location->Room->gardiennage + $location->Room->rubbish + $location->Room->vidange + $location->Room->cleaning);
+        });
+
+        return $locatives;
+    }
+
     function _Agency() : BelongsTo {
         return $this->belongsTo(Agency::class, "agency");
     }
