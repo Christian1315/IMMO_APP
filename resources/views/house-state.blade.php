@@ -93,7 +93,7 @@
                                         <th class="text-center">Dépense totale</th>
                                         <th class="text-center">Net à payer</th>
                                         {{-- <th class="text-center">Date d'arrêt d'état</th> --}}
-                                        <th class="text-center">Charge locative</th>
+                                        <th class="text-center">Charge locatives</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -128,12 +128,12 @@
                                         </td> --}}
                                         <tr class="text-center">
                                             <?php 
-                                                $locatives =  $house->Locations->where("status","!=",3)->filter(function ($location) {
+                                                $locatives =  $house->Locations->where("status","!=",3)->sum(function ($location) {
                                                     return (int) $location->Room->gardiennage + (int) $location->Room->rubbish + (int) $location->Room->vidange + (int) $location->Room->cleaning;
                                                 })
                                                 
                                                 ;?>
-                                            <strong class="text-">{{$locatives}}</strong>
+                                            <strong class="text-red">{{$locatives}}</strong>
                                         </tr>
                                     </tr>
                                 </tbody>
@@ -178,9 +178,9 @@
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                                         </td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow text-red"> <i class="bi bi-calendar-check-fill"></i> <strong>{{$location->Locataire->prorata?$location->Locataire->prorata_date:"---" }}  </strong> </button>
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                     @endforeach
 
