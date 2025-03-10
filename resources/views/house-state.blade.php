@@ -76,7 +76,7 @@
                 </div>
 
                 <br>
-                <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{Change_date_to_text($state?$state->state_stoped_day:($house->PayementInitiations->last()?$house->PayementInitiations->last()->state_stoped_day:"---")) }} </strong> </h5>
+                <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </h5>
                 <br>
 
                 <!-- les totaux -->

@@ -101,7 +101,7 @@
                             <th class="text-center">Dernier loyé</th>
                             <th class="text-center">Mois d'effet</th>
                             <th class="text-center">Date d'Intégration</th>
-                            <th class="text-center text-red">Prorata</th>
+                            {{-- <th class="text-center text-red">Prorata</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -115,13 +115,13 @@
                             <td class="text-center">{{$location["_locataire"]["nbr_month_paid_array"]}}</td>
                             <td class="text-center">{{$location["_locataire"]["nbr_facture_amount_paid_array"]}}</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$location["latest_loyer_date"]}} </strong> </button>
+                                <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</strong> </button>
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$location["effet_date"]}} </strong> </button>
+                                <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                             </td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$location["integration_date"]}} </strong> </button></td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light text-red"></i> <strong> {{$location->Locataire->prorata?$location->Locataire->prorata_date:"---"}} </strong> </button></td>
+                            <td class="text-center"> <button class="btn btn-sm btn-light"> <i class="bi bi-calendar-check-fill"></i> <strong> {{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('MMMM YYYY') }}  </strong> </button></td>
+                            {{-- <td class="text-center"> <button class="btn btn-sm btn-light text-red"></i> <strong> {{$location->Locataire->prorata?$location->Locataire->prorata_date:"---"}} </strong> </button></td> --}}
                         </tr>
                         @endforeach
                     </tbody>
@@ -153,7 +153,7 @@
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index+1}}</td>
                             <td class="text-center"> {{$state["Owner"]["name"]}} </td>
-                            <td class="text-center"> <span class="btn btn-sm p-1 bg-red">{{date("d/m/Y",strtotime($state["stats_stoped_day"]))}}</span> </td>
+                            <td class="text-center"> <span class="btn btn-sm p-1 bg-red">{{ \Carbon\Carbon::parse($state["stats_stoped_day"])->locale('fr')->isoFormat('D MMMM YYYY') }}</span> </td>
                         </tr>
                         @endforeach
                     </tbody>
