@@ -520,7 +520,7 @@ class HouseController extends Controller
             }
         }
 
-        $locations = $house->Locations;
+        $locations = $house->Locations->where("status","!=",3);
 
         ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
         foreach ($locations as $key =>  $location) {
@@ -530,7 +530,7 @@ class HouseController extends Controller
             if ($house_last_state) {
                 $location_factures = Facture::where(["location" => $location->id, "state" => $house_last_state->id, "state_facture" => 0])->get();
             } else {
-                $location_factures = Facture::where(["location" => $location->id, "old_state" => $house->PayementInitiations->last()->old_state, "state_facture" => 0])->get();
+                $location_factures = Facture::where(["location" => $location->id, "old_state" => $house->PayementInitiations->last()?->old_state, "state_facture" => 0])->get();
             }
 
             foreach ($location_factures as $facture) {
