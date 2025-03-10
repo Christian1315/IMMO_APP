@@ -115,8 +115,6 @@
                                         </td>
 
                                         <td class="text-center">
-                                        </td>
-                                        <td class="text-center">
                                             <strong class="text-red">{{$house->LocativeCharge()}} fcfa</strong>
                                         </td>
                                     </tr>
