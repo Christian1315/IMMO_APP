@@ -93,7 +93,7 @@
                                         <th class="text-center">Dépense totale</th>
                                         <th class="text-center">Net à payer</th>
                                         {{-- <th class="text-center">Date d'arrêt d'état</th> --}}
-                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Charge locative</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -117,7 +117,7 @@
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow-lg text-dark"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$house["house_last_state"]?$house["house_last_state"]["stats_stoped_day"]:($house->PayementInitiations->last()?$house->PayementInitiations->last()->stats_stoped_day:"---")}} </strong> </button>
                                         </td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             @if($house['house_last_state'])
                                             @if($house['house_last_state']["proprietor_paid"])
                                             <button disabled class="btn btn-sm bg-light text-success">Payé</button>
@@ -125,7 +125,16 @@
                                             <button disabled class="btn btn-sm bg-light text-red"> Non payé</button>
                                             @endif
                                             @endif
-                                        </td>
+                                        </td> --}}
+                                        <tr class="text-center">
+                                            <?php 
+                                                $locatives =  $house->Locations->where("status","!=",3)->filter(function ($location) {
+                                                    return (int) $location->Room->gardiennage + (int) $location->Room->rubbish + (int) $location->Room->vidange + (int) $location->Room->cleaning;
+                                                })
+                                                
+                                                ;?>
+                                            <strong class="text-">{{$locatives}}</strong>
+                                        </tr>
                                     </tr>
                                 </tbody>
                             </table>

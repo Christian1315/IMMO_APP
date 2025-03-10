@@ -495,7 +495,7 @@ class HouseController extends Controller
     ####_____IMPRIME HOUSE STATE
     function ShowHouseStateImprimeHtml(Request $request, $houseId)
     {
-        $house = House::where("visible", 1)->find(deCrypId($houseId));
+        $house = House::with("Locations")->where("visible", 1)->find(deCrypId($houseId));
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back();
