@@ -34,7 +34,7 @@ class HouseController extends Controller
             'agency' => ['required'],
             'name' => ['required'],
             'proprio_payement_echeance_date' => ['required', "date"],
-            'image' => ['required'],
+            // 'image' => ['required'],
 
             'proprietor' => ['required', "integer"],
             'type' => ['required', "integer"],
@@ -51,11 +51,11 @@ class HouseController extends Controller
     {
         return [
             'agency.required' => "L'agence est réquise",
-            'name.required' => 'Le nom de la maison est réquis!',
+            // 'name.required' => 'Le nom de la maison est réquis!',
             'proprio_payement_echeance_date.required' => "La date d'écheance du payement du propriétaire est réquise!",
             'proprio_payement_echeance_date.date' => "Ce champ doit être de type date",
 
-            'image.required' => "L'image' est réquise!",
+            // 'image.required' => "L'image' est réquise!",
             // 'image.file' => "Ce champ doit être un fichier",
 
             'proprietor.required' => "Le propriétaire est réquis",
@@ -152,14 +152,16 @@ class HouseController extends Controller
             return redirect()->back()->withInput();
         }
 
-        ###__TRAITEMENT DE LA CARTE D'IDENTITE
-        $image = $request->file("image");
-        $image_name = $image->getClientOriginalName();
-        $image->move("houses_images", $image_name);
-
-        #ENREGISTREMENT DE LA CARTE DANS LA DB
-        $formData["owner"] = $user->id;
-        $formData["image"] = asset("houses_images/" . $image_name);
+        ###__TRAITEMENT DE L'IMAGE
+        if($request->hasFile('image')){
+            $image = $request->file("image");
+            $image_name = $image->getClientOriginalName();
+            $image->move("houses_images", $image_name);
+    
+            #ENREGISTREMENT DE LA CARTE DANS LA DB
+            $formData["owner"] = $user->id;
+            $formData["image"] = asset("houses_images/" . $image_name);
+        }
 
         House::create($formData);
 
@@ -645,12 +647,6 @@ class HouseController extends Controller
         $house["frees_rooms"] = $frees_rooms;
         $house["busy_rooms_at_first_month"] = $busy_rooms_at_first_month;
         $house["frees_rooms_at_first_month"] = $frees_rooms_at_first_month;
-
-        ###___
-        // foreach ($house->Locations as $location) {
-        //     dd($location->_locataire["nbr_month_paid"]);
-        // }
-        ###___
 
         $state = $house_last_state;
 
