@@ -82,6 +82,7 @@ class HouseController extends Controller
     function _AddHouse(Request $request)
     {
         #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
+        dd($request->all());
         $formData = $request->all();
         Validator::make($formData, self::house_rules(), self::house_messages())->validate();
 
@@ -153,15 +154,17 @@ class HouseController extends Controller
         }
 
         ###__TRAITEMENT DE L'IMAGE
-        if($request->hasFile('image')){
+        if ($request->hasFile('image')) {
             $image = $request->file("image");
             $image_name = $image->getClientOriginalName();
             $image->move("houses_images", $image_name);
-    
+
             #ENREGISTREMENT DE LA CARTE DANS LA DB
             $formData["owner"] = $user->id;
             $formData["image"] = asset("houses_images/" . $image_name);
         }
+
+        $request->locative_commission = $request->locative_commission ? $request->locative_commission : 10;
 
         House::create($formData);
 
@@ -523,7 +526,7 @@ class HouseController extends Controller
             }
         }
 
-        $locations = $house->Locations->where("status","!=",3);
+        $locations = $house->Locations->where("status", "!=", 3);
 
         ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
         foreach ($locations as $key =>  $location) {
@@ -599,9 +602,10 @@ class HouseController extends Controller
         $house["house_last_state"] = $house_last_state;
         $house["nbr_month_paid"] = $nbr_month_paid;
         $house["commission"] = ($house["total_amount_paid"] * $house->commission_percent) / 100;
+        $house["locative_commission"] = ($house->LocativeCharge() * $house->locative_commission) / 100;
         ####________
 
-        $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"]);
+        $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"] + $house["locative_commission"]);
 
         ####____RAJOUTONS LES INFOS DE TAUX DE PERFORMANCE DE LA MAISON
         $creation_date = date("Y/m/d", strtotime($house["created_at"]));

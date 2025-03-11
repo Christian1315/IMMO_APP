@@ -233,13 +233,17 @@
                                         <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
-                                <div class="">
+                                <div class="mb-3">
                                     <span>Date d'échéance de paiement du propriétaire</span>
                                     <input value="{{ old('proprio_payement_echeance_date') }}" type="date"
                                         name="proprio_payement_echeance_date" class="form-control" id="">
                                     @error('proprio_payement_echeance_date')
                                         <span class="text-red"> {{ $message }} </span>
                                     @enderror
+                                </div>
+                                <div class="">
+                                    <label for="locative_commission">Commision charge locatives en (%) </label>
+                                    <input type="number" name="locative_commission" class="form-control" />
                                 </div>
                             </div>
 
@@ -364,7 +368,8 @@
                                             <li>
                                                 <a title="Voir l'image" href="{{ $house['image'] }}" target="_blank"
                                                     class="btn btn-sm shadow-lg roundered w-100"
-                                                    rel="noopener noreferrer">Image <i class="bi bi-eye-fill"></i> </a>
+                                                    rel="noopener noreferrer">Image <i class="bi bi-eye-fill"></i>
+                                                </a>
                                             </li>
                                         </ul>
                                     </div>
@@ -447,6 +452,10 @@
                                         <span>Commission (en %)</span>
                                         <input id="commission_percent" type="text" placeholder="Commission"
                                             name="commission_percent" class="form-control">
+                                    </div>
+                                    <div class="">
+                                        <label for="locative_commission">Commision charge locatives en (%) </label>
+                                        <input type="number" name="locative_commission" class="form-control" />
                                     </div>
                                 </div>
                             </div>
@@ -537,6 +546,9 @@
                 $("#geolocalisation").val(house["geolocalisation"])
                 $("#proprio_payement_echeance_date").val(house["proprio_payement_echeance_date"])
                 $("#commission_percent").val(house["commission_percent"])
+
+                $("#locative_commission").val(house["locative_commission"])
+                
                 $("#proprio_payement_echeance_date").val(house["proprio_payement_echeance_date"])
                 $("#update_form").attr("action", "/house/" + house.id + "/update")
 

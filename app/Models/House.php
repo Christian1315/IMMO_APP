@@ -29,7 +29,8 @@ class House extends Model
         "proprio_payement_echeance_date",
         "geolocalisation",
         "commission_percent",
-        "image"
+        "image",
+        "locative_commission"
     ];
 
     function LocativeCharge() {
