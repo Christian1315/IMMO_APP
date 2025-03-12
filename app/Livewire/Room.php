@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\RoomNature;
 use App\Models\RoomType;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -134,6 +135,24 @@ class Room extends Component
     // 
     public $show_form = false;
 
+    // REFRESH SUPERVISOR
+    function refreshSupervisors()
+    {
+        $users = User::with(["account_agents"])->get();
+        $supervisors = [];
+
+        foreach ($users as $user) {
+            $user_roles = $user->roles; ##recuperation des roles de ce user
+
+            foreach ($user_roles as $user_role) {
+                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
+                    array_push($supervisors, $user);
+                }
+            }
+        }
+        $this->supervisors = array_unique($supervisors);
+    }
+
     ###___ROOMS
     function refreshThisAgencyRooms()
     {
@@ -248,6 +267,9 @@ class Room extends Component
         // ROOM NATURE
         $room_natures = RoomNature::all();
         $this->room_natures = $room_natures;
+
+        // SUPERVISEURS
+        $this->refreshSupervisors();
     }
 
     function showForm()

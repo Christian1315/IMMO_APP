@@ -1,13 +1,13 @@
 <div>
     @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) || auth()->user()->is_admin)
-        <!-- AJOUT D'UN TYPE DE CHAMBRE -->
-        <div class="text-left">
-            <button type="button" class="btn btn btn-sm bg-light shadow roundered" data-bs-toggle="modal"
-                data-bs-target="#room_type">
-                <i class="bi bi-cloud-plus-fill"></i>Ajouter un type de maison
-            </button>
-        </div>
-        <br>
+    <!-- AJOUT D'UN TYPE DE CHAMBRE -->
+    <div class="text-left">
+        <button type="button" class="btn btn btn-sm bg-light shadow roundered" data-bs-toggle="modal"
+            data-bs-target="#room_type">
+            <i class="bi bi-cloud-plus-fill"></i>Ajouter un type de maison
+        </button>
+    </div>
+    <br>
     @endif
     <!-- Modal room type-->
     <div class="modal fade" id="room_type" aria-labelledby="room_type" aria-hidden="true">
@@ -25,14 +25,14 @@
                                     <input type="text" required value="{{ old('name') }}" name="name"
                                         placeholder="Le label ...." class="form-control">
                                     @error('house_type_name')
-                                        <span class="text-red">{{ $message }}</span>
+                                    <span class="text-red">{{ $message }}</span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
                                     <textarea required value="{{ old('description') }}" name="description" class="form-control"
                                         placeholder="Description ...."></textarea>
                                     @error('house_type_description')
-                                        <span class="text-red">{{ $message }}</span>
+                                    <span class="text-red">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -47,16 +47,77 @@
     </div>
 
     @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) || auth()->user()->is_admin)
-        <div>
-            <div class="d-flex header-bar">
-                <h2 class="accordion-header">
-                    <button type="button" class="btn btn-sm bg-dark" data-bs-toggle="modal" data-bs-target="#addHouse">
-                        <i class="bi bi-cloud-plus-fill"></i> Ajouter
-                    </button>
-                </h2>
+    <div>
+        <div class="d-flex header-bar">
+            <h2 class="accordion-header">
+                <button type="button" class="btn btn-sm bg-dark" data-bs-toggle="modal" data-bs-target="#addHouse">
+                    <i class="bi bi-cloud-plus-fill"></i> Ajouter
+                </button>
+            </h2>
+        </div>
+    </div>
+    @endif
+
+    <!-- ### FILTRE ###-->
+    <small class="d-block">
+        <button data-bs-toggle="modal" data-bs-target="#filtreBySupervisor" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par superviseur</button>
+        <button data-bs-toggle="modal" data-bs-target="#filtreByPeriod" class="btn mx-2 btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par période</button>
+    </small>
+
+    <!-- FILTRE PAR SUPERVISEUR -->
+    <div class="modal fade" id="filtreBySupervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filter par superviseur</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('house.FiltreHouseBySupervisor',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un superviseur</label>
+                                <select required name="supervisor" class="form-control">
+                                    @foreach($supervisors as $supervisor)
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
             </div>
         </div>
-    @endif
+    </div>
+
+    <!-- FILTRE PAR PERIOD -->
+    <div class="modal fade" id="filtreByPeriod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filter par période</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('house.FiltreHouseByPeriode',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="">Date de debut</label>
+                                <input type="date" required name="debut" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label for="">Date de fin</label>
+                                <input type="date" required name="fin" class="form-control">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br><br>
 
     <!-- ADD HOUSE -->
     <div class="modal fade" id="addHouse" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
@@ -80,7 +141,7 @@
                                     <input type="text" value="{{ old('name') }}" name="name"
                                         placeholder="Nom de la maison" class="form-control">
                                     @error('name')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -88,7 +149,7 @@
                                     <input type="text" value="{{ old('latitude') }}" name="latitude"
                                         placeholder="Latitude de la maison" class="form-control">
                                     @error('latitude')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -96,7 +157,7 @@
                                     <input type="text" value="{{ old('longitude') }}" name="longitude"
                                         placeholder="Longitude de la maison" class="form-control">
                                     @error('longitude')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -104,11 +165,11 @@
                                     <select class="form-select form-control" name="type"
                                         aria-label="Default select example">
                                         @foreach ($house_types as $type)
-                                            <option value="{{ $type['id'] }}">{{ $type['name'] }}</option>
+                                        <option value="{{ $type['id'] }}">{{ $type['name'] }}</option>
                                         @endforeach
                                     </select>
                                     @error('type')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -116,14 +177,14 @@
                                     <select class="form-select form-control" value="{{ old('country') }}"
                                         name="country" aria-label="Default select example">
                                         @foreach ($countries as $countrie)
-                                            @if ($countrie['id'] == 4)
-                                                <option value="{{ $countrie['id'] }}">{{ $countrie['name'] }}
-                                                </option>
-                                            @endif
+                                        @if ($countrie['id'] == 4)
+                                        <option value="{{ $countrie['id'] }}">{{ $countrie['name'] }}
+                                        </option>
+                                        @endif
                                         @endforeach
                                     </select>
                                     @error('country')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -131,12 +192,12 @@
                                     <select class="form-select form-control" value="{{ old('departement') }}"
                                         name="departement" aria-label="Default select example">
                                         @foreach ($departements as $departement)
-                                            <option value="{{ $departement['id'] }}">{{ $departement['name'] }}
-                                            </option>
+                                        <option value="{{ $departement['id'] }}">{{ $departement['name'] }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     @error('departement')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
 
@@ -147,7 +208,7 @@
                                         name="geolocalisation" class="form-control"
                                         placeholder="Entrez le lien de géolocalisation de la maison">
                                     @error('geolocalisation')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -155,7 +216,7 @@
                                     <input type="file" value="{{ old('image') }}" name="image"
                                         class="form-control">
                                     @error('image')
-                                        <span class="text-red">{{ $message }}</span>
+                                    <span class="text-red">{{ $message }}</span>
                                     @enderror
                                 </div><br>
                             </div>
@@ -166,13 +227,13 @@
                                     <select class="form-select form-control" value="{{ old('city') }}"
                                         name="city" aria-label="Default select example">
                                         @foreach ($cities as $citie)
-                                            @if ($citie['_country']['id'] == 4)
-                                                <option value="{{ $citie['id'] }}">{{ $citie['name'] }}</option>
-                                            @endif
+                                        @if ($citie['_country']['id'] == 4)
+                                        <option value="{{ $citie['id'] }}">{{ $citie['name'] }}</option>
+                                        @endif
                                         @endforeach
                                     </select>
                                     @error('city')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -180,11 +241,11 @@
                                     <select class="form-select form-control" value="{{ old('quartier') }}"
                                         name="quartier" aria-label="Default select example">
                                         @foreach ($quartiers as $quartier)
-                                            <option value="{{ $quartier['id'] }}">{{ $quartier['name'] }}</option>
+                                        <option value="{{ $quartier['id'] }}">{{ $quartier['name'] }}</option>
                                         @endforeach
                                     </select>
                                     @error('quartier')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -192,11 +253,11 @@
                                     <select class="form-select form-control" value="{{ old('zone') }}"
                                         name="zone" aria-label="Default select example">
                                         @foreach ($zones as $zone)
-                                            <option value="{{ $zone['id'] }}">{{ $zone['name'] }}</option>
+                                        <option value="{{ $zone['id'] }}">{{ $zone['name'] }}</option>
                                         @endforeach
                                     </select>
                                     @error('zone')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -204,12 +265,12 @@
                                     <select class="form-select form-control" value="{{ old('supervisor') }}"
                                         name="supervisor" aria-label="Default select example">
                                         @foreach ($supervisors as $supervisor)
-                                            <option value="{{ $supervisor['id'] }}">{{ $supervisor['name'] }}
-                                            </option>
+                                        <option value="{{ $supervisor['id'] }}">{{ $supervisor['name'] }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     @error('supervisor')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -217,12 +278,13 @@
                                     <select class="form-select form-control" value="{{ old('proprietor') }}"
                                         name="proprietor" aria-label="Default select example">
                                         @foreach ($proprietors as $proprietor)
-                                            <option value="{{ $proprietor['id'] }}">{{ $proprietor['lastname'] }}
-                                                {{ $proprietor['firstname'] }}</option>
+                                        <option value="{{ $proprietor['id'] }}">{{ $proprietor['lastname'] }}
+                                            {{ $proprietor['firstname'] }}
+                                        </option>
                                         @endforeach
                                     </select>
                                     @error('proprietor')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -230,7 +292,7 @@
                                     <textarea name="comments" value="{{ old('comments') }}" class="form-control"
                                         placeholder="Laissez un commentaire ici" class="form-control" id=""></textarea>
                                     @error('comments')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
@@ -238,7 +300,7 @@
                                     <input value="{{ old('proprio_payement_echeance_date') }}" type="date"
                                         name="proprio_payement_echeance_date" class="form-control" id="">
                                     @error('proprio_payement_echeance_date')
-                                        <span class="text-red"> {{ $message }} </span>
+                                    <span class="text-red"> {{ $message }} </span>
                                     @enderror
                                 </div>
                                 <div class="">
@@ -262,7 +324,7 @@
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{ $houses_count }} </strong> </h4>
+            <h4 class="">Total: <strong class="text-red"> {{session('filteredHouses')?count(session('filteredHouses')): $houses_count }} </strong> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
@@ -276,105 +338,104 @@
                             <th class="text-center">Propriétaire</th>
                             <th class="text-center">Chambres</th>
                             <th class="text-center"><i class="bi bi-geo-fill"></i></th>
-                            {{-- <th class="text-center"><i class="bi bi-card-image"></i></th> --}}
+                            <th class="text-center">Date paiement</th>
+                            <th class="text-center">Date création</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($houses as $house)
-                            <tr class="align-items-center">
-                                <td class="text-center">{{ $loop->index + 1 }}</td>
-                                <td class="text-center"> {{ $house['name'] }}</td>
-                                <td class="text-center">
-                                    @if ($house['latitude'])
-                                        {{ $house['latitude'] }}
-                                    @else
-                                        ---
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    @if ($house['longitude'])
-                                        {{ $house['longitude'] }}
-                                    @else
-                                        ---
-                                    @endif
-                                </td>
-                                <td class="text-center">{{ $house['Type']['name'] }}</td>
-                                <td class="text-center">{{ $house['Supervisor']['name'] }}</td>
-                                <td class="text-center">{{ $house['Proprietor']['lastname'] }}
-                                    {{ $house['Proprietor']['firstname'] }}</td>
-                                <td class="text-center">
-                                    <button type="button" data-bs-toggle="modal" data-bs-target="#showRooms"
-                                        onclick="show_rooms_fun({{ $house['id'] }})" class="btn btn-sm bg-warning">
-                                        <i class="bi bi-eye-fill"></i> &nbsp; Voir
+                        @foreach (session('filteredHouses')?session('filteredHouses'):$houses as $house)
+                        <tr class="align-items-center">
+                            <td class="text-center">{{ $loop->index + 1 }}</td>
+                            <td class="text-center"> {{ $house['name'] }}</td>
+                            <td class="text-center">
+                                @if ($house['latitude'])
+                                {{ $house['latitude'] }}
+                                @else
+                                ---
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if ($house['longitude'])
+                                {{ $house['longitude'] }}
+                                @else
+                                ---
+                                @endif
+                            </td>
+                            <td class="text-center">{{ $house['Type']['name'] }}</td>
+                            <td class="text-center"><button class="btn btn-sm btn-light"> {{ $house['Supervisor']['name'] }}</button></td>
+                            <td class="text-center"><button class="btn btn-sm btn-light"> {{ $house['Proprietor']['lastname'] }} {{ $house['Proprietor']['firstname'] }}</button></td>
+                            <td class="text-center">
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#showRooms"
+                                    onclick="show_rooms_fun({{ $house['id'] }})" class="btn btn-sm bg-warning">
+                                    <i class="bi bi-eye-fill"></i> &nbsp; Voir
+                                </button>
+                            </td>
+
+                            <td class="text-center">
+                                @if ($house['geolocalisation'])
+                                <a title="Voir la localisation" target="_blank"
+                                    href="{{ $house['geolocalisation'] }}"
+                                    class="btn btn-sm shadow-lg roundered" rel="noopener noreferrer"><i
+                                        class="bi bi-eye-fill"></i> <i class="bi bi-geo-fill"></i></a>
+                                @else
+                                ---
+                                @endif
+                            </td>
+                            <td class="text-center text-red"><button class="btn btn-sm btn-light"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($house->proprio_payement_echeance_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</button> </td>
+                            <td class="text-center text-red"><button class="btn btn-sm btn-light"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($house->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }}</button> </td>
+                            <td class="text-center">
+                                <div class="btn-group dropstart">
+                                    <button class="btn btn-sm bg-red dropdown-toggle text-uppercase"
+                                        style="z-index: 0;" type="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                        <i class="bi bi-kanban-fill"></i> &nbsp; Gérer
                                     </button>
-                                </td>
+                                    <ul class="dropdown-menu">
+                                        @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_admin)
+                                        <li>
+                                            <a href="{{ route('house.DeleteHouse', crypId($house['id'])) }}"
+                                                data-confirm-delete="true" class="btn btn-sm bg-red"><i
+                                                    class="bi bi-archive-fill"></i> Supprimer</a>
+                                        </li>
 
-                                <td class="text-center">
-                                    @if ($house['geolocalisation'])
-                                        <a title="Voir la localisation" target="_blank"
-                                            href="{{ $house['geolocalisation'] }}"
-                                            class="btn btn-sm shadow-lg roundered" rel="noopener noreferrer"><i
-                                                class="bi bi-eye-fill"></i> <i class="bi bi-geo-fill"></i></a>
-                                    @else
-                                        ---
-                                    @endif
-                                </td>
-                                {{-- <td class="text-center">
-                                <a title="Voir l'image" href="{{$house['image']}}" target="_blank" class="btn btn-sm shadow-lg roundered" rel="noopener noreferrer"><i class="bi bi-eye-fill"></i> <i class="bi bi-geo-fill"></i></a>
-                            </td> --}}
-                                <td class="text-center">
-                                    <div class="btn-group dropstart">
-                                        <button class="btn btn-sm bg-red dropdown-toggle text-uppercase"
-                                            style="z-index: 0;" type="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            <i class="bi bi-kanban-fill"></i> &nbsp; Gérer
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_admin)
-                                                <li>
-                                                    <a href="{{ route('house.DeleteHouse', crypId($house['id'])) }}"
-                                                        data-confirm-delete="true" class="btn btn-sm bg-red"><i
-                                                            class="bi bi-archive-fill"></i> Supprimer</a>
-                                                </li>
+                                        <li>
+                                            <button class="btn btn-sm bg-warning" data-bs-toggle="modal"
+                                                data-bs-target="#updateModal"
+                                                onclick="updateModal_fun({{ $house['id'] }})"><i
+                                                    class="bi bi-person-lines-fill"></i> Modifier</button>
+                                        </li>
+                                        @endif
 
-                                                <li>
-                                                    <button class="btn btn-sm bg-warning" data-bs-toggle="modal"
-                                                        data-bs-target="#updateModal"
-                                                        onclick="updateModal_fun({{ $house['id'] }})"><i
-                                                            class="bi bi-person-lines-fill"></i> Modifier</button>
-                                                </li>
-                                            @endif
+                                        @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) ||
+                                        auth()->user()->is_master ||
+                                        auth()->user()->is_admin ||
+                                        IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+                                        <li>
+                                            <a href="/house/{{ crypId($house['id']) }}/{{ crypId($current_agency['id']) }}/stopHouseState"
+                                                class="btn btn-sm bg-warning text-dark"><i
+                                                    class="bi bi-sign-stop-fill"></i>&nbsp; Arrêter les
+                                                états</a>
+                                        </li>
+                                        @endif
 
-                                            @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) ||
-                                                    auth()->user()->is_master ||
-                                                    auth()->user()->is_admin ||
-                                                    IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
-                                                <li>
-                                                    <a href="/house/{{ crypId($house['id']) }}/{{ crypId($current_agency['id']) }}/stopHouseState"
-                                                        class="btn btn-sm bg-warning text-dark"><i
-                                                            class="bi bi-sign-stop-fill"></i>&nbsp; Arrêter les
-                                                        états</a>
-                                                </li>
-                                            @endif
-
-                                            <li>
-                                                <button class="btn btn-sm bg-light" data-bs-toggle="modal"
-                                                    data-bs-target="#cautionModal"
-                                                    onclick="cautionModal_fun({{ $house['id'] }})"><i
-                                                        class="bi bi-file-earmark-pdf-fill"></i> Gestion des cautions
-                                                </button>
-                                            </li>
-                                            <li>
-                                                <a title="Voir l'image" href="{{ $house['image'] }}" target="_blank"
-                                                    class="btn btn-sm shadow-lg roundered w-100"
-                                                    rel="noopener noreferrer">Image <i class="bi bi-eye-fill"></i>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
+                                        <li>
+                                            <button class="btn btn-sm bg-light" data-bs-toggle="modal"
+                                                data-bs-target="#cautionModal"
+                                                onclick="cautionModal_fun({{ $house['id'] }})"><i
+                                                    class="bi bi-file-earmark-pdf-fill"></i> Gestion des cautions
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a title="Voir l'image" href="{{ $house['image'] }}" target="_blank"
+                                                class="btn btn-sm shadow-lg roundered w-100"
+                                                rel="noopener noreferrer">Image <i class="bi bi-eye-fill"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -548,7 +609,7 @@
                 $("#commission_percent").val(house["commission_percent"])
 
                 $("#locative_commission").val(house["locative_commission"])
-                
+
                 $("#proprio_payement_echeance_date").val(house["proprio_payement_echeance_date"])
                 $("#update_form").attr("action", "/house/" + house.id + "/update")
 

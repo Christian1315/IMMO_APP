@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 
 class Room extends Model
 {
@@ -53,6 +54,10 @@ class Room extends Model
     //     "delete_at"
     // ];
 
+    function LocativeCharge() {
+        return ($this->gardiennage + $this->rubbish + $this->vidange + $this->cleaning);
+    }
+
     function Owner(): BelongsTo
     {
         return $this->belongsTo(User::class, "owner");
@@ -76,5 +81,13 @@ class Room extends Model
     function Locations(): HasMany
     {
         return $this->hasMany(Location::class, "room")->with(["Locataire", "House", "Room", "Type"]);
+    }
+
+    function buzzy() {
+        // $locations = $this->filter(function($room){
+        //     return $room->locations;
+        // });
+
+        return count($this->Locations)>0?true:false;
     }
 }

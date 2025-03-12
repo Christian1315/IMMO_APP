@@ -535,13 +535,15 @@ class LocataireController extends Controller
 
 
         if (count($locataires) == 0) {
+            // Session::forget("filteredLocators");
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
 
-        Session::forget("filteredLocators");
-        session(["filteredLocators" => $locataires]);
-        // dd(count(session('filteredLocators')));
+        // Session::forget("filteredLocators");
+        // session(["filteredLocators" => $locataires]);
+
+        session()->flash("filteredLocators",$locataires);
         alert()->success("Succès", "Locataire filtré par superviseur avec succès!");
         return back()->withInput();
     }
@@ -584,12 +586,14 @@ class LocataireController extends Controller
         }
 
         if (count($locataires) == 0) {
+            // Session::forget("filteredLocators");
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
         
-        Session::forget("filteredLocators");
-        session(["filteredLocators" => $locataires]);
+        // Session::forget("filteredLocators");
+        // session(["filteredLocators" => $locataires]);
+        session()->flash("filteredLocators",$locataires);
 
         alert()->success("Succès", "Locataire filtré par maison avec succès!");
         return back()->withInput();
@@ -635,15 +639,17 @@ class LocataireController extends Controller
 
 
         if (count($locataires) == 0) {
+            // Session::forget("filteredLocators");
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
 
-        Session::forget("filteredLocators");
-        session(["filteredLocators" => $locataires]);
+        // Session::forget("filteredLocators");
+        // session(["filteredLocators" => $locataires]);
+        session()->flash("filteredLocators",$locataires);
 
         alert()->success("Succès", "Locataire impayés filtré par superviseur avec succès!");
-        return back()->withInput()->with(["filteredLocators", $locataires]);
+        return back()->withInput();
     }
 
     #LOCATAIRES NON A JOUR PAR MAISON
@@ -683,14 +689,17 @@ class LocataireController extends Controller
         }
 
         if (count($locataires) == 0) {
+            // Session::forget("filteredLocators");
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
 
-        Session::forget("filteredLocators");
-        session(["filteredLocators" => $locataires]);
+        // Session::forget("filteredLocators");
+        // session(["filteredLocators" => $locataires]);
+        session()->flash("filteredLocators",$locataires);
+
         alert()->success("Succès", "Locataire impayés filtré par maison avec succès!");
-        return back()->withInput()->with(["filteredLocators", $locataires]);
+        return back()->withInput();
     }
 
     #LOCATAIRES DEMENAGES PAR SUPERVISEUR
@@ -725,15 +734,17 @@ class LocataireController extends Controller
         }
 
         if (count($locataires) == 0) {
+            // Session::forget("filteredLocators");
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
 
-        Session::forget("filteredLocators");
-        session(["filteredLocators" => $locataires]);
+        // Session::forget("filteredLocators");
+        // session(["filteredLocators" => $locataires]);
+        session()->flash("filteredLocators",$locataires);
 
         alert()->success("Succès", "Locataire démenagé filtré par superviseur avec succès!");
-        return back()->withInput()->with(["filteredLocators", $locataires]);
+        return back()->withInput();
     }
 
     #LOCATAIRES DEMENAGES PAR MAISON
@@ -766,14 +777,16 @@ class LocataireController extends Controller
         }
 
         if (count($locataires) == 0) {
+            // Session::forget("filteredLocators");
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
 
-        Session::forget("filteredLocators");
-        session(["filteredLocators" => $locataires]);
+        // Session::forget("filteredLocators");
+        // session(["filteredLocators" => $locataires]);
+        session()->flash("filteredLocators",$locataires);
         alert()->success("Succès", "Locataire demenagés filtré par maison avec succès!");
-        return back()->withInput()->with(["filteredLocators", $locataires]);
+        return back()->withInput();
     }
 
 

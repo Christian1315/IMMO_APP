@@ -16,6 +16,7 @@ use App\Models\Quarter;
 use App\Models\User;
 use App\Models\Zone;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 class HouseController extends Controller
@@ -170,6 +171,69 @@ class HouseController extends Controller
 
         alert()->success("Succès", "Maison ajoutée avec succès");
         return redirect()->back()->withInput();
+    }
+
+    ###___FILTRE BY SUPERVISOR
+    function FiltreHouseBySupervisor(Request $request,$agency) {
+        $user = request()->user();
+        $agency = Agency::find($agency);
+
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        ####____
+        $supervisor = User::find($request->supervisor);
+        if (!$supervisor) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        $houses = [];
+        ###____
+
+        $houses = $agency->_Houses->where("supervisor",$request->supervisor);
+
+        if (count($houses) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            // Session::forget("filteredHouses");
+            return back()->withInput();
+        }
+
+        // Session::forget("filteredHouses");
+        session()->flash("filteredHouses",$houses);
+
+        alert()->success("Succès", "Maisons filtrées par superviseur avec succès!");
+        return back()->withInput();
+    }
+
+    ###___FILTRE BY PERIOD
+    function FiltreHouseByPeriod(Request $request,$agency) {
+        $user = request()->user();
+        $agency = Agency::find($agency);
+
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        $houses = $agency->_Houses->whereBetween("created_at",[$request->debut,$request->fin]);
+
+        if (count($houses) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            // Session::forget("filteredHouses");
+            return back()->withInput();
+        }
+
+        // Session::forget("filteredHouses");
+        session()->flash("filteredHouses",$houses);
+
+        $debut = \Carbon\Carbon::parse($request->debut)->locale('fr')->isoFormat('MMMM YYYY');
+        $fin = \Carbon\Carbon::parse($request->fin)->locale('fr')->isoFormat('MMMM YYYY');
+        $msg = "Maisons filtrées par période du $debut au $fin avec succès!";
+        alert()->success("Succès", $msg);
+        return back()->withInput();
     }
 
     ###___ADD HOUSE TYPE
@@ -476,7 +540,6 @@ class HouseController extends Controller
         alert()->success("Succès", "Maison supprimée avec succès!");
         return back();
     }
-
 
     ####____SHOW HOUSE STOP PAGE
     function StopHouseState(Request $request, $houseId, $agencyId)

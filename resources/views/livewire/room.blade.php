@@ -76,6 +76,67 @@
     </div>
     @endif
 
+    <!-- ### FILTRE ###-->
+    <small class="d-block">
+        <button data-bs-toggle="modal" data-bs-target="#filtreBySupervisor" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par superviseur</button>
+        <button data-bs-toggle="modal" data-bs-target="#filtreByHouse" class="btn mx-2 btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par maison</button>
+    </small>
+
+    <!-- FILTRE PAR SUPERVISEUR -->
+    <div class="modal fade" id="filtreBySupervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtre par superviseur</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('room.FiltreRoomBySupervisor',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un superviseur</label>
+                                <select required name="supervisor" class="form-control">
+                                    @foreach($supervisors as $supervisor)
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRE PAR PERIOD -->
+    <div class="modal fade" id="filtreByHouse" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtre par maison</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('room.FiltreRoomByHouse',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez une maison</label>
+                                <select required name="house" class="form-control">
+                                    @foreach($houses as $house)
+                                    <option value="{{$house['id']}}"> {{$house["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br><br>
+
     <!-- ADD ROOM -->
     <div class="modal fade" id="addRoom" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -311,7 +372,17 @@
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{$rooms_count}} </strong> </h4>
+            <?php
+            $rooms = session('filteredRooms') ? session('filteredRooms') : $rooms;
+            $buzy_rooms_count = count(
+                collect($rooms)->filter(function ($room) {
+                    if ($room->buzzy()) {
+                        return $room->locations;
+                    }
+                })
+            );
+            $free_rooms_count = count($rooms) - $buzy_rooms_count;; ?>
+            <h4 class="">Total: <strong class="text-red"> {{count($rooms)}} </strong> | <button class="btn btn-sm btn-light"> Nombres de Chambres Occupées: <strong class="text-red">{{$buzy_rooms_count}}</strong> </button>| <button class="btn btn-sm btn-light"> Nombres de Chambres Libres: <strong class="text-primary">{{$free_rooms_count}}</strong> </button> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
@@ -320,8 +391,9 @@
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Maison</th>
                             <th class="text-center">Superviseur</th>
-                            <th class="text-center">Loyer</th>
-                            <th class="text-center">Image</th>
+                            <th class="text-center">Loyer brut</th>
+                            <th class="text-center">Charge locatives</th>
+                            <!-- <th class="text-center">Image</th> -->
                             <th class="text-center">Loyer Total</th>
                             <th class="text-center">Type de Chambre</th>
                             <th class="text-center">Locataires</th>
@@ -333,13 +405,14 @@
                     <tbody>
                         @foreach($rooms as $room)
                         <tr class="align-items-center">
-                            <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center">{{$room["number"]}}</td>
+                            <td class="text-center d-flex">{{$loop->index + 1}} </td>
+                            <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
                             <td class="text-center">{{$room["House"]["name"]}}</td>
                             <td class="text-center">{{$room["House"]["Supervisor"]["name"]}}</td>
                             <td class="text-center">{{$room["loyer"]}}</td>
-                            <td class="text-center"><a href="{{$room['photo']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
-                            <td class="text-center">{{$room["total_amount"]}}</td>
+                            <td class="text-center">{{$room->LocativeCharge()}}</td>
+                            <!-- <td class="text-center"><a href="{{$room['photo']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a> -->
+                            <td class="text-center"> <button class="btn btn-sm btn-light text-red">{{$room["total_amount"]}} fcfa </button> </td>
                             <td class="text-center">{{$room["Type"]['name']}}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#showLocators" onclick="showLocators_fun({{$room['id']}})">
@@ -348,8 +421,16 @@
                             </td>
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center d-flex">
-                                <button class="btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</button>
-                                <a href="{{ route('room.DeleteRoom', crypId($room['id']))}}" class="btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i>Supprimer</a>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-text-paragraph"></i> Action
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" class="dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        <li><a href="{{ route('room.DeleteRoom', crypId($room['id']))}}" class="dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i>Supprimer</a></li>
+                                        <li><a href="{{$room['photo']}}" class="dropdown-item btn btn-sm btn-light" rel="noopener noreferrer">Image <i class="bi bi-eye"></i></a></li>
+                                    </ul>
+                                </div>
                             </td>
                             @endif
                         </tr>

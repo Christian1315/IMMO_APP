@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
 use App\Models\House;
 use App\Models\Room;
 use App\Models\RoomNature;
 use App\Models\RoomType;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -240,7 +242,7 @@ class RoomController extends Controller
         ###___
 
         if ($request->water) {
-            
+
             ###____
             if ($request->get("forage")) {
                 $rules = self::forage_rules();
@@ -286,8 +288,8 @@ class RoomController extends Controller
         }
 
         #ENREGISTREMENT DE LA CARTE DANS LA DB
-        $formData["gardiennage"] = $request->gardiennage ? $request->gardiennage: 0;
-        $formData["vidange"] = $request->vidange ? $request->vidange: 0;
+        $formData["gardiennage"] = $request->gardiennage ? $request->gardiennage : 0;
+        $formData["vidange"] = $request->vidange ? $request->vidange : 0;
 
         $formData["owner"] = $user->id;
         $formData["water"] = $request->water ? 1 : 0;
@@ -303,7 +305,7 @@ class RoomController extends Controller
         $formData["electricity_card_counter"] = $request->electricity_card_counter ? 1 : 0;
         $formData["electricity_counter_number"] = $request->electricity_counter_number ? $request->electricity_counter_number : "--";
         $formData["electricity_counter_start_index"] = $request->electricity_counter_start_index ? $request->electricity_counter_start_index : 0;
-        
+
 
         $formData["cleaning"] = $request->cleaning ? $request->cleaning : 0;
         $formData["comments"] = $request->comments ? $request->comments : "---";
@@ -317,6 +319,88 @@ class RoomController extends Controller
         alert()->success("Succès", "Chambre ajoutée avec succès!!");
         return back()->withInput();
     }
+
+    ###___FILTRE BY SUPERVISOR
+    function FiltreRoomBySupervisor(Request $request, $agency)
+    {
+        $user = request()->user();
+        $agency = Agency::find($agency);
+
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        ####____
+        $supervisor = User::find($request->supervisor);
+        if (!$supervisor) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        $rooms = [];
+        foreach ($agency->_Proprietors as $proprio) {
+            foreach ($proprio->Houses->where("supervisor", $request->supervisor) as $house) {
+                foreach ($house->Rooms as $room) {
+                    array_push($rooms, $room);
+                }
+            }
+        }
+
+        // dd($rooms);
+        if (count($rooms) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            // Session::forget("filteredHouses");
+            return back()->withInput();
+        }
+
+        session()->flash("filteredRooms", collect($rooms));
+
+        alert()->success("Succès", "Chambres filtrées par superviseur avec succès!");
+        return back()->withInput();
+    }
+
+    ###___FILTRE BY HOUSE
+    function FiltreRoomByHouse(Request $request, $agency)
+    {
+        $user = request()->user();
+        $agency = Agency::find($agency);
+
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        ####____
+        $house = House::find($request->house);
+        if (!$house) {
+            alert()->error("Echec", "Cette maison n'existe pas!");
+            return back()->withInput();
+        }
+
+        $rooms = [];
+        foreach ($agency->_Proprietors as $proprio) {
+            foreach ($proprio->Houses as $house) {
+                if ($house->id == $request->house) {
+                    foreach ($house->Rooms as $room) {
+                        array_push($rooms, $room);
+                    }
+                }
+            }
+        }
+
+        if (count($rooms) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            // Session::forget("filteredHouses");
+            return back()->withInput();
+        }
+
+        session()->flash("filteredRooms", $rooms);
+        $msg = "Chambres filtrées filtrées par maison  $house->name avec succès!";
+        alert()->success("Succès", $msg);
+        return back()->withInput();
+    }
+
 
     function UpdateRoom(Request $request, $id)
     {

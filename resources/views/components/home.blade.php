@@ -55,7 +55,7 @@
             <div class="container-fluid fixed-bottom  shadow-lg py-0 bg-white">
                 <div class="row">
                     <div class="col-md-12 px-0 mx-0 py-2">
-                        <p class="text-center">© Copyright 2024</p>
+                        <p class="text-center">© Copyright -- <strong class="text-red">{{date("Y")}}</strong> </p>
                     </div>
                 </div>
             </div>
