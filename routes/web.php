@@ -300,7 +300,8 @@ Route::prefix("location")->group(function () {
         Route::prefix("type")->group(function () {
             Route::post('add', '_AaddType')->name("location.AddType"); ##__AJOUT DE TYPE DE LOCATION
         });
-        Route::get("{agencyId}/generate_cautions", "_ManageCautions")->name("location._ManageCautions"); #GENERATE CAUTION 
+        Route::get("{agencyId}/generate_cautions", "_ManageCautions")->name("location._ManageCautions"); #GENERATE CAUTION POUR TOUTE L4AGENCE
+        Route::get("location/{locationId}/generate_cautions", "_ManageLocationCautions")->name("location._ManageLocationCautions"); #GENERATE CAUTION UNE LOCATION
         Route::post("{agencyId}/prestation_statistique_for_agency_by_period", "_ManagePrestationStatistiqueForAgencyByPeriod")->name("location._ManagePrestationStatistiqueForAgencyByPeriod"); #GENERATE PRESATION BY PERIODE
         Route::post('add', '_AddLocation')->name("location._AddLocation"); #AJOUT D'UNE LOCATION
         Route::patch('{id}/update', 'UpdateLocation')->name("location.UpdateLocation"); #MODIFICATION D'UNE LOCATION

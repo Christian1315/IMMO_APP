@@ -216,6 +216,23 @@ class LocationController extends Controller
         return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
+    // LOCATIONS CAUTION MANAGEMENT
+    function _ManageLocationCautions(Request $request, $locationId)
+    {
+        $location = Location::where("visible", 1)->find($locationId);
+        if (!$location) {
+            alert()->error("Echec", "Cette location n'existe pas!");
+            return back();
+        }
+
+        $cautions_eau = $location->caution_electric;
+        $cautions_electricity = $location->caution_water;
+        $cautions_loyer = $location->caution_number * $location->loyer;
+
+        alert()->success('Succès', "Caution générées avec succès!");
+        return view("location_cautions", compact(["location", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+    }
+
     #####___GENERATION DES PRESTATION PAR PERIODE
     function _ManagePrestationStatistiqueForAgencyByPeriod(Request $request, $agencyId)
     {

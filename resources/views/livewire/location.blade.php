@@ -392,7 +392,7 @@
     @if(!IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{$locations_count}} </strong> </h4>
+            <h4 class="">Total: <strong class="text-red"> {{$locations_count}} </strong> | Légende: <button class="btn btn-sm btn-warning text-uppercase">Impayé</button> <button class="btn btn-sm btn-secondary text-uppercase">Démenagé</button> <button class="btn btn-sm btn-light text-uppercase">à jour</button> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
@@ -427,12 +427,9 @@
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
                             <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</td>
 
-                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
+                            <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center">{{$location["loyer"]}}</td>
-                            <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> <small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>  </td>
-                            {{-- <td class="text-center">
-                                <textarea name="" rows="1" class="form-control" id="">{{$location["comments"]}}</textarea>
-                            </td> --}}
+                            <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> <small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>  </td>
 
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center">
@@ -443,29 +440,33 @@
                                     <ul class="dropdown-menu">
                                         @if ($location->status!=3)
                                         <li>
-                                            <button data-bs-toggle="modal" data-bs-target="#encaisse_{{$location['id']}}" class="btn btn-sm bg-dark">
-                                                Encaisser
+                                            <button data-bs-toggle="modal" data-bs-target="#encaisse_{{$location['id']}}" class="w-100 btn btn-sm bg-dark">
+                                            <i class="bi bi-currency-exchange"></i> Encaisser
                                             </button>
                                         </li>
                                         <li>
-                                            <button data-bs-toggle="modal" data-bs-target="#demenage_{{$location['id']}}" class="btn btn-sm bg-red">
-                                                Démenager
+                                            <button data-bs-toggle="modal" data-bs-target="#demenage_{{$location['id']}}" class="w-100 btn btn-sm bg-red">
+                                            <i class="bi bi-folder-x"></i> Démenager
                                             </button>
                                         </li>
                                         
                                         <li>
-                                            <button class="btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$location['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
+                                            <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$location['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
                                         </li>
                                         @endif
                                         <li>
-                                            <button class="btn btn-sm btn-light text-dark" data-bs-toggle="modal" data-bs-target="#shoFactures_{{$location['id']}}">Gérer les factures</button>
+                                            <button class="w-100 btn btn-sm btn-light text-dark" data-bs-toggle="modal" data-bs-target="#shoFactures_{{$location['id']}}"><i class="bi bi-printer"></i> Gérer les factures</button>
                                         </li>
                                         <li>
-                                            <a  href="{{route('location.imprimer',crypId($location['id']))}}" class="btn btn-sm bg-secondary text-white"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer rapport</a>
+                                            <a target="_blank" href="{{route('location.imprimer',crypId($location['id']))}}" class="btn btn-sm bg-light text-dark w-100"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer rapport</a>
                                         </li>
 
                                         <li>
-                                            <a  href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light" rel="noopener noreferrer">Contrat <i class="bi bi-eye"></i></a>
+                                            <a  href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-eye"></i> Contrat de location </a>
+                                        </li>
+
+                                        <li>
+                                            <a target="_blank"  href="{{route('location._ManageLocationCautions',$location->id)}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-file-earmark-pdf"></i> Etats des cautions </a>
                                         </li>
 
                                     </ul>
