@@ -6,33 +6,39 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Locataire extends Model
 {
     use HasFactory;
 
     protected  $guarded = [];
-    // protected $fillable = [
-    //     "agency",
-    //     "owner",
-    //     "email",
-    //     "sexe",
-    //     "prenom",
-    //     "phone",
-    //     "piece_number",
-    //     "mandate_contrat",
-    //     "comments",
-    //     "name",
-    //     "adresse",
-    //     "card_id",
-    //     "card_type",
-    //     "departement",
-    //     "country",
-    //     "prorata",
-    //     "prorata_date",
-    //     "kilowater_price",
-    //     "discounter"
-    // ];
+    protected $fillable = [
+        "agency",
+        "email",
+        "sexe",
+        "prenom",
+        "phone",
+        "mandate_contrat",
+        "comments",
+        "name",
+        "card_id",
+        "adresse",
+        "owner",
+        "card_type",
+        "departement",
+        "country",
+        "prorata",
+        "prorata_date",
+        "discounter",
+        "kilowater_price",
+        "visible",
+    ];
+
+    function avaliseur(): HasOne
+    {
+        return $this->hasOne(LocatorAvalisor::class, "locator");
+    }
 
     function _Agency(): BelongsTo
     {

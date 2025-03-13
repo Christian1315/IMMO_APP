@@ -137,13 +137,13 @@
                                 <div class="mb-3">
                                     <div class="btn-group">
                                         <input type="checkbox" onclick="prorataClick_fun();" name="prorata" class="btn-check" id="prorata">
-                                        <label class="btn bg-dark text-white" for="prorata">Prorata</label>
+                                        <label class="btn bg-dark text-white" for="prorata">Prorata?</label>
                                     </div>
                                 </div><br>
                                 <div class="water shadow-lg roundered p-2" id="show_prorata_info" hidden>
                                     <div class="form-check">
                                         <span>Date du Prorata</span>
-                                        <input value="{{old('prorata_date')}}" name="prorata_date" class="form-control" type="date">
+                                        <input value="{{old('prorata_date')}}" name="prorata_date" id="prorata_date" class="form-control" type="date">
                                         @error("prorata_date")
                                         <span class="text-red">{{$message}}</span>
                                         @enderror
@@ -207,14 +207,36 @@
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
+                                <div class="mb-3">
+                                    <div class="btn-group">
+                                        <input type="checkbox" name="avalisor" class="btn-check" id="avalisor">
+                                        <label class="btn bg-dark text-white" for="avalisor">Avaliseur?</label>
+                                    </div>
+                                </div><br>
+                                <div class="d-none p-2" id="show_avalisor_info">
+                                    <div class="mb-3">
+                                        <label for="" class="d-block">Name</label>
+                                        <input type="text" name="ava_name" placeholder="Nom ..." class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="" class="d-block">Prénom</label>
+                                        <input type="text" name="ava_prenom" placeholder="Prénom ..." class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="" class="d-block">Phone</label>
+                                        <input type="phone" name="ava_phone" placeholder="Phone ..." class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="" class="d-block">Lien parenté</label>
+                                        <input type="text" name="ava_parent_link" placeholder="Lien parenté ..." class="form-control">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn bg-red">Enregistrer</button>
+                            <button class="btn bg-red w-100"><i class="bi bi-check-circle"></i> Enregistrer</button>
                         </div>
                     </form>
-                </div>
-                <div class="modal-footer">
                 </div>
             </div>
         </div>
@@ -234,9 +256,9 @@
                             <th class="text-center">Nom</th>
                             <th class="text-center">Prénom</th>
                             <th class="text-center">Email</th>
-                            <th class="text-center">Pièce ID</th>
+                            <!-- <th class="text-center">Pièce ID</th> -->
                             <th class="text-center">Phone</th>
-                            <th class="text-center">Adresse</th>
+                            <th class="text-center">Avaliseur</th>
                             <th class="text-center">Contrat</th>
                             <th class="text-center">Maisons</th>
                             <th class="text-center">Superviseurs</th>
@@ -253,10 +275,16 @@
                             <td class="text-center">{{$locator["name"]}}</td>
                             <td class="text-center">{{$locator["prenom"]}}</td>
                             <td class="text-center">{{$locator["email"]}}</td>
-                            <td class="text-center">{{$locator["card_id"]}}</td>
+                            <!-- <td class="text-center">{{$locator["card_id"]}}</td> -->
                             <td class="text-center">{{$locator["phone"]}}</td>
-                            <td class="text-center">{{$locator["adresse"]}}</td>
-                            <td class="text-center"><a href="{{$locator['mandate_contrat']}}" class="btn btn-sm btn-light"  rel="noopener noreferrer"><i class="bi bi-eye-fill"></i></a>
+                            <td class="text-center">
+                                @if($locator->avaliseur)
+                                <a class='btn btn-sm btn-light shadow' href='#' data-bs-toggle='modal' data-bs-target='#showAvalisor' onclick='showAvalisorModal({{$locator['id']}})'><i class='bi bi-eye-fill'></i></a>
+                                @else
+                                ---
+                                @endif
+                            </td>
+                            <td class="text-center"><a href="{{$locator['mandate_contrat']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye-fill"></i></a>
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#showHouses" onclick="showHouses_fun({{$locator['id']}})">
@@ -279,8 +307,17 @@
                             </td>
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="d-flex">
-                                <button class="btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$locator->id}})"><i class="bi bi-person-lines-fill"></i> Modifier</button>
-                                <a href="{{ route('locator.DeleteLocataire', crypId($locator->id)) }}" class="btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i> &nbsp; Suprimer</a>
+                                <div class="dropdown">
+                                    <button class="btn _btn-dark bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-gear"></i> Actions
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" class="dropdown-item btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$locator->id}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        <li><a href="{{ route('locator.DeleteLocataire', crypId($locator->id)) }}" class="dropdown-item btn btn-sm btn-light" data-confirm-delete="true"><i class="bi bi-archive-fill"></i> &nbsp; Suprimer</a></li>
+                                        <li><a class="w-100 dropdown-item" href="#">Adresse: {{$locator["adresse"]}}</a></li>
+                                        <li><a class="w-100 dropdown-item" href="#">Card ID: {{$locator["card_id"]}}</a></li>
+                                    </ul>
+                                </div>
                             </td>
                             @endif
                         </tr>
@@ -292,6 +329,22 @@
         </div>
     </div>
 
+
+    <!-- ###### MODEL DE SHOW AVALISOR ###### -->
+    <div class="modal fade" id="showAvalisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="">Avaliseur du locataire : <strong> <em class="text-red" id="ava_locator_fullmneme"> </em> </strong> </h6>
+                </div>
+                <h6 class="mx-3">Nom : <strong> <em class="text-red" id="avar_nom"></em> </strong> </h6>
+                <h6 class="mx-3">Prénom : <strong> <em class="text-red" id="avar_prenom"></em> </strong> </h6>
+                <h6 class="mx-3">Phone : <strong> <em class="text-red" id="avar_phone"></em> </strong> </h6>
+                <h6 class="mx-3">Lien parental : <strong> <em class="text-red" id="avar_link"></em> </strong> </h6>
+
+            </div>
+        </div>
+    </div>
 
     <!-- ###### MODEL DE SHOW HOUSE ###### -->
     <div class="modal fade" id="showHouses" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -333,7 +386,7 @@
                     <h6 class="modal-title fs-5" id="exampleModalLabel">Modifier <strong> <em class="text-red" id="update_locator_fullname"> </em> </strong> </h6>
                 </div>
                 <div class="modal-body">
-                    <form id="update_form"  class="shadow-lg p-3">
+                    <form id="update_form" class="shadow-lg p-3">
                         @csrf
                         <div class="row">
                             <div class="col-md-6">
@@ -375,7 +428,7 @@
                                     <label for="" class="d-block">Type</label>
                                     <select id="card_type" class="form-select form-control" name="card_type" aria-label="Default select example">
                                         @foreach($card_types as $type)
-                                        <option value="{{$type['id']}}" >{{$type['name']}}</option>
+                                        <option value="{{$type['id']}}">{{$type['name']}}</option>
                                         @endforeach
                                     </select>
                                 </div><br>
@@ -384,7 +437,7 @@
                                     <select id="country" class="form-select form-control" name="country" aria-label="Default select example">
                                         @foreach($countries as $countrie)
                                         @if($countrie['id']==4)
-                                        <option value="{{$countrie['id']}}" >{{$countrie['name']}}</option>
+                                        <option value="{{$countrie['id']}}">{{$countrie['name']}}</option>
                                         @endif
                                         @endforeach
                                     </select>
@@ -416,6 +469,35 @@
 
 
 <script type="text/javascript">
+    $("#avalisor").on("click", function() {
+        // alert(this.checked)
+        if (this.checked) {
+            // alert(avalisor.checked)
+            $("#show_avalisor_info").removeClass('d-none')
+        } else {
+            $("#show_avalisor_info").addClass('d-none')
+        }
+    })
+
+    function showAvalisorModal(id) {
+        axios.get("{{env('API_BASE_URL')}}locator/" + id + "/retrieve").then((response) => {
+            var locator = response.data
+            var avalisor = locator.avaliseur
+
+            var locator_fullname = locator.name + " " + locator.prenom;
+            $("#ava_locator_fullmneme").html(locator_fullname)
+
+            $("#avar_nom").html(avalisor.ava_name)
+            $("#avar_prenom").html(avalisor.ava_prenom)
+            $("#avar_link").html(avalisor.ava_phone)
+            $("#avar_phone").html(avalisor.ava_parent_link)
+
+        }).catch((error) => {
+            alert("une erreure s'est produite")
+            console.log(error)
+        })
+    }
+
     function showRooms_fun(id) {
         $("#locator_rooms").empty()
         axios.get("{{env('API_BASE_URL')}}locator/" + id + "/retrieve").then((response) => {
@@ -493,6 +575,7 @@
             $('#show_prorata_info').removeAttr('hidden');
         } else {
             $('#show_prorata_info').attr("hidden", "hidden");
+            $("#prorata_date").val(null)
         }
     }
 

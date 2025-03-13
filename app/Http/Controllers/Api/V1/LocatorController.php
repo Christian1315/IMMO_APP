@@ -10,7 +10,7 @@ class LocatorController extends Controller
     #GET A LOCATOR
     function RetrieveLocator(Request $request, $id)
     {
-        $locator = Locataire::where("visible", 1)->find($id);
+        $locator = Locataire::with(['avaliseur'])->where("visible", 1)->find($id);
         $houses = [];
         $rooms = [];
         foreach ($locator->Locations as $location) {

@@ -8,8 +8,10 @@ use App\Models\Country;
 use App\Models\Departement;
 use App\Models\House;
 use App\Models\Locataire;
+use App\Models\LocatorAvalisor;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -275,77 +277,96 @@ class LocataireController extends Controller
 
     function _AddLocataire(Request $request)
     {
-        #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-        $formData = $request->all();
-        $rules = self::locataire_rules();
-        $messages = self::locataire_messages();
+        try {
+            DB::beginTransaction();
 
-        Validator::make($formData, $rules, $messages)->validate();
-        $formData = $request->all();
-        $user = request()->user();
+            #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
+            $formData = $request->all();
+            $rules = self::locataire_rules();
+            $messages = self::locataire_messages();
 
-        ###___TRAITEMENT DES DATAS
-        $cardType = CardType::find($formData["card_type"]);
-        $departement = Departement::find($formData["departement"]);
-        $country = Country::find($formData["country"]);
-        $agency = Agency::find($formData["agency"]);
+            Validator::make($formData, $rules, $messages)->validate();
+            $formData = $request->all();
+            $user = request()->user();
 
-
-        ####___VERIFIONS S'IL S'AGIT D'UN PRORANA OU PAS
-        if ($request->get("prorata")) {
-            Validator::make(
-                $formData,
-                [
-                    "prorata_date" => ["required", "date"],
-                ],
-                [
-                    "prorata_date.required" => "Veuillez préciser la date du prorata!",
-                    "prorata_date.date" => "Ce champ est de type date",
-                ]
-            )->validate();
-        }
+            ###___TRAITEMENT DES DATAS
+            $cardType = CardType::find($formData["card_type"]);
+            $departement = Departement::find($formData["departement"]);
+            $country = Country::find($formData["country"]);
+            $agency = Agency::find($formData["agency"]);
 
 
-        if (!$cardType) {
-            alert()->error("Echec", "Ce Type de carte n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$departement) {
-            alert()->error("Echec", "Ce département n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$country) {
-            alert()->error("Echec", "Ce pays n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        ##___TRAITEMENT DE L'IMAGE
-        if ($request->file("mandate_contrat")) {
-            $img = $request->file("mandate_contrat");
-            $imgName = $img->getClientOriginalName();
-            $img->move("mandate_contrats", $imgName);
-
-            #ENREGISTREMENT DU LOCATAIRE DANS LA DB
-            if ($user) {
-                $formData["owner"] = $user->id;
+            ####___VERIFIONS S'IL S'AGIT D'UN PRORANA OU PAS
+            if ($request->get("prorata")) {
+                Validator::make(
+                    $formData,
+                    [
+                        "prorata_date" => ["required", "date"],
+                    ],
+                    [
+                        "prorata_date.required" => "Veuillez préciser la date du prorata!",
+                        "prorata_date.date" => "Ce champ est de type date",
+                    ]
+                )->validate();
             }
-            $formData["mandate_contrat"] = asset("mandate_contrats/" . $imgName);
+
+            if (!$cardType) {
+                alert()->error("Echec", "Ce Type de carte n'existe pas!");
+                return back()->withInput();
+            }
+
+            if (!$departement) {
+                alert()->error("Echec", "Ce département n'existe pas!");
+                return back()->withInput();
+            }
+
+            if (!$country) {
+                alert()->error("Echec", "Ce pays n'existe pas!");
+                return back()->withInput();
+            }
+
+            if (!$agency) {
+                alert()->error("Echec", "Cette agence n'existe pas!");
+                return back()->withInput();
+            }
+
+            ##___TRAITEMENT DE L'IMAGE
+            if ($request->file("mandate_contrat")) {
+                $img = $request->file("mandate_contrat");
+                $imgName = $img->getClientOriginalName();
+                $img->move("mandate_contrats", $imgName);
+
+                #ENREGISTREMENT DU LOCATAIRE DANS LA DB
+                if ($user) {
+                    $formData["owner"] = $user->id;
+                }
+                $formData["mandate_contrat"] = asset("mandate_contrats/" . $imgName);
+            }
+
+            $formData["prorata"] = $request->prorata ? 1 : 0;
+
+            ###___
+            $locator = Locataire::create($formData);
+
+            // avaliseur
+            if ($request->avalisor) {
+                $locator->avaliseur()->create([
+                    "ava_name" => $request->ava_name,
+                    "ava_prenom" => $request->ava_prenom,
+                    "ava_phone" => $request->ava_phone,
+                    "ava_parent_link" => $request->ava_parent_link,
+                ]);
+            }
+
+            alert()->success("Succès", "Locataire ajouté avec succès!");
+
+            DB::commit();
+            return back()->withInput();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            alert()->error("Error", "Une erreure est survenue!");
+            return back()->withInput();
         }
-
-        $formData["prorata"] = $request->prorata ? 1 : 0;
-
-        ###___
-        Locataire::create($formData);
-
-        alert()->success("Succès", "Locataire ajouté avec succès!");
-        return back()->withInput();
     }
 
 
@@ -543,7 +564,7 @@ class LocataireController extends Controller
         // Session::forget("filteredLocators");
         // session(["filteredLocators" => $locataires]);
 
-        session()->flash("filteredLocators",$locataires);
+        session()->flash("filteredLocators", $locataires);
         alert()->success("Succès", "Locataire filtré par superviseur avec succès!");
         return back()->withInput();
     }
@@ -590,10 +611,10 @@ class LocataireController extends Controller
             alert()->error("Echèc", "Aucun résultat trouvé");
             return back()->withInput();
         }
-        
+
         // Session::forget("filteredLocators");
         // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators",$locataires);
+        session()->flash("filteredLocators", $locataires);
 
         alert()->success("Succès", "Locataire filtré par maison avec succès!");
         return back()->withInput();
@@ -646,7 +667,7 @@ class LocataireController extends Controller
 
         // Session::forget("filteredLocators");
         // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators",$locataires);
+        session()->flash("filteredLocators", $locataires);
 
         alert()->success("Succès", "Locataire impayés filtré par superviseur avec succès!");
         return back()->withInput();
@@ -696,7 +717,7 @@ class LocataireController extends Controller
 
         // Session::forget("filteredLocators");
         // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators",$locataires);
+        session()->flash("filteredLocators", $locataires);
 
         alert()->success("Succès", "Locataire impayés filtré par maison avec succès!");
         return back()->withInput();
@@ -741,7 +762,7 @@ class LocataireController extends Controller
 
         // Session::forget("filteredLocators");
         // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators",$locataires);
+        session()->flash("filteredLocators", $locataires);
 
         alert()->success("Succès", "Locataire démenagé filtré par superviseur avec succès!");
         return back()->withInput();
@@ -784,13 +805,10 @@ class LocataireController extends Controller
 
         // Session::forget("filteredLocators");
         // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators",$locataires);
+        session()->flash("filteredLocators", $locataires);
         alert()->success("Succès", "Locataire demenagés filtré par maison avec succès!");
         return back()->withInput();
     }
-
-
-
 
     #####______TAUX 05 AGENCE
     function _ShowAgencyTaux05_Simple(Request $request, $agencyId)
@@ -908,8 +926,6 @@ class LocataireController extends Controller
         ###__
         return view("recovery05_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
-
-
 
     #####______TAUX 10 AGENCE
     function _ShowAgencyTaux10_Simple(Request $request, $agencyId)
