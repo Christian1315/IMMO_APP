@@ -176,7 +176,10 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('setting', "Setting")->name("setting");
     Route::get('/{agency}/paiement', "Paiement")->name("paiement");
     Route::get('/{agency}/initiation', "AgencyInitiation")->name("agency-initiation");
+
     Route::match(["GET", "POST"], '/{agency}/factures', "LocationFactures")->name("locationFacture");
+    Route::post('/{agency}/flitrefactures', "LocationFiltreFactures")->name("facture.LocationFiltreFactures");
+
     Route::get('/{agency}/caisses', "Caisses")->name("caisses");
     Route::get('/{agency}/{agency_account}/caisse-mouvements', "CaisseMouvements")->name("caisse-mouvements");
     Route::any('{agencyAccount}/agency_mouvements', '_RetrieveAgencyAccountMouvements'); ## RECUPERATION DES MOUVEMENTS D'UN COMPTE
@@ -302,6 +305,7 @@ Route::prefix("location")->group(function () {
         });
         Route::get("{agencyId}/generate_cautions", "_ManageCautions")->name("location._ManageCautions"); #GENERATE CAUTION POUR TOUTE L4AGENCE
         Route::get("location/{locationId}/generate_cautions", "_ManageLocationCautions")->name("location._ManageLocationCautions"); #GENERATE CAUTION UNE LOCATION
+        Route::get("location/{locationId}/generate_prorata", "_ManageLocationProrata")->name("location._ManageLocationProrata"); #GENERATE ETAT DES PRORATAS
         Route::post("{agencyId}/prestation_statistique_for_agency_by_period", "_ManagePrestationStatistiqueForAgencyByPeriod")->name("location._ManagePrestationStatistiqueForAgencyByPeriod"); #GENERATE PRESATION BY PERIODE
         Route::post('add', '_AddLocation')->name("location._AddLocation"); #AJOUT D'UNE LOCATION
         Route::patch('{id}/update', 'UpdateLocation')->name("location.UpdateLocation"); #MODIFICATION D'UNE LOCATION
@@ -310,6 +314,15 @@ Route::prefix("location")->group(function () {
 
         Route::any('add-paiement', '_AddPaiement')->name("location._AddPaiement"); #AJOUT D'UN PAIEMENT
         Route::post('{id}/updateStatus', 'UpdateFactureStatus')->name("location.UpdateFactureStatus"); #TRAITEMENT DE LA FACTURE CHANGEMENT DE STATUS
+
+        // FILTRE LOCATION
+        Route::post('{agency}/location_filtre_by_supervisor', 'FiltreBySupervisor')->name("location.FiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
+        Route::post('{agency}/location_filtre_by_house', 'FiltreByHouse')->name("location.FiltreByHouse"); #FILTRER PAR MAISON
+        Route::post('{agency}/location_filtre_by_proprio', 'FiltreByProprio')->name("location.FiltreByProprio"); #FILTRER PAR PROPRIETAIRE
+
+        // IMPRESSION
+        Route::post('{agency}/print_all_location_by_supervisor', 'PrintAllLocationBySupervisor')->name("location.PrintAllLocationBySupervisor"); #IMPRRIMER TOUTES LES LOCATIONS PAR SUPERVISEUR
+        Route::post('{agency}/print_unpaid_location_by_supervisor', 'PrintUnPaidLocationBySupervisor')->name("location.PrintUnPaidLocationBySupervisor"); #IMPRRIMER TOUTES LES LOCATIONS IMPAYES PAR SUPERVISEUR
 
 
         ###___GESTION DES FACTURES D'ELECTRICITE DANS UNE LOCATION
@@ -328,17 +341,7 @@ Route::prefix("location")->group(function () {
         Route::any('{houseId}/filtre_before_stateDate_stoped', 'FiltreBeforeStateDateStoped')->name("location.FiltreBeforeStateDateStoped"); #FILTRER LES PAIEMENTS AVANT ARRET DES ETATS
         Route::any('{houseId}/filtre_after_stateDate_stoped', 'FiltreAfterStateDateStoped')->name("location.FiltreAfterStateDateStoped"); #FILTRER LES PAIEMENTS APRES ARRET DES ETATS
 
-
-
-
-
-
-
-
-
-
-
-
+        Route::post('{agency}/filtre_by_supervisor', 'FiltreBySupervisor')->name("locator.FiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
 
         Route::any('{agency}/filtre_after_echeanceDate', 'FiltreAfterEcheanceDate');
         Route::any('{agency}/filtre_at_any_date', 'FiltreAtAnyDate');

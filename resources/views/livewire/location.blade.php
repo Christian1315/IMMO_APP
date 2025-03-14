@@ -38,11 +38,14 @@
     </div>
 
     <small>
-        <a type="button"  href="{{route('location._ManageCautions',crypId($current_agency->id))}}" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les états des cautions </a> &nbsp;
+        <input type="checkbox" hidden class="btn-check" id="displayLocatorsOptions" onclick="displayFiltreOptions()">
+        <label class="btn btn-light" for="displayLocatorsOptions"><i class="bi bi-file-earmark-pdf-fill"></i>Filtrer les locations</label>
+        <!--  -->
+        <a href="{{route('location._ManageCautions',crypId($current_agency->id))}}" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i> états des cautions de l'agence</a> &nbsp;
         <button data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Prestation par période</button>
     </small>
 
-    <!-- FILTRE BY PERIOD -->
+    <!-- FILTRE CAUTIONS BY PERIOD -->
     <div class="modal fade" id="ShowSearchLocatorsByHouseForm" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -71,7 +74,93 @@
             </div>
         </div>
     </div>
-    <br><br>
+
+    <div id="filtre_options" class="d-none">
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#serchBySupervisor"><i class="bi bi-people"></i> Par Sperviseur</button>
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#searchByHouse"><i class="bi bi-house-check-fill"></i> Par Maison</button>
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#searchByProprio"><i class="bi bi-house-check-fill"></i> Par Propriétaire</button>
+    </div>
+
+    <!-- FILTRE BY SUPERVISOR -->
+    <div class="modal fade" id="serchBySupervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtre par superviseur</p>
+                </div>
+                <div class="modal-body">
+                    <form class="serchBySupervisor" action="{{route('location.FiltreBySupervisor',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un superviseur</label>
+                                <select required name="supervisor" class="form-control">
+                                    @foreach($supervisors as $supervisor)
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRE BY HOUSE -->
+    <div class="modal fade" id="searchByHouse" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtre par maison</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('location.FiltreByHouse',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez une maison</label>
+                                <select required name="house" class="form-control">
+                                    @foreach($current_agency->_Houses as $house)
+                                    <option value="{{$house['id']}}"> {{$house["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRE BY PROPRIETOR -->
+    <div class="modal fade" id="searchByProprio" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtrer par proprietaire</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('location.FiltreByProprio',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un propriétaire</label>
+                                <select required name="proprio" class="form-control">
+                                    @foreach($current_agency->_Houses as $house)
+                                    <option value="{{$house->Proprietor->id}}"> {{$house->Proprietor->firstname}} {{$house->Proprietor->lastname}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="d-flex header-bar">
         <small>
@@ -392,13 +481,37 @@
     @if(!IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{$locations_count}} </strong> | Légende: <button class="btn btn-sm btn-warning text-uppercase">Impayé</button> <button class="btn btn-sm btn-secondary text-uppercase">Démenagé</button> <button class="btn btn-sm btn-light text-uppercase">à jour</button> </h4>
+            <?php
+            $now = strtotime(date("Y/m/d", strtotime(now())));
+
+            $locations = session("locations_filtred") ? session("locations_filtred") : $locations;
+
+
+            $paid_locators = $locations->where("status", '!=', 3)->filter(function ($location) use ($now) {
+                $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+
+                if ($location_echeance_date > $now) {
+                    return $location->Locataire;
+                }
+            });
+
+            $unpaid_locators = $locations->where("status", '!=', 3)->filter(function ($location) use ($now) {
+                $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+                if ($location_echeance_date < $now) {
+                    return $location->Locataire;
+                }
+            });
+
+            $removed_locators = $locations->where("status", 3);; ?>
+
+            <h4 class="">Total: <strong class="text-red"> {{session("locations_filtred")?count(session("locations_filtred")): $locations_count}} </strong> | Légende: <button class="btn btn-sm btn-warning text-uppercase" data-bs-toggle="modal" data-bs-target="#serchBySupervisor" onclick="searchPaidBySuperviseur()">{{count($unpaid_locators)}} Impayé(s) <span class="bagde bg-light shadow rounded p-1"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer</span> </button> <button class="btn btn-sm btn-secondary text-uppercase">{{count($removed_locators)}} Démenagé(s)</button> <button class="btn btn-sm btn-light text-uppercase">{{count($paid_locators)}} à jour</button> | <button class="btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#serchBySupervisor" onclick="searchAllBySupervisor()"> {{count($locations)}} Tous <span class="bagde bg-dark shadow shadow rounded p-1"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer</span></button> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
+                    <div id="buttons"></div>
                     <thead class="bg_dark">
                         <tr>
                             <th class="text-center">N°</th>
-                            <th class="text-center">Maison</th>
+                            <th class="text-center">Maison / Propriétaire</th>
                             <th class="text-center">Superviseur</th>
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Locataire</th>
@@ -413,23 +526,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($locations as $location)
+                        @foreach(session("locations_filtred")?session("locations_filtred"): $locations as $location)
                         @php
-                            $now = strtotime(date("Y/m/d", strtotime(now())));
-                            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+                        $now = strtotime(date("Y/m/d", strtotime(now())));
+                        $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                         @endphp
                         <tr class="align-items-center @if ($location_echeance_date < $now) bg-warning @elseif($location->status==3) bg-secondary text-white @endif ">
                             <td class="text-center">{{$loop->index+1}} </td>
-                            <td class="text-center">{{$location["House"]["name"]}}</td>
-                            <td class="text-center">
-                                {{ $location->House->Supervisor->name }}
-                            </td>
+                            <td class="text-center"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
+                            <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span> </td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</td>
+                            <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
                             <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center">{{$location["loyer"]}}</td>
-                            <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> <small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>  </td>
+                            <td class="text-center text-red"><span class="text-uppercase badge bg-light text-dark"><i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small></span> </td>
 
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center">
@@ -441,15 +552,15 @@
                                         @if ($location->status!=3)
                                         <li>
                                             <button data-bs-toggle="modal" data-bs-target="#encaisse_{{$location['id']}}" class="w-100 btn btn-sm bg-dark">
-                                            <i class="bi bi-currency-exchange"></i> Encaisser
+                                                <i class="bi bi-currency-exchange"></i> Encaisser
                                             </button>
                                         </li>
                                         <li>
                                             <button data-bs-toggle="modal" data-bs-target="#demenage_{{$location['id']}}" class="w-100 btn btn-sm bg-red">
-                                            <i class="bi bi-folder-x"></i> Démenager
+                                                <i class="bi bi-folder-x"></i> Démenager
                                             </button>
                                         </li>
-                                        
+
                                         <li>
                                             <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$location['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
                                         </li>
@@ -462,11 +573,15 @@
                                         </li>
 
                                         <li>
-                                            <a  href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-eye"></i> Contrat de location </a>
+                                            <a href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-eye"></i> Contrat de location </a>
                                         </li>
 
                                         <li>
-                                            <a target="_blank"  href="{{route('location._ManageLocationCautions',$location->id)}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-file-earmark-pdf"></i> Etats des cautions </a>
+                                            <a target="_blank" href="{{route('location._ManageLocationCautions',$location->id)}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-file-earmark-pdf"></i> Etats des cautions </a>
+                                        </li>
+
+                                        <li>
+                                            <a target="_blank" @style(["pointer-events:none"=>!$location->Locataire->prorata,"cursor:default"=>!$location->Locataire->prorata]) data-role="disabled" href="{{route('location._ManageLocationProrata',$location->id)}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-file-earmark-pdf"></i> Etats des proratas </a>
                                         </li>
 
                                     </ul>
@@ -584,7 +699,7 @@
                             </div>
                         </div>
 
-                        
+
                         <!-- ###### MODEL DE MODIFICATION ###### -->
                         <div class="modal fade" id="updateModal_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
@@ -607,7 +722,7 @@
                                                         <label for="" class="d-block">Maison</label>
                                                         <select class="form-select form-control" name="house" aria-label="Default select example">
                                                             @foreach($houses as $house)
-                                                            <option value="{{$house['id']}}" >{{$house['name']}}</option>
+                                                            <option value="{{$house['id']}}">{{$house['name']}}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -636,7 +751,7 @@
                                                         <label class="d-block" for="">Type</label>
                                                         <select class="form-select form-control" name="type">
                                                             @foreach($location_types as $type)
-                                                            <option value="{{$type['id']}}" >{{$type['name']}}</option>
+                                                            <option value="{{$type['id']}}">{{$type['name']}}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -722,7 +837,7 @@
                                                 <li class="list-group-item mb-3 "> <strong>Code :</strong> {{$facture->facture_code}};
                                                     <strong>Statut :</strong> <span class="@if($facture->status==2) bg-success @elseif($facture->status==3 || $facture->status==4)  bg-danger @else bg-warning @endif">{{$facture->Status->name}} </span> ;
                                                     <strong>Montant: </strong> {{$facture->amount}};
-                                                    <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
+                                                    <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
                                                     <strong>Date d'écheance: </strong> {{Change_date_to_text($facture->echeance_date)}};
                                                     <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> ;
                                                     <strong>Traitement: </strong><br>
@@ -760,6 +875,24 @@
             // locationSelection($('#location_selected').val())
             houseSelect($('#houseSelection').val())
         })
+
+        // IMPRESSION
+        function searchPaidBySuperviseur() {
+            $(".serchBySupervisor").attr("action", "{{route('location.PrintUnPaidLocationBySupervisor',crypId($current_agency->id))}}")
+        }
+
+        function searchAllBySupervisor() {
+            $(".serchBySupervisor").attr("action", "{{route('location.PrintAllLocationBySupervisor',crypId($current_agency->id))}}")
+        }
+
+        // filtre
+        function displayFiltreOptions() {
+            if ($("#filtre_options").hasClass('d-none')) {
+                $("#filtre_options").removeClass("d-none")
+            } else {
+                $("#filtre_options").addClass("d-none")
+            }
+        }
 
         function locationSelection(val = null) {
             var locationSelected = val ? val : $('#location_selected').val()

@@ -66,7 +66,9 @@ class Location extends Model
         "water_unpaid",
         "electric_unpaid",
 
-        "previous_echeance_date"
+        "previous_echeance_date",
+        "prorata_days",
+        "prorata_amount"
     ];
 
     // si cette location est en impayé ou pas

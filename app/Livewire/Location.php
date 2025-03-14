@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\FactureStatus;
 use App\Models\LocationType;
 use App\Models\PaiementType;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -176,6 +177,26 @@ class Location extends Component
 
     public $showPrestations = false;
 
+    ####____superviseurs
+    // REFRESH SUPERVISOR
+    function refreshSupervisors()
+    {
+        $users = User::with(["account_agents"])->get();
+        $supervisors = [];
+
+        foreach ($users as $user) {
+            $user_roles = $user->roles; ##recuperation des roles de ce user
+
+            foreach ($user_roles as $user_role) {
+                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
+                    array_push($supervisors, $user);
+                }
+            }
+        }
+        $this->supervisors = array_unique($supervisors);
+    }
+
+
     ###___HOUSES
     function refreshThisAgencyHouses()
     {
@@ -264,6 +285,9 @@ class Location extends Component
 
         // FACTURES STATUS
         $this->refreshFactureStatus();
+
+        // SUPERVISORS
+        $this->refreshSupervisors();
     }
 
     // LOCATION TYPE ADDING

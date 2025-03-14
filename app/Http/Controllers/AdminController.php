@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agency;
 use App\Models\Payement;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -480,6 +481,31 @@ class AdminController extends Controller
         ###___
         $factures = collect($factures);
         $montantTotal = $factures->sum("amount");
-        return view("admin.factures", compact(["agency", "factures","montantTotal"]));
+        $users = User::all();
+        return view("admin.factures", compact(["agency", "factures", "montantTotal", "users"]));
+    }
+
+    // FILTRAGE
+    function LocationFiltreFactures(Request $request, $agencyId)
+    {
+        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
+        if (!$agency) {
+            alert()->error("Echec", "Cette agence n'existe pas!");
+        };
+
+        $factures = $agency->_Locations->filter(function ($location) use ($request) {
+            return $location->Factures->where("owner", $request->user);
+        });
+
+        if (count($factures)==0) {
+            alert()->error("Echec", "Aucun résultat trouvé!");
+        }
+
+        // dd($factures);
+        $montantTotal = $factures->sum("amount");
+        $users = User::all();
+        alert()->success("Succès", "Filtre éffectué avec succès");
+
+        return view("admin.factures", compact(["agency", "factures", "montantTotal", "users"]));
     }
 }

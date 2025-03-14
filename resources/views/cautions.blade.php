@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <title>Gestion de scautions</title>
+    <title>Gestion des cautions</title>
 
     <style>
         * {
@@ -69,11 +69,11 @@
                         <tr>
                             <th scope="col" class="text-center">Maison</th>
                             <th scope="col" class="text-center">Chambre</th>
-                            <th scope="col" class="text-center">Frais de peinture</th>
                             <th scope="col" class="text-center">Locataire</th>
-                            <th scope="col" class="text-center">Caution Electrique</th>
-                            <th scope="col" class="text-center">Caution Eau</th>
+                            <th scope="col" class="text-center">Date d'integration</th>
                             <th scope="col" class="text-center">Caution Loyer</th>
+                            <th scope="col" class="text-center">Caution Eau / Electrique</th>
+                            <th scope="col" class="text-center">Frais de peinture</th>
                             <th scope="col" class="text-center">Totaux(fcfa) </th>
                         </tr>
                     </thead>
@@ -82,12 +82,12 @@
                         <tr>
                             <td class="text-center">{{$location->House->name}}</td>
                             <td class="text-center">{{$location->Room->number}}</td>
-                            <td class="text-center bg-warning">{{$location->frais_peiture}}</td>
                             <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
-                            <td class="text-center">{{$location->caution_electric}}</td>
-                            <td class="text-center">{{$location->caution_water}}</td>
-                            <td class="text-center"> <strong class="d-block">{{$location->caution_number*$location->loyer}} </strong> ({{$location->caution_number}}X{{$location->loyer}})</td>
-                            <td class="text-center bg-warning"> <strong> {{$location->caution_water+$location->caution_electric}} </strong> </td>
+                            <td class="text-center text-red"><small class="text-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location->integration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</small> </td>
+                            <td class="text-center"> <strong class="d-block">{{number_format($location->caution_number*$location->loyer,0," "," ")}} </strong> ({{$location->caution_number}}X{{$location->loyer}})</td>
+                            <td class="text-center">{{number_format($location->caution_water+$location->caution_electric,0," "," ")}} ({{$location->caution_water}}+{{$location->caution_electric}})</td>
+                            <td class="text-center">{{number_format($location->frais_peiture,0," "," ") }}</td>
+                            <td class="text-center bg-warning"> <strong> {{number_format($location->caution_number*$location->loyer + $location->caution_water+$location->caution_electric + $location->frais_peiture,0,""," ") }} </strong> </td>
                         </tr>
                         @endforeach
                         <tr>
@@ -95,9 +95,9 @@
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td class="bg-warning"> <strong>{{array_sum($cautions_electricity)}} </strong> </td>
-                            <td class="bg-warning"> <strong>{{array_sum($cautions_eau)}} </strong> </td>
-                            <td class="bg-warning"> <strong>{{array_sum($cautions_loyer)}} </strong> </td>
+                            <td class="bg-warning"> <strong>{{number_format(array_sum($cautions_loyer),0," "," ") }} </strong> </td>
+                            <td class="bg-warning"> <strong>{{number_format(array_sum($cautions_electricity)+array_sum($cautions_eau),0," "," ") }} </strong> </td>
+                            <td class="bg-warning"> <strong>{{number_format(array_sum($cautions_eau),0," "," ") }} </strong> </td>
                         </tr>
                     </tbody>
                 </table>
@@ -107,7 +107,7 @@
 
                 <br>
                 <p class="text-center">
-                    Arrêté le présent état à la somme de <em class="text-red">{{array_sum($cautions_electricity) + array_sum($cautions_eau) + array_sum($cautions_loyer)}} cfa</em>
+                    Arrêté le présent état à la somme de <em class="text-red">{{number_format(array_sum($cautions_electricity) + array_sum($cautions_eau) + array_sum($cautions_loyer),0," "," ")}} cfa</em>
                 </p>
 
                 <br>

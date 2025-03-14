@@ -48,7 +48,8 @@
             </a>
 
             <marquee behavior="alternate" style="font-size: 15px;font-weight: bold;"> GESTION DE L'AGENCE :
-                {{ $agency['name'] }}</marquee>
+                {{ $agency['name'] }}
+            </marquee>
             <ul class="navbar-nav px-3">
                 <li class="nav-item text-nowrap text-center">
                     <div class="dropdown">
@@ -87,375 +88,375 @@
                     <div class="offcanvas-body">
                         <div class="">
                             @if ($active == 'stop_state')
-                                <ul class="nav flex-column">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" href="/{{ crypId($agency['id']) }}/house">
-                                            <i class="bi bi-house-add-fill"></i>
-                                            Arrêt des Etats
-                                        </a>
-                                        <a class="nav-link text-red bg-light"
-                                            href="/{{ crypId($agency['id']) }}/house">
-                                            <i class="bi bi-arrow-left-circle-fill"></i> &nbsp; Retour
-                                        </a>
-                                    </li>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="/{{ crypId($agency['id']) }}/house">
+                                        <i class="bi bi-house-add-fill"></i>
+                                        Arrêt des Etats
+                                    </a>
+                                    <a class="nav-link text-red bg-light"
+                                        href="/{{ crypId($agency['id']) }}/house">
+                                        <i class="bi bi-arrow-left-circle-fill"></i> &nbsp; Retour
+                                    </a>
+                                </li>
 
-                                </ul>
+                            </ul>
                             @else
-                                <ul class="nav flex-column">
+                            <ul class="nav flex-column">
 
-                                    @if ($active == 'proprietor')
-                                        <li class="nav-item">
-                                            <a class="nav-link active" href="/crypId({{ $agency['id'] }})/proprietor">
-                                                <i class="bi bi-person-fill-gear"></i>
-                                                Propriétaires
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <a class="nav-link text-white"
-                                                href="/{{ crypId($agency['id']) }}/proprietor">
-                                                <i class="bi bi-person-fill-gear"></i>
-                                                Propriétaires
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'house')
-                                        <li class="nav-item">
-                                            <a class="nav-link active" href="/{{ crypId($agency['id']) }}/house">
-                                                <i class="bi bi-house-add-fill"></i>
-                                                Maisons
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <a class="nav-link text-white" href="/{{ crypId($agency['id']) }}/house">
-                                                <i class="bi bi-house-add-fill"></i>
-                                                Maisons
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'room')
-                                        <li class="nav-item">
-                                            <a class="nav-link text-white active"
-                                                href="/{{ crypId($agency['id']) }}/room">
-                                                <i class="bi bi-hospital-fill"></i>
-                                                Chambres
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <a class="nav-link text-white" href="/{{ crypId($agency['id']) }}/room">
-                                                <i class="bi bi-hospital-fill"></i>
-                                                Chambres
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'locator')
-                                        <li class="nav-item">
-                                            <a class="dropdown-item text-white active"
-                                                href="/{{ crypId($agency['id']) }}/locator">Locataires</a>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <a class="dropdown-item text-white"
-                                                href="/{{ crypId($agency['id']) }}/locator">Locataires</a>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'location')
-                                        <li class="nav-item">
-                                            <div class="btn-group dropdown-center">
-                                                <a class="nav-link text-white dropdown-toggle active" href="#"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-person-fill-gear"></i>
-                                                    Locations
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-dark">
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/location">Toutes les
-                                                            locations</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/paid_locators">Locataires
-                                                            à jour</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/unpaid_locators">Locataires
-                                                            en impayé</a></li>
-
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/removed_locators">Locataires
-                                                            démenagés</a></li>
-                                                </ul>
-                                            </div>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <div class="btn-group dropdown-center">
-                                                <a class="nav-link text-white dropdown-toggle" href="#"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-person-fill-gear"></i>
-                                                    Locations
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-dark">
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/location">Toutes les
-                                                            locations</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/paid_locators">Locataires
-                                                            à jour</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/unpaid_locators">Locataires
-                                                            en impayé</a></li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/removed_locators">Locataires
-                                                            démenagés</a></li>
-                                                </ul>
-                                            </div>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'paiement')
-                                        <li class="nav-item">
-                                            <a class="nav-link active text-white"
-                                                href="/{{ crypId($agency['id']) }}/paiement">
-                                                <i class="bi bi-currency-exchange"></i>
-                                                Payer Propriétaire
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <a class="nav-link text-white"
-                                                href="/{{ crypId($agency['id']) }}/paiement">
-                                                <i class="bi bi-currency-exchange"></i>
-                                                Payer Propriétaire
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if (auth())
-                                        @if (auth()->user()->is_master || auth()->user()->is_admin)
-                                            @if ($active == 'initiation')
-                                                <li class="nav-item">
-                                                    <a class="nav-link active"
-                                                        href="/{{ crypId($agency['id']) }}/initiation">
-                                                        <i class="bi bi-cash-coin"></i>
-                                                        Valider paiement
-                                                    </a>
-                                                </li>
-                                            @else
-                                                <li class="nav-item">
-                                                    <a class="nav-link text-white"
-                                                        href="/{{ crypId($agency['id']) }}/initiation">
-                                                        <i class="bi bi-cash-coin"></i>
-                                                        Valider paiement
-                                                    </a>
-                                                </li>
-                                            @endif
-                                        @endif
-                                    @endif
-
-                                    @if ($active == 'facture')
-                                        <li class="nav-item">
-                                            <a class="nav-link active text-white"
-                                                href="/{{ crypId($agency['id']) }}/factures">
-                                                <i class="bi bi-file-pdf"></i>
-                                                Factures
-                                            </a>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <a class="nav-link text-white"
-                                                href="/{{ crypId($agency['id']) }}/factures">
-                                                <i class="bi bi-file-pdf"></i>
-                                                Factures
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'caisse')
-                                        <li class="nav-item">
-                                            <div class="btn-group dropdown-center">
-                                                <a class="nav-link active text-white dropdown-toggle" href="#"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
-                                                </a>
-                                                @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
-                                                    <ul class="dropdown-menu dropdown-menu-dark">
-                                                        <li><a class="dropdown-item active"
-                                                                href="/{{ crypId($agency['id']) }}/caisses">Toutes les
-                                                                caisses</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
-                                                        </li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
-                                                        </li>
-                                                    </ul>
-                                                @endif
-                                            </div>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <div class="btn-group dropdown-center">
-                                                <a class="nav-link text-white dropdown-toggle" href="#"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-dark">
-                                                    <li><a class="dropdown-item active"
-                                                            href="/{{ crypId($agency['id']) }}/caisses">Toutes les
-                                                            caisses</a></li>
-                                                    @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
-                                                        </li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
-                                                        </li>
-                                                    @endif
-                                                </ul>
-                                            </div>
-                                        </li>
-                                    @endif
-
-                                    @if ($active == 'electricity')
-                                        <li class="nav-item">
-                                            <div class="btn-group dropdown-center">
-                                                <a class="nav-link active text-white dropdown-toggle" href="#"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-ev-station"></i> &nbsp; Electricité / Eau
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-dark">
-                                                    <li><a class="dropdown-item active"
-                                                            href="/{{ crypId($agency['id']) }}/electricity/locations">Electricité</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </li>
-                                    @else
-                                        <li class="nav-item">
-                                            <div class="btn-group dropdown-center">
-                                                <a class="nav-link text-white dropdown-toggle" href="#"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-ev-station"></i> &nbsp;Electricité / Eau
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-dark">
-                                                    <li><a class="dropdown-item active"
-                                                            href="/{{ crypId($agency['id']) }})/electricity/locations">Electricité</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item"
-                                                            href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </li>
-                                    @endif
-
-                                </ul>
-
-                                @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
-                                    <h6
-                                        class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                                        <span>Paramètres & Statistiques</span>
-                                        <a class="d-flex align-items-center text-muted" href="#">
-                                            <span data-feather="plus-circle"></span>
-                                        </a>
-                                    </h6>
-
-                                    <ul class="nav flex-column">
-                                        @if ($active == 'statistique')
-                                            <li class="nav-item">
-                                                <a class="nav-link active text-white"
-                                                    href="/{{ crypId($agency['id']) }}/statistique">
-                                                    <i class="bi bi-pc-display-horizontal"></i> &nbsp; Statistiques
-                                                </a>
-                                            </li>
-                                        @else
-                                            <li class="nav-item">
-                                                <a class="nav-link text-white"
-                                                    href="/{{ crypId($agency['id']) }}/statistique">
-                                                    <i class="bi bi-pc-display-horizontal"></i> &nbsp;Statistiques
-                                                </a>
-                                            </li>
-                                        @endif
-
-                                        @if ($active == 'filtrage')
-                                            <li class="nav-item">
-                                                <a class="nav-link active text-white"
-                                                    href="/{{ crypId($agency['id']) }}/filtrage">
-                                                    <i class="bi bi-filter-circle"></i> &nbsp; Bilan
-                                                </a>
-                                            </li>
-                                        @else
-                                            <li class="nav-item">
-                                                <a class="nav-link text-white"
-                                                    href="/{{ crypId($agency['id']) }}/filtrage">
-                                                    <i class="bi bi-filter-circle"></i> &nbsp;Bilan
-                                                </a>
-                                            </li>
-                                        @endif
-
-                                        @if ($active == 'recovery')
-                                            <li class="nav-item">
-                                                <div class="btn-group dropdown-center">
-                                                    <a class="nav-link active text-white dropdown-toggle"
-                                                        href="#" data-bs-toggle="dropdown"
-                                                        aria-expanded="false">
-                                                        <i class="bi bi-reception-4"></i> &nbsp; Taux de recouvrement
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-dark">
-                                                        <li><a class="dropdown-item active"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_05_to_echeance_date">Recouvrement
-                                                                au 05</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_10_to_echeance_date">Recouvrement
-                                                                au 10</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_qualitatif">Recouvrement
-                                                                qualitatif</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/performance">Taux
-                                                                de performance</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_quelconque_date">Quelconque
-                                                                date</a></li>
-                                                    </ul>
-                                                </div>
-                                            </li>
-                                        @else
-                                            <li class="nav-item">
-                                                <div class="btn-group dropdown-center">
-                                                    <a class="nav-link text-white dropdown-toggle" href="#"
-                                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bi bi-reception-4"></i> &nbsp; Taux de recouvrement
-                                                    </a>
-                                                    <ul class="dropdown-menu dropdown-menu-dark">
-                                                        <li><a class="dropdown-item active"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_05_to_echeance_date">Recouvrement
-                                                                au 05</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_10_to_echeance_date">Recouvrement
-                                                                au 10</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_qualitatif">Recouvrement
-                                                                qualitatif</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/performance">Taux
-                                                                de performance</a></li>
-                                                        <li><a class="dropdown-item"
-                                                                href="/{{ crypId($agency['id']) }}/recovery_quelconque_date">Quelconque
-                                                                date</a></li>
-                                                    </ul>
-                                                </div>
-                                            </li>
-                                        @endif
-                                    </ul>
+                                @if ($active == 'proprietor')
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="/crypId({{ $agency['id'] }})/proprietor">
+                                        <i class="bi bi-person-fill-gear"></i>
+                                        Propriétaires
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white"
+                                        href="/{{ crypId($agency['id']) }}/proprietor">
+                                        <i class="bi bi-person-fill-gear"></i>
+                                        Propriétaires
+                                    </a>
+                                </li>
                                 @endif
+
+                                @if ($active == 'house')
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="/{{ crypId($agency['id']) }}/house">
+                                        <i class="bi bi-house-add-fill"></i>
+                                        Maisons
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="/{{ crypId($agency['id']) }}/house">
+                                        <i class="bi bi-house-add-fill"></i>
+                                        Maisons
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if ($active == 'room')
+                                <li class="nav-item">
+                                    <a class="nav-link text-white active"
+                                        href="/{{ crypId($agency['id']) }}/room">
+                                        <i class="bi bi-hospital-fill"></i>
+                                        Chambres
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="/{{ crypId($agency['id']) }}/room">
+                                        <i class="bi bi-hospital-fill"></i>
+                                        Chambres
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if ($active == 'locator')
+                                <li class="nav-item">
+                                    <a class="dropdown-item text-white active"
+                                        href="/{{ crypId($agency['id']) }}/locator">Locataires</a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="dropdown-item text-white"
+                                        href="/{{ crypId($agency['id']) }}/locator">Locataires</a>
+                                </li>
+                                @endif
+
+                                @if ($active == 'location')
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link text-white dropdown-toggle active" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-person-fill-gear"></i>
+                                            Locations
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/location">Toutes les
+                                                    locations</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/paid_locators">Locataires
+                                                    à jour</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/unpaid_locators">Locataires
+                                                    en impayé</a></li>
+
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/removed_locators">Locataires
+                                                    démenagés</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link text-white dropdown-toggle" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-person-fill-gear"></i>
+                                            Locations
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/location">Toutes les
+                                                    locations</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/paid_locators">Locataires
+                                                    à jour</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/unpaid_locators">Locataires
+                                                    en impayé</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/removed_locators">Locataires
+                                                    démenagés</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                @endif
+
+                                @if ($active == 'paiement')
+                                <li class="nav-item">
+                                    <a class="nav-link active text-white"
+                                        href="/{{ crypId($agency['id']) }}/paiement">
+                                        <i class="bi bi-currency-exchange"></i>
+                                        Payer Propriétaire
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white"
+                                        href="/{{ crypId($agency['id']) }}/paiement">
+                                        <i class="bi bi-currency-exchange"></i>
+                                        Payer Propriétaire
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if (auth())
+                                @if (auth()->user()->is_master || auth()->user()->is_admin)
+                                @if ($active == 'initiation')
+                                <li class="nav-item">
+                                    <a class="nav-link active"
+                                        href="/{{ crypId($agency['id']) }}/initiation">
+                                        <i class="bi bi-cash-coin"></i>
+                                        Valider paiement
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white"
+                                        href="/{{ crypId($agency['id']) }}/initiation">
+                                        <i class="bi bi-cash-coin"></i>
+                                        Valider paiement
+                                    </a>
+                                </li>
+                                @endif
+                                @endif
+                                @endif
+
+                                @if ($active == 'facture')
+                                <li class="nav-item">
+                                    <a class="nav-link active text-white"
+                                        href="/{{ crypId($agency['id']) }}/factures">
+                                        <i class="bi bi-file-pdf"></i>
+                                        Factures
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white"
+                                        href="/{{ crypId($agency['id']) }}/factures">
+                                        <i class="bi bi-file-pdf"></i>
+                                        Factures
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if ($active == 'caisse')
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link active text-white dropdown-toggle" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
+                                        </a>
+                                        @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item active"
+                                                    href="/{{ crypId($agency['id']) }}/caisses">Toutes les
+                                                    caisses</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
+                                            </li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
+                                            </li>
+                                        </ul>
+                                        @endif
+                                    </div>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link text-white dropdown-toggle" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item active"
+                                                    href="/{{ crypId($agency['id']) }}/caisses">Toutes les
+                                                    caisses</a></li>
+                                            @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
+                                            </li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
+                                            </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </li>
+                                @endif
+
+                                @if ($active == 'electricity')
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link active text-white dropdown-toggle" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-ev-station"></i> &nbsp; Electricité / Eau
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item active"
+                                                    href="/{{ crypId($agency['id']) }}/electricity/locations">Electricité</a>
+                                            </li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link text-white dropdown-toggle" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-ev-station"></i> &nbsp;Electricité / Eau
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item active"
+                                                    href="/{{ crypId($agency['id']) }})/electricity/locations">Electricité</a>
+                                            </li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                @endif
+
+                            </ul>
+
+                            @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+                            <h6
+                                class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                                <span>Paramètres & Statistiques</span>
+                                <a class="d-flex align-items-center text-muted" href="#">
+                                    <span data-feather="plus-circle"></span>
+                                </a>
+                            </h6>
+
+                            <ul class="nav flex-column">
+                                @if ($active == 'statistique')
+                                <li class="nav-item">
+                                    <a class="nav-link active text-white"
+                                        href="/{{ crypId($agency['id']) }}/statistique">
+                                        <i class="bi bi-pc-display-horizontal"></i> &nbsp; Statistiques
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white"
+                                        href="/{{ crypId($agency['id']) }}/statistique">
+                                        <i class="bi bi-pc-display-horizontal"></i> &nbsp;Statistiques
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if ($active == 'filtrage')
+                                <li class="nav-item">
+                                    <a class="nav-link active text-white"
+                                        href="/{{ crypId($agency['id']) }}/filtrage">
+                                        <i class="bi bi-filter-circle"></i> &nbsp; Bilan
+                                    </a>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <a class="nav-link text-white"
+                                        href="/{{ crypId($agency['id']) }}/filtrage">
+                                        <i class="bi bi-filter-circle"></i> &nbsp;Bilan
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if ($active == 'recovery')
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link active text-white dropdown-toggle"
+                                            href="#" data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                            <i class="bi bi-reception-4"></i> &nbsp; Taux de recouvrement
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item active"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_05_to_echeance_date">Recouvrement
+                                                    au 05</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_10_to_echeance_date">Recouvrement
+                                                    au 10</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_qualitatif">Recouvrement
+                                                    qualitatif</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/performance">Taux
+                                                    de performance</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_quelconque_date">Quelconque
+                                                    date</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                @else
+                                <li class="nav-item">
+                                    <div class="btn-group dropdown-center">
+                                        <a class="nav-link text-white dropdown-toggle" href="#"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-reception-4"></i> &nbsp; Taux de recouvrement
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-dark">
+                                            <li><a class="dropdown-item active"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_05_to_echeance_date">Recouvrement
+                                                    au 05</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_10_to_echeance_date">Recouvrement
+                                                    au 10</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_qualitatif">Recouvrement
+                                                    qualitatif</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/performance">Taux
+                                                    de performance</a></li>
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/recovery_quelconque_date">Quelconque
+                                                    date</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                @endif
+                            </ul>
+                            @endif
                             @endif
                         </div>
                     </div>
@@ -530,6 +531,8 @@
     <script src="https://cdn.datatables.net/plug-ins/2.1.8/api/sum().js"></script>
 
 
+
+
     <!-- #### DATA TABLES -->
     <script>
         // In your Javascript (external .js resource or <script> tag)
@@ -541,227 +544,218 @@
 
         $(function() {
             $("#myTable").DataTable({
-                "responsive": true,
-                "lengthChange": true,
-                "autoWidth": true,
-                "buttons": ["excel", "pdf", "print"],
-                "order": [
-                    [0, 'desc']
-                ],
-                "pageLength": 10,
-                // "columnDefs": [{
-                //         "targets": 2,
-                //         "orderable": false
-                //     },
-                //     {
-                //         "targets": 0,
-                //         "orderable": false
-                //     }
-                // ],
-                language: {
-                    "emptyTable": "Aucune donnée disponible dans le tableau",
-                    "lengthMenu": "Afficher _MENU_ éléments",
-                    "loadingRecords": "Chargement...",
-                    "processing": "Traitement...",
-                    "zeroRecords": "Aucun élément correspondant trouvé",
-                    "paginate": {
-                        "first": "Premier",
-                        "last": "Dernier",
-                        "previous": "Précédent",
-                        "next": "Suiv"
-                    },
-                    "aria": {
-                        "sortAscending": ": activer pour trier la colonne par ordre croissant",
-                        "sortDescending": ": activer pour trier la colonne par ordre décroissant"
-                    },
-                    "select": {
-                        "rows": {
-                            "_": "%d lignes sélectionnées",
-                            "1": "1 ligne sélectionnée"
-                        },
-                        "cells": {
-                            "1": "1 cellule sélectionnée",
-                            "_": "%d cellules sélectionnées"
-                        },
-                        "columns": {
-                            "1": "1 colonne sélectionnée",
-                            "_": "%d colonnes sélectionnées"
-                        }
-                    },
-                    "autoFill": {
-                        "cancel": "Annuler",
-                        "fill": "Remplir toutes les cellules avec <i>%d<\/i>",
-                        "fillHorizontal": "Remplir les cellules horizontalement",
-                        "fillVertical": "Remplir les cellules verticalement"
-                    },
-                    "searchBuilder": {
-                        "conditions": {
-                            "date": {
-                                "after": "Après le",
-                                "before": "Avant le",
-                                "between": "Entre",
-                                "empty": "Vide",
-                                "equals": "Egal à",
-                                "not": "Différent de",
-                                "notBetween": "Pas entre",
-                                "notEmpty": "Non vide"
-                            },
-                            "number": {
-                                "between": "Entre",
-                                "empty": "Vide",
-                                "equals": "Egal à",
-                                "gt": "Supérieur à",
-                                "gte": "Supérieur ou égal à",
-                                "lt": "Inférieur à",
-                                "lte": "Inférieur ou égal à",
-                                "not": "Différent de",
-                                "notBetween": "Pas entre",
-                                "notEmpty": "Non vide"
-                            },
-                            "string": {
-                                "contains": "Contient",
-                                "empty": "Vide",
-                                "endsWith": "Se termine par",
-                                "equals": "Egal à",
-                                "not": "Différent de",
-                                "notEmpty": "Non vide",
-                                "startsWith": "Commence par"
-                            },
-                            "array": {
-                                "equals": "Egal à",
-                                "empty": "Vide",
-                                "contains": "Contient",
-                                "not": "Différent de",
-                                "notEmpty": "Non vide",
-                                "without": "Sans"
-                            }
-                        },
-                        "add": "Ajouter une condition",
-                        "button": {
-                            "0": "Recherche avancée",
-                            "_": "Recherche avancée (%d)"
-                        },
-                        "clearAll": "Effacer tout",
-                        "condition": "Condition",
-                        "data": "Donnée",
-                        "deleteTitle": "Supprimer la règle de filtrage",
-                        "logicAnd": "Et",
-                        "logicOr": "Ou",
-                        "title": {
-                            "0": "Recherche avancée",
-                            "_": "Recherche avancée (%d)"
-                        },
-                        "value": "Valeur"
-                    },
-                    "searchPanes": {
-                        "clearMessage": "Effacer tout",
-                        "count": "{total}",
-                        "title": "Filtres actifs - %d",
-                        "collapse": {
-                            "0": "Volet de recherche",
-                            "_": "Volet de recherche (%d)"
-                        },
-                        "countFiltered": "{shown} ({total})",
-                        "emptyPanes": "Pas de volet de recherche",
-                        "loadMessage": "Chargement du volet de recherche..."
-                    },
-                    "buttons": {
-                        "copyKeys": "Appuyer sur ctrl ou u2318 + C pour copier les données du tableau dans votre presse-papier.",
-                        "collection": "Collection",
-                        "colvis": "Visibilité colonnes",
-                        "colvisRestore": "Rétablir visibilité",
-                        "copy": "Copier",
-                        "copySuccess": {
-                            "1": "1 ligne copiée dans le presse-papier",
-                            "_": "%ds lignes copiées dans le presse-papier"
-                        },
-                        "copyTitle": "Copier dans le presse-papier",
-                        "csv": "CSV",
-                        "excel": "Excel",
-                        "pageLength": {
-                            "-1": "Afficher toutes les lignes",
-                            "_": "Afficher %d lignes"
-                        },
-                        "pdf": "PDF",
-                        "print": "Imprimer"
-                    },
-                    "decimal": ",",
-                    "info": "Affichage de _START_ à _END_ sur _TOTAL_ éléments",
-                    "infoEmpty": "Affichage de 0 à 0 sur 0 éléments",
-                    "infoThousands": ".",
-                    "search": "Rechercher:",
-                    "thousands": ".",
-                    "infoFiltered": "(filtrés depuis un total de _MAX_ éléments)",
-                    "datetime": {
-                        "previous": "Précédent",
-                        "next": "Suivant",
-                        "hours": "Heures",
-                        "minutes": "Minutes",
-                        "seconds": "Secondes",
-                        "unknown": "-",
-                        "amPm": [
-                            "am",
-                            "pm"
-                        ],
-                        "months": [
-                            "Janvier",
-                            "Fevrier",
-                            "Mars",
-                            "Avril",
-                            "Mai",
-                            "Juin",
-                            "Juillet",
-                            "Aout",
-                            "Septembre",
-                            "Octobre",
-                            "Novembre",
-                            "Decembre"
-                        ],
-                        "weekdays": [
-                            "Dim",
-                            "Lun",
-                            "Mar",
-                            "Mer",
-                            "Jeu",
-                            "Ven",
-                            "Sam"
-                        ]
-                    },
-                    "editor": {
-                        "close": "Fermer",
-                        "create": {
-                            "button": "Nouveaux",
-                            "title": "Créer une nouvelle entrée",
-                            "submit": "Envoyer"
-                        },
-                        "edit": {
-                            "button": "Editer",
-                            "title": "Editer Entrée",
-                            "submit": "Modifier"
-                        },
-                        "remove": {
-                            "button": "Supprimer",
-                            "title": "Supprimer",
-                            "submit": "Supprimer",
-                            "confirm": {
-                                "1": "etes-vous sure de vouloir supprimer 1 ligne?",
-                                "_": "etes-vous sure de vouloir supprimer %d lignes?"
-                            }
-                        },
-                        "error": {
-                            "system": "Une erreur système s'est produite"
-                        },
-                        "multi": {
-                            "title": "Valeurs Multiples",
-                            "restore": "Rétablir Modification",
-                            "noMulti": "Ce champ peut être édité individuellement, mais ne fait pas partie d'un groupe. ",
-                            "info": "Les éléments sélectionnés contiennent différentes valeurs pour ce champ. Pour  modifier et "
-                        }
-                    }
-                },
-            })
+                    "responsive": true,
+                    "lengthChange": true,
+                    "autoWidth": true,
+                    "buttons": ["excel", "pdf", "print"],
+                    "order": [
+                        [0, 'desc']
+                    ],
+                    "pageLength": 10,
 
-            // .buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+                    language: {
+                        "emptyTable": "Aucune donnée disponible dans le tableau",
+                        "lengthMenu": "Afficher _MENU_ éléments",
+                        "loadingRecords": "Chargement...",
+                        "processing": "Traitement...",
+                        "zeroRecords": "Aucun élément correspondant trouvé",
+                        "paginate": {
+                            "first": "Premier",
+                            "last": "Dernier",
+                            "previous": "Précédent",
+                            "next": "Suiv"
+                        },
+                        "aria": {
+                            "sortAscending": ": activer pour trier la colonne par ordre croissant",
+                            "sortDescending": ": activer pour trier la colonne par ordre décroissant"
+                        },
+                        "select": {
+                            "rows": {
+                                "_": "%d lignes sélectionnées",
+                                "1": "1 ligne sélectionnée"
+                            },
+                            "cells": {
+                                "1": "1 cellule sélectionnée",
+                                "_": "%d cellules sélectionnées"
+                            },
+                            "columns": {
+                                "1": "1 colonne sélectionnée",
+                                "_": "%d colonnes sélectionnées"
+                            }
+                        },
+                        "autoFill": {
+                            "cancel": "Annuler",
+                            "fill": "Remplir toutes les cellules avec <i>%d<\/i>",
+                            "fillHorizontal": "Remplir les cellules horizontalement",
+                            "fillVertical": "Remplir les cellules verticalement"
+                        },
+                        "searchBuilder": {
+                            "conditions": {
+                                "date": {
+                                    "after": "Après le",
+                                    "before": "Avant le",
+                                    "between": "Entre",
+                                    "empty": "Vide",
+                                    "equals": "Egal à",
+                                    "not": "Différent de",
+                                    "notBetween": "Pas entre",
+                                    "notEmpty": "Non vide"
+                                },
+                                "number": {
+                                    "between": "Entre",
+                                    "empty": "Vide",
+                                    "equals": "Egal à",
+                                    "gt": "Supérieur à",
+                                    "gte": "Supérieur ou égal à",
+                                    "lt": "Inférieur à",
+                                    "lte": "Inférieur ou égal à",
+                                    "not": "Différent de",
+                                    "notBetween": "Pas entre",
+                                    "notEmpty": "Non vide"
+                                },
+                                "string": {
+                                    "contains": "Contient",
+                                    "empty": "Vide",
+                                    "endsWith": "Se termine par",
+                                    "equals": "Egal à",
+                                    "not": "Différent de",
+                                    "notEmpty": "Non vide",
+                                    "startsWith": "Commence par"
+                                },
+                                "array": {
+                                    "equals": "Egal à",
+                                    "empty": "Vide",
+                                    "contains": "Contient",
+                                    "not": "Différent de",
+                                    "notEmpty": "Non vide",
+                                    "without": "Sans"
+                                }
+                            },
+                            "add": "Ajouter une condition",
+                            "button": {
+                                "0": "Recherche avancée",
+                                "_": "Recherche avancée (%d)"
+                            },
+                            "clearAll": "Effacer tout",
+                            "condition": "Condition",
+                            "data": "Donnée",
+                            "deleteTitle": "Supprimer la règle de filtrage",
+                            "logicAnd": "Et",
+                            "logicOr": "Ou",
+                            "title": {
+                                "0": "Recherche avancée",
+                                "_": "Recherche avancée (%d)"
+                            },
+                            "value": "Valeur"
+                        },
+                        "searchPanes": {
+                            "clearMessage": "Effacer tout",
+                            "count": "{total}",
+                            "title": "Filtres actifs - %d",
+                            "collapse": {
+                                "0": "Volet de recherche",
+                                "_": "Volet de recherche (%d)"
+                            },
+                            "countFiltered": "{shown} ({total})",
+                            "emptyPanes": "Pas de volet de recherche",
+                            "loadMessage": "Chargement du volet de recherche..."
+                        },
+                        "buttons": {
+                            "copyKeys": "Appuyer sur ctrl ou u2318 + C pour copier les données du tableau dans votre presse-papier.",
+                            "collection": "Collection",
+                            "colvis": "Visibilité colonnes",
+                            "colvisRestore": "Rétablir visibilité",
+                            "copy": "Copier",
+                            "copySuccess": {
+                                "1": "1 ligne copiée dans le presse-papier",
+                                "_": "%ds lignes copiées dans le presse-papier"
+                            },
+                            "copyTitle": "Copier dans le presse-papier",
+                            "csv": "CSV",
+                            "excel": "Excel",
+                            "pageLength": {
+                                "-1": "Afficher toutes les lignes",
+                                "_": "Afficher %d lignes"
+                            },
+                            "pdf": "PDF",
+                            "print": "Imprimer"
+                        },
+                        "decimal": ",",
+                        "info": "Affichage de _START_ à _END_ sur _TOTAL_ éléments",
+                        "infoEmpty": "Affichage de 0 à 0 sur 0 éléments",
+                        "infoThousands": ".",
+                        "search": "Rechercher:",
+                        "thousands": ".",
+                        "infoFiltered": "(filtrés depuis un total de _MAX_ éléments)",
+                        "datetime": {
+                            "previous": "Précédent",
+                            "next": "Suivant",
+                            "hours": "Heures",
+                            "minutes": "Minutes",
+                            "seconds": "Secondes",
+                            "unknown": "-",
+                            "amPm": [
+                                "am",
+                                "pm"
+                            ],
+                            "months": [
+                                "Janvier",
+                                "Fevrier",
+                                "Mars",
+                                "Avril",
+                                "Mai",
+                                "Juin",
+                                "Juillet",
+                                "Aout",
+                                "Septembre",
+                                "Octobre",
+                                "Novembre",
+                                "Decembre"
+                            ],
+                            "weekdays": [
+                                "Dim",
+                                "Lun",
+                                "Mar",
+                                "Mer",
+                                "Jeu",
+                                "Ven",
+                                "Sam"
+                            ]
+                        },
+                        "editor": {
+                            "close": "Fermer",
+                            "create": {
+                                "button": "Nouveaux",
+                                "title": "Créer une nouvelle entrée",
+                                "submit": "Envoyer"
+                            },
+                            "edit": {
+                                "button": "Editer",
+                                "title": "Editer Entrée",
+                                "submit": "Modifier"
+                            },
+                            "remove": {
+                                "button": "Supprimer",
+                                "title": "Supprimer",
+                                "submit": "Supprimer",
+                                "confirm": {
+                                    "1": "etes-vous sure de vouloir supprimer 1 ligne?",
+                                    "_": "etes-vous sure de vouloir supprimer %d lignes?"
+                                }
+                            },
+                            "error": {
+                                "system": "Une erreur système s'est produite"
+                            },
+                            "multi": {
+                                "title": "Valeurs Multiples",
+                                "restore": "Rétablir Modification",
+                                "noMulti": "Ce champ peut être édité individuellement, mais ne fait pas partie d'un groupe. ",
+                                "info": "Les éléments sélectionnés contiennent différentes valeurs pour ce champ. Pour  modifier et "
+                            }
+                        }
+                    },
+                })
+                .buttons().container().appendTo('#myTable_wrapper .col-md-6:eq(0)');
         });
     </script>
 

@@ -11,19 +11,30 @@
         <div class="row">
             <div class="col-12">
                 <small>
-                    <button data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Prestation par période</button>
+                    <!-- <button data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Prestation par période</button> -->
+                    <button data-bs-toggle="modal" data-bs-target="#filtreByUserAndPeriod" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Filtrer par période et utilisateur</button>
                 </small>
 
                 <!-- FILTRE BY PERIOD -->
-                <div class="modal fade" id="ShowSearchLocatorsByHouseForm" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal fade" id="filtreByUserAndPeriod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <p class="" id="exampleModalLabel">Générer par période</p>
                             </div>
                             <div class="modal-body">
-                                <form action="" method="POST">
+                                <form action="{{route('facture.LocationFiltreFactures',crypId($agency->id))}}" method="POST">
                                     @csrf
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <label for="">Selectionnez un utilisateur</label>
+                                            <select name="user" class="form-select form-control" required aria-label="Default select example">
+                                                @foreach($users as $user)
+                                                <option value="{{$user->id}}">{{$user->name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <span>Date de début</span>
@@ -67,6 +78,7 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @if(count($factures)>0)
                             @foreach($factures as $facture)
                             <tr class="align-items-center">
                                 <td class="text-center "><button class="text-red btn btn-sm btn-light"> {{$facture["facture_code"]}}</button></td>
@@ -85,6 +97,7 @@
                                 <!-- <td class="text-center"><span class="badge @if($facture->status==2) bg-success @elseif($facture->status==3 || $facture->status==4)  bg-danger @else bg-warning @endif">{{$facture->Status->name}} </span></td> -->
                             </tr>
                             @endforeach
+                            @endif
                         </tbody>
                     </table>
                 </div>

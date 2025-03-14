@@ -16,9 +16,13 @@ use App\Models\LocationStatus;
 use App\Models\LocationType;
 use App\Models\PaiementType;
 use App\Models\Payement;
+use App\Models\Proprietor;
 use App\Models\Room;
 use App\Models\StopHouseElectricityState;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 class LocationController extends Controller
@@ -233,6 +237,23 @@ class LocationController extends Controller
         return view("location_cautions", compact(["location", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
+    // LOCATIONS ETATS PRORATA
+    function _ManageLocationProrata(Request $request, $locationId)
+    {
+        $location = Location::where("visible", 1)->find($locationId);
+        if (!$location) {
+            alert()->error("Echec", "Cette location n'existe pas!");
+            return back();
+        }
+
+        // $cautions_eau = $location->caution_electric;
+        // $cautions_electricity = $location->caution_water;
+        // $cautions_loyer = $location->caution_number * $location->loyer;
+
+        alert()->success('Succès', "Caution générées avec succès!");
+        return view("etat_prorata", compact(["location"]));
+    }
+
     #####___GENERATION DES PRESTATION PAR PERIODE
     function _ManagePrestationStatistiqueForAgencyByPeriod(Request $request, $agencyId)
     {
@@ -261,23 +282,6 @@ class LocationController extends Controller
         $formData = $request->all();
         #VERIFICATION DE LA METHOD
         Validator::make($formData, self::location_rules(), self::location_messages())->validate();
-
-        ####___VERIFIONS S'IL Y A ELECTRICITE OU PAS
-        // if ($request->discounter == true) {
-        //     Validator::make(
-        //         $formData,
-        //         [
-        //             "kilowater_price" => ["required", "numeric"],
-        //         ],
-        //         [
-        //             "kilowater_price.required" => "Veuillez préciser le prix du kilowatère!",
-        //             "kilowater_price.date" => "Ce champ est de type numérique!",
-        //         ]
-        //     )->validate();
-        // } else {
-        //     $formData["kilowater_price"] = 0;
-        // }
-
 
         $user = request()->user();
 
@@ -548,11 +552,154 @@ class LocationController extends Controller
         return back()->withInput();
     }
 
+
+    #####___FILTRE PAR SUPERVISEUR
+    function FiltreBySupervisor(Request $request, Agency $agency)
+    {
+        if (!$agency) {
+            alert()->error("Echèc", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        if (!User::find($request->supervisor)) {
+            alert()->error("Echèc", "Ce superviseur n'existe pas!");
+            return back()->withInput();
+        }
+
+        ###___LOCATIONS
+        $locations_filtred = $agency->_Locations->where("statut", "!=", 3)->filter(function ($location) use ($request) {
+            if ($location->House->Supervisor->id == $request->supervisor) {
+                return $location;
+            }
+        });
+
+        if (count($locations_filtred) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            return back()->withInput();
+        }
+        ####____
+        alert()->success("Succès", "Location filtrés par superviseur avec succès!");
+        return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+    }
+
+    #####___FILTRE PAR MAISON
+    function FiltreByHouse(Request $request, Agency $agency)
+    {
+        if (!$agency) {
+            alert()->error("Echèc", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        if (!User::find($request->house)) {
+            alert()->error("Echèc", "Cette maison n'existe pas!");
+            return back()->withInput();
+        }
+
+        ###___LOCATIONS
+        $locations_filtred = $agency->_Locations->where("statut", "!=", 3)->filter(function ($location) use ($request) {
+            if ($location->House->id == $request->house) {
+                return $location;
+            }
+        });
+
+        if (count($locations_filtred) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            return back()->withInput();
+        }
+        ####____
+        alert()->success("Succès", "Locations filtrés par maison avec succès!");
+        return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+    }
+
+    #####___FILTRE PAR PROPRIETAIRE
+    function FiltreByProprio(Request $request, Agency $agency)
+    {
+        if (!$agency) {
+            alert()->error("Echèc", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+
+        // dd($request->proprio);
+        $proprietor = Proprietor::find($request->proprio);
+        if (!$proprietor) {
+            alert()->error("Echèc", "Cet propriétaire n'existe pas!");
+            return back()->withInput();
+        }
+
+        // dd($proprietor);
+
+        ###___LOCATIONS
+        $locations_filtred = $agency->_Locations->where("statut", "!=", 3)->filter(function ($location) use ($request) {
+            if ($location->House->Proprietor->id == $request->proprio) {
+                return $location;
+            }
+        });
+
+        // dd($locations_filtred);
+
+        if (count($locations_filtred) == 0) {
+            alert()->error("Echèc", "Aucun résultat trouvé");
+            return back()->withInput();
+        }
+        ####____
+        alert()->success("Succès", "Locations filtrés par propriétaire avec succès!");
+        return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+    }
+
     // IMPRESSION
     function Imprimer(Request $request, $locationId)
     {
         $location = Location::where("visible", 1)->find(deCrypId($locationId));
-        return view("imprimer", compact("location"));
+        return view("imprimer_location", compact("location"));
+    }
+
+    // IMPRESSION DE TOUTES LES LOCATIONS PAR SUPERVISUER
+    function PrintAllLocationBySupervisor(Request $request, $agencyId)
+    {
+
+        Session::forget("imprimUnPaidLocations");
+        $agency =  Agency::find(deCrypId($agencyId));
+        if (!$agency) {
+            alert()->error("Echèc", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+        $superviseur = User::find($request->supervisor);
+        // $superviseur = User::find(2);
+        // $location = Location::where("visible", 1)->find(deCrypId($locationId));
+        $locations = Location::where("visible", 1)->get()->filter(function ($location) use ($request) {
+            if ($location->House->Supervisor->id == $request->supervisor) {
+                return $location;
+            }
+        });
+
+        // dd($locations);
+        return view("imprimer_locations", compact("locations", "superviseur"));
+    }
+
+    // IMPRESSION DE TOUTES LES LOCATIONS IMPAYES PAR SUPERVISUER
+    function PrintUnPaidLocationBySupervisor(Request $request, $agencyId)
+    {
+        $agency =  Agency::find(deCrypId($agencyId));
+        if (!$agency) {
+            alert()->error("Echèc", "Cette agence n'existe pas!");
+            return back()->withInput();
+        }
+        $superviseur = User::find($request->supervisor);
+
+        $now = strtotime(date("Y/m/d", strtotime(now())));
+
+        $locations = Location::where("visible", 1)->where("status", '!=', 3)->get()->filter(function ($location) use ($request,$now) {
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+            if ($location_echeance_date < $now) {
+                if ($location->House->Supervisor->id == $request->supervisor) {
+                    return $location;
+                }
+            }
+        });
+
+        Session::put("imprimUnPaidLocations",true);
+        // dd($locations);
+        return view("imprimer_locations", compact("locations", "superviseur"));
     }
 
     ####____DEMENAGEMENT
@@ -632,180 +779,189 @@ class LocationController extends Controller
     ###____ENCAISSEMENT
     function _AddPaiement(Request $request)
     {
-        $formData = $request->all();
-        $user = request()->user();
+        try {
+            DB::beginTransaction();
+            $formData = $request->all();
+            $user = request()->user();
 
-        #####______VALIDATION DES DATAS 
-        $rules = self::paiement_rules();
-        $messages = self::paiement_messages();
+            #####______VALIDATION DES DATAS 
+            $rules = self::paiement_rules();
+            $messages = self::paiement_messages();
 
-        Validator::make($formData, $rules, $messages)->validate();
+            Validator::make($formData, $rules, $messages)->validate();
 
-        ###___TRAITEMENT DES DATAS
-        $location = Location::with(["House", "Locataire", "Room"])->find($formData["location"]);
-        $type = PaiementType::find($formData["type"]);
+            ###___TRAITEMENT DES DATAS
+            $location = Location::with(["House", "Locataire", "Room"])->find($formData["location"]);
+            $type = PaiementType::find($formData["type"]);
 
-        $formData["module"] = 2;
-        $formData["status"] = 1;
-        $formData["amount"] = $location->loyer;
-        $formData["comments"] = "Encaissement de loyer à la date " . now() . " pour le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " ) par <<" . $user->name . ">> ";
+            $formData["module"] = 2;
+            $formData["status"] = 1;
+            $formData["amount"] = $location->loyer;
+            $formData["comments"] = "Encaissement de loyer à la date " . now() . " pour le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " ) par <<" . $user->name . ">> ";
 
-        ###__GESTION DE LA REFERENCE
-        // $payement_count = count(Payement::all());
-        // $formData["reference"] = "REF_" . $payement_count . rand(0, 100) . "/" . substr($type->name, 0, 3); ###__ON RECUPERE LES TROIS PREMIERES LETTRES DE LA CATEGORIE DU DOSSIER QU'ON CONCATENE AVEC LE RAND
+            ###__GESTION DE LA REFERENCE
+            // $payement_count = count(Payement::all());
+            // $formData["reference"] = "REF_" . $payement_count . rand(0, 100) . "/" . substr($type->name, 0, 3); ###__ON RECUPERE LES TROIS PREMIERES LETTRES DE LA CATEGORIE DU DOSSIER QU'ON CONCATENE AVEC LE RAND
 
-        ###__
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$type) {
-            alert()->error("Echec", "Ce type de paiement n'existe pas!");
-            return back()->withInput();
-        }
-
-        ###___TRAITEMENT DU PAIEMENT SI LE LOCATAIRE EST UN PRORATA
-        if ($location->Locataire->prorata) {
-            Validator::make(
-                $formData,
-                [
-                    "prorata_amount" => ["required", "numeric"],
-                    "prorata_days" => ["required", "numeric"],
-                    "prorata_date" => ["required", "date"],
-                ],
-                [
-                    "prorata_amount.required" => "Veuillez préciser le montant du prorata",
-                    "prorata_amount.numeric" => "Ce champ doit être de format numérique",
-
-                    "prorata_days.required" => "Veuillez préciser le nombre de jour du prorata",
-                    "prorata_days.numeric" => "Ce champ doit être de format numérique",
-
-                    "prorata_date.required" => "Veuillez préciser la date de jour du prorata",
-                    "prorata_date.date" => "Ce champ doit être de format date",
-                ]
-            )->validate();
-
-
-            ###___CHANGEMENT D'ETAT DU LOCATAIRE(NOTIFIONS Q'IL N'EST PLUS UN PRORATA)
-            $locataire = Locataire::find($location->locataire);
-
-            $locataire->prorata = false;
-            $locataire->save();
-        }
-
-        ###__ENREGISTREMENT DE LA FACTURE DE PAIEMENT DANS LA DB
-        if ($request->file("facture")) {
-            $factureFile = $request->file("facture");
-            $fileName = $factureFile->getClientOriginalName();
-            $factureFile->move("factures", $fileName);
-            $formData["facture"] = asset("factures/" . $fileName);
-        } else {
-            $formData["facture"] = $location->facture;
-        }
-        ##___
-
-        $factureDatas = [
-            "owner" => $user->id,
-            "echeance_date" => $location['next_loyer_date'],
-            // "payement" => $Paiement->id,
-            "location" => $formData["location"],
-            "type" => 1,
-            "facture" => $formData["facture"],
-            "begin_date" => null,
-            "end_date" => null,
-            "comments" => $formData["comments"],
-            "amount" => $formData["amount"],
-            "facture_code" => $formData["facture_code"],
-            "is_penality" => $request->get("is_penality") ? true : false ##__Préciser si cette facture est liée à une pénalité ou pas
-        ];
-
-        $facture = Facture::create($factureDatas);
-        ###_____
-
-        ####__ACTUALISATION DE LA LOCATION
-        // AJOUT D'UN MOIS DE PLUS SUR LA DERNIERE DATE DE LOYER
-        $location_next_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->next_loyer_date));
-        $location_echeance_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->echeance_date));
-
-        $location_next_loyer_date = date("Y/m/d", $location_next_loyer_timestamp_plus_one_month);
-        $location_echeance_date = date("Y/m/d", $location_echeance_date_timestamp_plus_one_month);
-
-        $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
-        $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
-        $location->echeance_date = $location_echeance_date;
-        ###__
-
-        ###___INCREMENTATION DU COMPTE LOYER
-
-        $agency_rent_account = AgencyAccount::where(["agency" => $location->agency, "account" => env("LOYER_ACCOUNT_ID")])->first();
-
-        if (!$agency_rent_account) {
-            alert()->error("Echec", "Ce compte n'existe pas! Vous ne pouvez pas le créditer!");
-            return back()->withInput();
-        }
-
-        $formData["agency_account"] = $agency_rent_account->id;
-
-        $formData["description"] = "Encaissement de paiement à la date " . $facture->created_at . " par le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " )";
-        $formData["sold"] = $formData["amount"];
-
-        ###___VERIFIONS LE SOLD ACTUEL DU COMPTE ET VOYONS SI ça DEPPASE OU PAS LE PLAFOND
-
-        // $accountSold = AccountSold::where(["account" => $id, "visible" => 1])->first();
-        $accountSold = AgencyAccountSold::where(["agency_account" => $agency_rent_account->id, "visible" => 1])->first();
-
-        $account = $agency_rent_account->_Account;
-
-        ###___
-        if ($accountSold) { ##__Si ce compte dispose déjà d'un sold
-            $formData["old_sold"] = $accountSold->sold;
-            $formData["sold_added"] = $accountSold->sold_added;
-
-            ##__voyons si le sold atteint déjà le plafond de ce compte
-            if ($accountSold->sold >= $account->plafond_max) {
-                alert()->error("Echec", "Le sold de ce compte (" . $account->name . ") a déjà atteint son plafond! Vous ne pouvez plus le créditer");
+            ###__
+            if (!$location) {
+                alert()->error("Echec", "Cette location n'existe pas!");
                 return back()->withInput();
+            }
+
+            if (!$type) {
+                alert()->error("Echec", "Ce type de paiement n'existe pas!");
+                return back()->withInput();
+            }
+
+            ###___TRAITEMENT DU PAIEMENT SI LE LOCATAIRE EST UN PRORATA
+            if ($location->Locataire->prorata) {
+                Validator::make(
+                    $formData,
+                    [
+                        "prorata_amount" => ["required", "numeric"],
+                        "prorata_days" => ["required", "numeric"],
+                        "prorata_date" => ["required", "date"],
+                    ],
+                    [
+                        "prorata_amount.required" => "Veuillez préciser le montant du prorata",
+                        "prorata_amount.numeric" => "Ce champ doit être de format numérique",
+
+                        "prorata_days.required" => "Veuillez préciser le nombre de jour du prorata",
+                        "prorata_days.numeric" => "Ce champ doit être de format numérique",
+
+                        "prorata_date.required" => "Veuillez préciser la date de jour du prorata",
+                        "prorata_date.date" => "Ce champ doit être de format date",
+                    ]
+                )->validate();
+
+
+                ###___CHANGEMENT D'ETAT DU LOCATAIRE(NOTIFIONS Q'IL N'EST PLUS UN PRORATA)
+                $locataire = Locataire::find($location->locataire);
+
+                $locataire->prorata = false;
+                $locataire->save();
+            }
+
+            ###__ENREGISTREMENT DE LA FACTURE DE PAIEMENT DANS LA DB
+            if ($request->file("facture")) {
+                $factureFile = $request->file("facture");
+                $fileName = $factureFile->getClientOriginalName();
+                $factureFile->move("factures", $fileName);
+                $formData["facture"] = asset("factures/" . $fileName);
+            } else {
+                $formData["facture"] = $location->facture;
+            }
+            ##___
+
+            $factureDatas = [
+                "owner" => $user->id,
+                "echeance_date" => $location['next_loyer_date'],
+                // "payement" => $Paiement->id,
+                "location" => $formData["location"],
+                "type" => 1,
+                "facture" => $formData["facture"],
+                "begin_date" => null,
+                "end_date" => null,
+                "comments" => $formData["comments"],
+                "amount" => $formData["amount"],
+                "facture_code" => $formData["facture_code"],
+                "is_penality" => $request->get("is_penality") ? true : false ##__Préciser si cette facture est liée à une pénalité ou pas
+            ];
+
+            $facture = Facture::create($factureDatas);
+            ###_____
+
+            ####__ACTUALISATION DE LA LOCATION
+            // AJOUT D'UN MOIS DE PLUS SUR LA DERNIERE DATE DE LOYER
+            $location_next_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->next_loyer_date));
+            $location_echeance_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->echeance_date));
+
+            $location_next_loyer_date = date("Y/m/d", $location_next_loyer_timestamp_plus_one_month);
+            $location_echeance_date = date("Y/m/d", $location_echeance_date_timestamp_plus_one_month);
+
+            $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
+            $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
+            $location->echeance_date = $location_echeance_date;
+            $location->prorata_amount = $request->prorata_amount;
+            $location->prorata_days = $request->prorata_days;
+            ###__
+
+            ###___INCREMENTATION DU COMPTE LOYER
+
+            $agency_rent_account = AgencyAccount::where(["agency" => $location->agency, "account" => env("LOYER_ACCOUNT_ID")])->first();
+
+            if (!$agency_rent_account) {
+                alert()->error("Echec", "Ce compte n'existe pas! Vous ne pouvez pas le créditer!");
+                return back()->withInput();
+            }
+
+            $formData["agency_account"] = $agency_rent_account->id;
+
+            $formData["description"] = "Encaissement de paiement à la date " . $facture->created_at . " par le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " )";
+            $formData["sold"] = $formData["amount"];
+
+            ###___VERIFIONS LE SOLD ACTUEL DU COMPTE ET VOYONS SI ça DEPPASE OU PAS LE PLAFOND
+
+            // $accountSold = AccountSold::where(["account" => $id, "visible" => 1])->first();
+            $accountSold = AgencyAccountSold::where(["agency_account" => $agency_rent_account->id, "visible" => 1])->first();
+
+            $account = $agency_rent_account->_Account;
+
+            ###___
+            if ($accountSold) { ##__Si ce compte dispose déjà d'un sold
+                $formData["old_sold"] = $accountSold->sold;
+                $formData["sold_added"] = $accountSold->sold_added;
+
+                ##__voyons si le sold atteint déjà le plafond de ce compte
+                if ($accountSold->sold >= $account->plafond_max) {
+                    alert()->error("Echec", "Le sold de ce compte (" . $account->name . ") a déjà atteint son plafond! Vous ne pouvez plus le créditer");
+                    return back()->withInput();
+                } else {
+                    # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
+                    # ça depasserait le plafond maximum du compte
+                    if (($accountSold->sold + $formData["sold"]) > $account->plafond_max) {
+                        alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
+                        return back()->withInput();
+                    }
+                }
+
+                ###__creditation proprement dite du compte
+                #__Deconsiderons l'ancien sold
+                $accountSold->visible = 0;
+                $accountSold->delete_at = now();
+                $accountSold->save();
+
+                #__Construisons un nouveau sold(en se basant sur les datas de l'ancien sold)
+                $formData["account"] = $accountSold->account; ##__ça revient à l'ancien compte
+                $formData["sold"] = $accountSold->sold + $formData["sold"];
+
+                $accountSold = AgencyAccountSold::create($formData);
             } else {
                 # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
                 # ça depasserait le plafond maximum du compte
-                if (($accountSold->sold + $formData["sold"]) > $account->plafond_max) {
+                if ($formData["sold"] > $account->plafond_max) {
                     alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
                     return back()->withInput();
                 }
+
+                # on le crée
+                $accountSold = AgencyAccountSold::create($formData);
             }
 
-            ###__creditation proprement dite du compte
-            #__Deconsiderons l'ancien sold
-            $accountSold->visible = 0;
-            $accountSold->delete_at = now();
-            $accountSold->save();
 
-            #__Construisons un nouveau sold(en se basant sur les datas de l'ancien sold)
-            $formData["account"] = $accountSold->account; ##__ça revient à l'ancien compte
-            $formData["sold"] = $accountSold->sold + $formData["sold"];
+            ####___ACTUALISATION MAINTENANT LA LOCATION
+            $location->save();
+            ##___
 
-            $accountSold = AgencyAccountSold::create($formData);
-        } else {
-            # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-            # ça depasserait le plafond maximum du compte
-            if ($formData["sold"] > $account->plafond_max) {
-                alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
-                return back()->withInput();
-            }
-
-            # on le crée
-            $accountSold = AgencyAccountSold::create($formData);
+            DB::commit();
+            ###__
+            alert()->success("Succès", "Paiement ajouté avec succès!!");
+            return back()->withInput();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            alert()->success("Error", "Une erreure est survenue!");
         }
-
-
-        ####___ACTUALISATION MAINTENANT LA LOCATION
-        $location->save();
-        ##___
-
-        ###__
-        alert()->success("Succès", "Paiement ajouté avec succès!!");
-        return back()->withInput();
     }
 
     ####_____UpdateFactureStatus
