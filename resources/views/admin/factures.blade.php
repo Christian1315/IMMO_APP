@@ -23,8 +23,9 @@
                                 <p class="" id="exampleModalLabel">Générer par période</p>
                             </div>
                             <div class="modal-body">
-                                <form action="{{route('facture.LocationFiltreFactures',crypId($agency->id))}}" method="POST">
+                                <form action="" method="POST">
                                     @csrf
+                                    @method("POST")
                                     <div class="row">
                                         <div class="col-12 mb-3">
                                             <label for="">Selectionnez un utilisateur</label>
@@ -73,6 +74,7 @@
                                 <th class="text-center">Facture</th>
                                 <th class="text-center">Montant</th>
                                 <th class="text-center">Echéance</th>
+                                <th class="text-center">Fait le:</th>
                                 <th class="text-center">Commentaire</th>
                                 <!-- <th class="text-center">Status</th> -->
                             </tr>
@@ -90,7 +92,8 @@
                                 <td class="text-center"> <a target="__blank" href="{{$facture['facture']}}" class="btn btn-sm btn-light shadow-sm"><i class="bi bi-eye"></i></a>
                                 </td>
                                 <td class="text-center">{{$facture['amount']}}</td>
-                                <td class="text-center text-red"><button class="btn btn-sm btn-light text-red"> <b>{{$facture['echeance_date']}} </b></button> </td>
+                                <td class="text-center text-red"><button class="btn btn-sm btn-light text-red"> <b>{{ \Carbon\Carbon::parse($facture['echeance_date'])->locale('fr')->isoFormat('MMMM YYYY') }} </b></button> </td>
+                                <td class="text-center text-red"><button class="btn btn-sm btn-light text-red"> <b>{{ \Carbon\Carbon::parse($facture->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </b></button> </td>
                                 <td class="text-center">
                                     <textarea name="" rows="1" class="form-control" id="" placeholder="{{$facture->comments}}"></textarea>
                                 </td>

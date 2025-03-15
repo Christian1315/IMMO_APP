@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agency;
+use App\Models\Facture;
 use App\Models\Payement;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -460,51 +461,30 @@ class AdminController extends Controller
         $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
         if (!$agency) {
             alert()->error("Echec", "Cette agence n'existe pas!");
+            return back()->withInput();
         };
 
-        $factures = [];
-        foreach ($agency->_Locations as $location) {
+        $locationIds = $agency->_Locations->pluck("id");
 
-            if ($request->method() == "GET") {
-                $locations = $location->Factures;
-            } else {
-                alert()->success("Succès", "Filtre éffectué avec succès");
-                $locations = $location->Factures->whereBetween("created_at", [$request->debut, $request->fin]);
+        $query = Facture::whereIn("location", $locationIds);
+        if ($request->method() == "POST") {
+            $factures = $query
+                ->where("owner", $request->user)
+                ->whereBetween("created_at", [$request->debut, $request->fin])
+                ->get();
+
+            if (count($factures) == 0) {
+                alert()->error("Echec", "Aucun résultat trouvé!");
+                return back()->withInput();
             }
-            foreach ($locations as $facture) {
-                if (!$facture["state_facture"]) {
-                    $factures[] =  $facture;
-                }
-            }
+            alert()->success("Succès", "Filtre éffectué avec succès");
+        } else {
+            $factures = $query->get();
         }
 
-        ###___
-        $factures = collect($factures);
+
         $montantTotal = $factures->sum("amount");
         $users = User::all();
-        return view("admin.factures", compact(["agency", "factures", "montantTotal", "users"]));
-    }
-
-    // FILTRAGE
-    function LocationFiltreFactures(Request $request, $agencyId)
-    {
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-        };
-
-        $factures = $agency->_Locations->filter(function ($location) use ($request) {
-            return $location->Factures->where("owner", $request->user);
-        });
-
-        if (count($factures)==0) {
-            alert()->error("Echec", "Aucun résultat trouvé!");
-        }
-
-        // dd($factures);
-        $montantTotal = $factures->sum("amount");
-        $users = User::all();
-        alert()->success("Succès", "Filtre éffectué avec succès");
 
         return view("admin.factures", compact(["agency", "factures", "montantTotal", "users"]));
     }

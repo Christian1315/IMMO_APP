@@ -178,7 +178,7 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('/{agency}/initiation', "AgencyInitiation")->name("agency-initiation");
 
     Route::match(["GET", "POST"], '/{agency}/factures', "LocationFactures")->name("locationFacture");
-    Route::post('/{agency}/flitrefactures', "LocationFiltreFactures")->name("facture.LocationFiltreFactures");
+    Route::get('/{agency}/flitrefactures', "LocationFiltreFactures")->name("facture.LocationFiltreFactures");
 
     Route::get('/{agency}/caisses', "Caisses")->name("caisses");
     Route::get('/{agency}/{agency_account}/caisse-mouvements', "CaisseMouvements")->name("caisse-mouvements");
