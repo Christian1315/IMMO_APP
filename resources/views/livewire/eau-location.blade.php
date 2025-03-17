@@ -60,7 +60,7 @@
                             <div class="col-md-12">
                                 <label>Choisissez une maison</label>
                                 <select required name="house" class="form-control">
-                                    @foreach($current_agency->_Houses as $house)
+                                    @foreach($houses as $house)
                                     <option value="{{$house['id']}}"> {{$house["name"]}} </option>
                                     @endforeach
                                 </select>
@@ -156,8 +156,8 @@
                                 <div class="mb-3">
                                     <span class="text-red">Choisir la maison concernée</span>
                                     <select required name="house" class="form-control">
-                                        @foreach($locations as $location)
-                                        <option value="{{$location->House->id}}"> {{$location->House->name}} </option>
+                                        @foreach($houses as $house)
+                                        <option value="{{$house->id}}"> {{$house->name}} </option>
                                         @endforeach
                                     </select>
 
