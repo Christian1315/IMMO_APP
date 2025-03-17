@@ -57,7 +57,7 @@ class LocationWaterFactureController extends Controller
 
         // return $location->Room->unit_price;
 
-        $kilowater_unit_price = $location->Room->unit_price;
+        $kilowater_unit_price = (int) $location->Room->unit_price;
         $formData["amount"] = $formData["consomation"] * $kilowater_unit_price;
 
         $formData["comments"] = "Géneration de facture d'eau pour le locataire << " . $location->Locataire->name . " " . $location->Locataire->prenom . ">> de la maison << " . $location->House->name . " >> à la date " . now() . " par << $user->name >>";

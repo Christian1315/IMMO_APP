@@ -241,7 +241,6 @@ Route::prefix("room")->group(function () {
         Route::patch('{id}/update', 'UpdateRoom')->name("room.UpdateRoom"); #MODIFICATION D'UNE CHAMBRE 
         Route::delete('{id}/delete', 'DeleteRoom')->name("room.DeleteRoom"); #SUPPRESSION D'UNE CHAMBRE 
 
-
         // FILTRAGE
         Route::post('filtrebysupervisor/{agencyId}', 'FiltreRoomBySupervisor')->name("room.FiltreRoomBySupervisor"); ####___FILTRE DES CHAMBRES PAR SUPERVISEUR;
         Route::post('filtrebyhouse/{agencyId}', 'FiltreRoomByHouse')->name("room.FiltreRoomByHouse"); ####___FILTRE DES CHAMBRES PAR MAISON;
@@ -315,6 +314,7 @@ Route::prefix("location")->group(function () {
         Route::any('add-paiement', '_AddPaiement')->name("location._AddPaiement"); #AJOUT D'UN PAIEMENT
         Route::post('{id}/updateStatus', 'UpdateFactureStatus')->name("location.UpdateFactureStatus"); #TRAITEMENT DE LA FACTURE CHANGEMENT DE STATUS
 
+
         // FILTRE LOCATION
         Route::post('{agency}/location_filtre_by_supervisor', 'FiltreBySupervisor')->name("location.FiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
         Route::post('{agency}/location_filtre_by_house', 'FiltreByHouse')->name("location.FiltreByHouse"); #FILTRER PAR MAISON
@@ -326,6 +326,11 @@ Route::prefix("location")->group(function () {
 
 
         ###___GESTION DES FACTURES D'ELECTRICITE DANS UNE LOCATION
+        
+        #UPDATE END_INDEX 
+        Route::patch('electricity/{factureId}/update_end_index', 'ElectricityUpdateEndIndex')->name("location.ElectricityUpdateEndIndex"); 
+        Route::patch('water/{factureId}/update_end_index', 'WaterUpdateEndIndex')->name("location.WaterUpdateEndIndex"); 
+
         ##=========__ ARRETER LES ETATS D'ELECTRICITE DES MAISON ======
         Route::any('stop', '_StopStatsOfHouse')->name("location._StopStatsOfHouse");
 

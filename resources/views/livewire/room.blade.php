@@ -405,7 +405,7 @@
                     <tbody>
                         @foreach($rooms as $room)
                         <tr class="align-items-center">
-                            <td class="text-center d-flex">{{$loop->index + 1}} </td>
+                            <td class="text-center d-flex">{{$loop->index + 1}}</td>
                             <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
                             <td class="text-center">{{$room["House"]["name"]}}</td>
                             <td class="text-center">{{$room["House"]["Supervisor"]["name"]}}</td>
@@ -511,6 +511,18 @@
                                     <input type="text" id="vidange" name="vidange" placeholder="La vidange ..." class="form-control">
 
                                 </div><br>
+
+                                @if(IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_master || auth()->user()->is_admin)
+
+                                <div class="mb-3">
+                                    <span for="" class="d-block">Prix unitaire d'électricité</span>
+                                    <input id="update_electricity_unit_price" type="text" name="electricity_unit_price"  class="form-control">
+                                </div> <br>
+                                <div class="mb-3" id="water_discounter_inputs">
+                                    <span for="" class="d-block">Prix unitaire d'eau</span>
+                                    <input id="update_unit_price" type="text" name="unit_price" class="form-control">
+                                </div>
+                                @endif
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -549,6 +561,8 @@
                 var room = response.data
                 var room_fullname = room["number"];
 
+                console.log(room)
+
                 $("#update_room_fullname").html(room_fullname)
 
                 $("#loyer").val(room["loyer"])
@@ -557,15 +571,15 @@
                 $("#rubbish").val(room["rubbish"])
                 $("#vidange").val(room["vidange"])
                 $("#forfait_forage").val(room["forfait_forage"])
-                $("#unit_price").val(room["unit_price"])
+                $("#update_unit_price").val(Number(room["unit_price"]))
 
                 $("#water_counter_number").val(room["water_counter_number"])
                 $("#water_counter_start_index").val(room["water_counter_start_index"])
                 $("#cleaning").val(room["cleaning"])
                 $("#comments").val(room["comments"])
                 $("#electricity_counter_number").val(room["electricity_counter_number"])
+                $("#update_electricity_unit_price").val(Number(room["electricity_unit_price"]))
 
-                $("#electricity_unit_price").val(room["electricity_unit_price"])
                 $("#electricity_counter_start_index").val(room["electricity_counter_start_index"])
                 $("#update_form").attr("action", "/room/" + room.id + "/update")
 

@@ -89,7 +89,7 @@ class LocationElectrictyFactureController extends Controller
         }
 
         // ######_________
-        $kilowater_unit_price = $location->kilowater_price;
+        $kilowater_unit_price = (int) $location->electricity_unit_price;
         $formData["amount"] = $formData["consomation"] * $kilowater_unit_price;
 
         // dd($formData["amount"]);
@@ -301,59 +301,5 @@ class LocationElectrictyFactureController extends Controller
         ####___
         alert()->success("Succès", "L'état en électricité de cette maison a été arrêté avec succès!");
         return back()->withInput();
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    function RetrieveLocationFactures(Request $request, $locationId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE 
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->getLocationFactures($locationId);
-    }
-
-    function RetrieveFacture(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE 
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->_retrieveFacture($id);
-    }
-
-    function _DeleteFacture(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "DELETE") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        return $this->deleteFacture($id);
     }
 }

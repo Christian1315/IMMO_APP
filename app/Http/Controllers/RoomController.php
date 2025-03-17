@@ -213,54 +213,54 @@ class RoomController extends Controller
         try {
             DB::beginTransaction();
             $formData = $request->all();
-    
+
             #####_____VALIDATION
             $rules = self::room_rules();
             $messages = self::room_messages();
             Validator::make($formData, $rules, $messages)->validate();
-    
+
             $user = request()->user();
-    
+
             ###____TRAITEMENT DU HOUSE
             $house = House::where(["visible" => 1])->find($formData["house"]);
             if (!$house) {
                 alert()->error("Echec", "Cette maison n'existe pas!");
                 return back()->withInput();
             }
-    
+
             ###____TRAITEMENT DU HOUSE NATURE
             $nature = RoomNature::find($formData["nature"]);
             if (!$nature) {
                 alert()->error("Echec", "Cette nature de chambre n'existe pas!");
                 return back()->withInput();
             }
-    
+
             ###____TRAITEMENT DU HOUSE TYPE
             $type = RoomType::find($formData["type"]);
             if (!$type) {
                 alert()->error("Echec", "Ce type de chambre n'existe pas!");
                 return back()->withInput();
             }
-    
+
             ###___
-    
+
             if ($request->water) {
-    
+
                 ###____
                 if ($request->get("forage")) {
                     $rules = self::forage_rules();
                     $messages = self::forage_messages();
                     Validator::make($formData, $rules, $messages)->validate();
                 }
-    
+
                 ###____
                 if ($request->get("water_conventionnal_counter")) {
                     $rules = self::conven_counter_water_rules();
                     $messages = self::conven_counter_water_messages();
                     Validator::make($formData, $rules, $messages)->validate();
                 }
-    
-    
+
+
                 ###____
                 if ($request->get("water_discounter")) {
                     if ($request->get("water_discounter")) {
@@ -270,18 +270,18 @@ class RoomController extends Controller
                     }
                 }
             }
-    
+
             ###____
             if ($request->electricity) {
-    
+
                 if ($request->electricity_discounter) {
                     $rules = self::electricity_discounter_rules();
                     $messages = self::electricity_discounter_messages();
                     Validator::make($formData, $rules, $messages)->validate();
                 }
             }
-    
-    
+
+
             ###____TRAITEMENT DE L'IMAGE
             if ($request->file("photo")) {
                 $photo = $request->file("photo");
@@ -289,11 +289,11 @@ class RoomController extends Controller
                 $photo->move("room_images", $photoName);
                 $formData["photo"] = asset("room_images/" . $photoName);
             }
-    
+
             #ENREGISTREMENT DE LA CARTE DANS LA DB
             $formData["gardiennage"] = $request->gardiennage ? $request->gardiennage : 0;
             $formData["vidange"] = $request->vidange ? $request->vidange : 0;
-    
+
             $formData["owner"] = $user->id;
             $formData["water"] = $request->water ? 1 : 0;
             $formData["water_discounter"] = $request->water_discounter ? 1 : 0;
@@ -301,27 +301,30 @@ class RoomController extends Controller
             $formData["forfait_forage"] = $request->forfait_forage ? $request->forfait_forage : 0;
             $formData["water_counter_number"] = $request->water_counter_number ? $request->water_counter_number : "--";
             $formData["water_conventionnal_counter"] = $request->water_conventionnal_counter ? 1 : 0;
-    
-            $formData["electricity"] = $request->water ? 1 : 0;
+            $formData["water_counter_start_index"] = $request->water_counter_start_index ? $request->water_counter_start_index : 0;
+
+            $formData["electricity"] = $request->electricity ? 1 : 0;
             $formData["electricity_discounter"] = $request->electricity_discounter ? 1 : 0;
             $formData["electricity_conventionnal_counter"] = $request->electricity_conventionnal_counter ? 1 : 0;
             $formData["electricity_card_counter"] = $request->electricity_card_counter ? 1 : 0;
             $formData["electricity_counter_number"] = $request->electricity_counter_number ? $request->electricity_counter_number : "--";
             $formData["electricity_counter_start_index"] = $request->electricity_counter_start_index ? $request->electricity_counter_start_index : 0;
-    
-    
+
+
             $formData["cleaning"] = $request->cleaning ? $request->cleaning : 0;
             $formData["comments"] = $request->comments ? $request->comments : "---";
             $formData["rubbish"] = $request->rubbish ? $request->rubbish : 0;
-    
-    
+
+
             $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
-    
+
             Room::create($formData);
-    
+
+            DB::commit();
             alert()->success("Succès", "Chambre ajoutée avec succès!!");
             return back()->withInput();
         } catch (\Throwable $th) {
+            dd($th);
             DB::rollBack();
             alert()->error("Error", "Une erreure est survenue");
             return back()->withInput();
@@ -412,6 +415,7 @@ class RoomController extends Controller
 
     function UpdateRoom(Request $request, $id)
     {
+        // dd($request->all());
         try {
             DB::beginTransaction();
             $user = request()->user();
@@ -456,6 +460,7 @@ class RoomController extends Controller
                 }
             }
             $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
+            $formData["electricity_counter_number"] = $room->electricity_counter_number;
 
             #ENREGISTREMENT DE LA CARTE DANS LA DB
             $room->update($formData);
@@ -465,6 +470,7 @@ class RoomController extends Controller
             return back()->withInput();
         } catch (\Throwable $th) {
             DB::rollBack();
+            dd($th);
             alert()->error("Error", "Une erreure est survenue");
             return back()->withInput();
         }

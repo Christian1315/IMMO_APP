@@ -122,7 +122,7 @@ class House extends Model
 
     function ElectricityFacturesStates(): HasMany
     {
-        return $this->hasMany(StopHouseElectricityState::class, "house");
+        return $this->hasMany(StopHouseElectricityState::class, "house")->orderBy("id","desc");
     }
 
     function WaterFacturesStates(): HasMany

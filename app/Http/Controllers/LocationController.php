@@ -14,6 +14,7 @@ use App\Models\Location;
 use App\Models\LocationElectrictyFacture;
 use App\Models\LocationStatus;
 use App\Models\LocationType;
+use App\Models\LocationWaterFacture;
 use App\Models\PaiementType;
 use App\Models\Payement;
 use App\Models\Proprietor;
@@ -342,7 +343,7 @@ class LocationController extends Controller
             // location non demenagéss
             return $location->status != 3;
         });
-        if (count($room_locations)>0) {
+        if (count($room_locations) > 0) {
             alert()->error("Echec", "Cette chambre est déjà occupée!");
             return back()->withInput();
         }
@@ -555,6 +556,43 @@ class LocationController extends Controller
         return back()->withInput();
     }
 
+    ###___ MODIFIER END_INDEX FACTURE ELECTICITE
+    function ElectricityUpdateEndIndex(Request $request, $factureId)
+    {
+        $facture = LocationElectrictyFacture::find($factureId);
+        if (!$facture) {
+            alert()->error("Echec", "Cette facture n'existe pas!");
+            return back()->withInput();
+        }
+
+        $facture->update([
+            "end_index" => $request->end_index,
+            "consomation" => $request->end_index - $request->start_index,
+            "amount" => ($request->end_index - $request->start_index) * ((int) $facture->Location->Room->electricity_unit_price)
+        ]);
+
+        alert()->success("Success", "Index de fin modifié avec succès!");
+        return back()->withInput();
+    }
+
+    ###___ MODIFIER END_INDEX FACTURE EAU
+    function WaterUpdateEndIndex(Request $request, $factureId)
+    {
+        $facture = LocationWaterFacture::find($factureId);
+        if (!$facture) {
+            alert()->error("Echec", "Cette facture n'existe pas!");
+            return back()->withInput();
+        }
+
+        $facture->update([
+            "end_index" => $request->end_index,
+            "consomation" => $request->end_index - $request->start_index,
+            "amount" => ($request->end_index - $request->start_index) * ((int) $facture->Location->Room->unit_price)
+        ]);
+
+        alert()->success("Success", "Index de fin modifié avec succès!");
+        return back()->withInput();
+    }
 
     #####___FILTRE PAR SUPERVISEUR
     function FiltreBySupervisor(Request $request, Agency $agency)

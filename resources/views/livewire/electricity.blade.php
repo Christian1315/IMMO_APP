@@ -3,7 +3,101 @@
     <button class="btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#generate_electricity_facture"><i class="bi bi-file-earmark-pdf-fill"> </i> Génerer une facture d'électricité </button>
     <br>
 
-    <button class="btn btn-sm bg-red text-white text-uppercase" data-bs-toggle="modal" data-bs-target="#stop_house_electrcity_state"><i class="bi bi-stop-circle"></i> Arrêter les états</button>
+    <small>
+        <button class="btn btn-sm bg-red text-white text-uppercase" data-bs-toggle="modal" data-bs-target="#stop_house_electrcity_state"><i class="bi bi-stop-circle"></i> Arrêter les états</button>
+        <input type="checkbox" hidden class="btn-check" id="displayLocatorsOptions" onclick="displayFiltreOptions()">
+        <label class="btn btn-light" for="displayLocatorsOptions"><i class="bi bi-file-earmark-pdf-fill"></i>Filtrer les locations</label>
+    </small>
+
+    <div id="filtre_options" class="d-none">
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#serchBySupervisor"><i class="bi bi-people"></i> Par Sperviseur</button>
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#searchByHouse"><i class="bi bi-house-check-fill"></i> Par Maison</button>
+        <button class="btn btn-sm bg-light d-block" data-bs-toggle="modal" data-bs-target="#searchByProprio"><i class="bi bi-house-check-fill"></i> Par Propriétaire</button>
+    </div>
+
+    <!--===== MODAL DE FILTRES ==== -->
+
+    <!-- FILTRE BY SUPERVISOR -->
+    <div class="modal fade" id="serchBySupervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtre par superviseur</p>
+                </div>
+                <div class="modal-body">
+                    <form class="serchBySupervisor" action="{{route('location.FiltreBySupervisor',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un superviseur</label>
+                                <select required name="supervisor" class="form-control">
+                                    @foreach($supervisors as $supervisor)
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRE BY HOUSE -->
+    <div class="modal fade" id="searchByHouse" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtre par maison</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('location.FiltreByHouse',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez une maison</label>
+                                <select required name="house" class="form-control">
+                                    @foreach($current_agency->_Houses as $house)
+                                    <option value="{{$house['id']}}"> {{$house["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRE BY PROPRIETOR -->
+    <div class="modal fade" id="searchByProprio" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filtrer par proprietaire</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('location.FiltreByProprio',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un propriétaire</label>
+                                <select required name="proprio" class="form-control">
+                                    @foreach($this->houses as $house)
+                                    <option value="{{$house->Proprietor->id}}"> {{$house->Proprietor->firstname}} {{$house->Proprietor->lastname}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <br>
 
     <!-- GENERATE ELECTRICITY FACTURE  -->
@@ -37,7 +131,7 @@
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div>
-                                <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-card-list"></i> Génerer</button>
+                                <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-card-list"></i> Génerer</button>
                             </form>
                         </div>
                         <br>
@@ -47,7 +141,7 @@
         </div>
     </div>
 
-    <!-- GENERATE WATER FACTURE  -->
+    <!-- STOP ELECTRICITRY STATE  -->
     <div class="modal fade" id="stop_house_electrcity_state" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -62,8 +156,8 @@
                                 <div class="mb-3">
                                     <span class="text-red">Choisir la maison concernée</span>
                                     <select required name="house" class="form-control">
-                                        @foreach($locations as $location)
-                                        <option value="{{$location->House->id}}"> {{$location->House->name}} </option>
+                                        @foreach($houses as $house)
+                                        <option value="{{$house->id}}"> {{$house->name}} </option>
                                         @endforeach
                                     </select>
 
@@ -82,9 +176,13 @@
     </div>
     @endif
     <br>
+
     <div class="row">
         <div class="col-12">
-            <h5 class="text-center">Liste des locations ayant de l'électricité dans cette agence</h5>
+            @php
+            $locations = session("locations_filtred")?session("locations_filtred"):$locations;
+            @endphp
+            <h5 class="text-center">Liste des <strong class="text-red">locations ayant de l'électricité </strong> dans cette agence</h5>
             <h4 class="">Total: <strong class="text-red"> {{count($locations)}} </strong> </h4>
 
             <div class="table-responsive table-responsive-list shadow-lg">
@@ -93,7 +191,7 @@
                         <tr>
                             <th class="text-center">N°</th>
                             <th class="text-center">Locataire</th>
-                            <th class="text-center">Maison</th>
+                            <th class="text-center">Maison/Superviseur</th>
                             <th class="text-center">Télephone</th>
                             <th class="text-center">Index début</th>
                             <th class="text-center">Index fin</th>
@@ -105,33 +203,45 @@
                             <th class="text-center">Arriérés </th>
                             <th class="text-center">Montant dû</th>
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
-                            <th class="text-center">Payer</th>
+                            <th class="text-center">Action</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($locations as $location)
                         <tr class="align-items-center">
-                            <td class="text-center">{{$location["id"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</td>
-                            <td class="text-center">{{$location["House"]["name"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["phone"]}}</td>
-                            <td class="text-center">{{$location["Room"]["electricity_counter_start_index"]}}</td>
-                            <td class="text-center"> <strong class="text-red"> {{$location["end_index"]?$location["end_index"]:0}}</strong> </td>
-                            <td class="text-center"> <strong class=""> {{$location["kilowater_price"]}} </strong> </td>
-                            <td class="text-center"> <strong class="text-red shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]?$location["total_un_paid_facture_amount"]:0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["current_amount"]?$location["current_amount"]:0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["paid_facture_amount"]?$location["paid_facture_amount"]:0}} fcfa </strong> </td>
-                            <td class="text-center text-red"> {{$location["nbr_un_paid_facture_amount"]?$location["nbr_un_paid_facture_amount"]:0}}</td>
-                            <td class="text-center"> <strong class="text-red shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["un_paid_facture_amount"]?$location["un_paid_facture_amount"]:0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["rest_facture_amount"]?$location["rest_facture_amount"]:0}} fcfa </strong> </td>
-                            
+                            <td class="text-center">{{$loop->iteration}}</td>
+                            <td class="text-center"> <span class="badge bg-dark text-white">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} </span> </td>
+                            <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["House"]["name"]}} ({{$location->House->Supervisor->name}})</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["Locataire"]["phone"]}}</span></td>
+                            <td class="text-center"> <span class="badge bg-warning text-white"> {{$location["Room"]["electricity_counter_start_index"]}}</span> </td>
+                            <td class="text-center"> <strong class="badge bg-dark text-zhite"> {{$location["end_index"]?$location["end_index"]:0}}</strong> </td>
+                            <td class="text-center"> <strong class=""> <span class="badge bg-light text-dark">{{number_format($location->Room->electricity_unit_price,2,'.',' ')}}</span> </strong> </td>
+                            <td class="text-center"> <strong class="text-red shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]? number_format($location["total_un_paid_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["current_amount"]? number_format($location["current_amount"],2," "," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["paid_facture_amount"]? number_format($location["paid_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
+                            <td class="text-center text-red"> {{$location["nbr_un_paid_facture_amount"]? number_format($location["nbr_un_paid_facture_amount"],2," "," ") :0}}</td>
+                            <td class="text-center"> <strong class="text-red shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["un_paid_facture_amount"]? number_format($location["un_paid_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["rest_facture_amount"]? number_format($location["rest_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
+
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
-                            <td class="text-center d-flex">
-                                <button data-bs-toggle="modal" data-bs-target="#ShowLocationFactures_{{$location['id']}}" class="btn btn-sm bg-red" type="button">
-                                    <i class="bi bi-currency-exchange"></i>&nbsp; Payer
-                                </button>
-                                <button class="btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#state_impression_{{$location['id']}}"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer</button>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <a class="btn btn-sm bg-red dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-gear"></i> Action
+                                    </a>
+
+                                    <ul class="dropdown-menu">
+                                        <a href="#" class="dropdown-item btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#ShowLocationFactures_{{$location['id']}}">
+                                            <i class="bi bi-currency-exchange"></i>&nbsp; Payer
+                                        </a>
+                                        <a href="#" class="dropdown-item btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#state_impression_{{$location['id']}}"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer les états</a>
+                                        @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+                                        <a href="#" class="dropdown-item btn btn-sm bg-warning text-uppercase" data-bs-toggle="modal" data-bs-target="#updateLastFactureEndIndex_{{$location['id']}}"><i class="bi bi-pencil-square"></i> Changer l'index de fin</a>
+                                        @endif
+                                    </ul>
+                                </div>
+
                             </td>
                             @endif
                         </tr>
@@ -155,8 +265,8 @@
                                                 <strong>Montant: </strong> <span class="text-red"><i class="bi bi-currency-exchange"></i> {{$facture->amount}} </span>;
                                                 <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> ;
                                                 <strong>Statut :</strong>
-                                                @if($facture->paid) <span class="bg-success">Payé </span> @else
-                                                <span class="bg-red">Impayé </span>
+                                                @if($facture->paid) <span class="badge bg-success">Payé </span> @else
+                                                <span class="badge bg-red">Impayé </span>
                                                 <br>
                                                 <a href="{{route('electricity_facture._FacturePayement',crypId($facture->id))}}" class="btn btn-sm bg-red"> <i class="bi bi-currency-exchange"></i> Payer maintenant</a>
                                                 @endif
@@ -184,12 +294,40 @@
                                             <li class="list-group-item mb-3 ">
                                                 <strong>Date d'arrêt: </strong> {{$state->state_stoped_day}}
                                                 <br>
-                                                <a  href="{{route('house_state.ImprimeElectricityHouseState',crypId($state->id))}}" class="btn btn-sm bg-red"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer</a>
+                                                <a href="{{route('house_state.ImprimeElectricityHouseState',crypId($state->id))}}" class="w-100 btn btn-sm bg-red"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer</a>
                                             </li>
                                             @endforeach
                                         </ul>
                                         @if(count($location->House->ElectricityFacturesStates)==0)
                                         <p class="text-center text-red">Aucun état disponible</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ###### MODIFIER L'INDEX DE LA DERNIERE FACTURE -->
+                        <div class="modal fade" id="updateLastFactureEndIndex_{{$location['id']}}" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <span class="">Location: <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->ElectricityFactures)!=0?$location->ElectricityFactures->first()->end_index: $location->Room->electricity_counter_start_index}} ;<strong>Index fin: </strong>{{$location->end_index}}; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}} </span>
+                                    </div>
+                                    <div class="modal-body">
+                                        @php
+                                        $lastFacture = $location->ElectricityFactures()?$location->ElectricityFactures()->first():null;
+                                        @endphp
+
+                                        @if($lastFacture)
+                                        <form action="{{route('location.ElectricityUpdateEndIndex',$lastFacture->id)}}" method="post">
+                                            @csrf
+                                            @method("PATCH")
+                                            <input type="number" name="end_index" class="form-control" value="{{$lastFacture->end_index}}" id="">
+                                            <hr>
+                                            <button type="submit" class="btn btn-sm bg-red w-100"><i class="bi bi-pencil-square"></i> Enregistrer</button>
+                                        </form>
+                                        @else
+                                        <p class="text-red text-center">Aucune facture disponible! Génerer une pour insérer un index de fin.</p>
                                         @endif
                                     </div>
                                 </div>
@@ -201,4 +339,16 @@
             </div>
         </div>
     </div>
+
+    <!-- SCRIPT -->
+    <script type="text/javascript">
+        // filtre
+        function displayFiltreOptions() {
+            if ($("#filtre_options").hasClass('d-none')) {
+                $("#filtre_options").removeClass("d-none")
+            } else {
+                $("#filtre_options").addClass("d-none")
+            }
+        }
+    </script>
 </div>

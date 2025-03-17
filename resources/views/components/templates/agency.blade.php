@@ -551,7 +551,7 @@
                     "order": [
                         [0, 'desc']
                     ],
-                    "pageLength": 10,
+                    "pageLength": 15,
 
                     language: {
                         "emptyTable": "Aucune donnée disponible dans le tableau",
