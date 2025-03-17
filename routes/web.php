@@ -238,7 +238,7 @@ Route::prefix("room")->group(function () {
         });
 
         Route::post('add', '_AddRoom')->name("room._AddRoom"); #AJOUT D'UNE CHAMBRE
-        Route::any('{id}/update', 'UpdateRoom')->name("room.UpdateRoom"); #MODIFICATION D'UNE CHAMBRE 
+        Route::patch('{id}/update', 'UpdateRoom')->name("room.UpdateRoom"); #MODIFICATION D'UNE CHAMBRE 
         Route::delete('{id}/delete', 'DeleteRoom')->name("room.DeleteRoom"); #SUPPRESSION D'UNE CHAMBRE 
 
 

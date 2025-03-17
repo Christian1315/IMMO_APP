@@ -338,11 +338,14 @@ class LocationController extends Controller
             return back()->withInput();
         }
 
-        // $room_location = Location::where(["room" => $formData["room"], "house" => $formData["house"]])->first();
-        // if ($room_location && $room_location->status != 3) {
-        //     alert()->error("Echec", "Cette chambre est déjà occupée!");
-        //     return back()->withInput();
-        // }
+        $room_locations = Location::where(["room" => $formData["room"], "house" => $formData["house"]])->get()->filter(function ($location) {
+            // location non demenagéss
+            return $location->status != 3;
+        });
+        if (count($room_locations)>0) {
+            alert()->error("Echec", "Cette chambre est déjà occupée!");
+            return back()->withInput();
+        }
 
         ##___TRAITEMENT DES IMAGES
         if ($request->file("caution_bordereau")) {
@@ -688,7 +691,7 @@ class LocationController extends Controller
 
         $now = strtotime(date("Y/m/d", strtotime(now())));
 
-        $locations = Location::where("visible", 1)->where("status", '!=', 3)->get()->filter(function ($location) use ($request,$now) {
+        $locations = Location::where("visible", 1)->where("status", '!=', 3)->get()->filter(function ($location) use ($request, $now) {
             $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
             if ($location_echeance_date < $now) {
                 if ($location->House->Supervisor->id == $request->supervisor) {
@@ -697,7 +700,7 @@ class LocationController extends Controller
             }
         });
 
-        Session::put("imprimUnPaidLocations",true);
+        Session::put("imprimUnPaidLocations", true);
         // dd($locations);
         return view("imprimer_locations", compact("locations", "superviseur"));
     }
@@ -883,7 +886,7 @@ class LocationController extends Controller
             $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
             $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
             $location->echeance_date = $location_echeance_date;
-            $location->prorata_amount = $request->prorata_amount;
+            $location->prorata_amount = $request->prorata_amount ? $request->prorata_amount : 0;
             $location->prorata_days = $request->prorata_days;
             ###__
 
@@ -959,8 +962,10 @@ class LocationController extends Controller
             alert()->success("Succès", "Paiement ajouté avec succès!!");
             return back()->withInput();
         } catch (\Throwable $th) {
+            dd($th);
             DB::rollBack();
-            alert()->success("Error", "Une erreure est survenue!");
+            alert()->success("Error", "Une erreure est survenue! ");
+            return back()->withInput();
         }
     }
 

@@ -456,7 +456,7 @@
 
                             <div class="mb-3">
                                 <span>Uploader la facture ici</span> <br>
-                                <input type="file" required name="facture" class="form-control">
+                                <input type="file" name="facture" class="form-control">
                             </div>
                             <div class="mb-3">
                                 <label for="" class="d-block">Code de facture</label>
@@ -653,7 +653,7 @@
                                                 @endif
                                                 <div class="mb-3">
                                                     <span>Uploader la facture ici</span> <br>
-                                                    <input type="file" required name="facture" class="form-control">
+                                                    <input type="file" name="facture" class="form-control">
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="" class="d-block">Code de facture</label>
@@ -698,7 +698,6 @@
                                 </div>
                             </div>
                         </div>
-
 
                         <!-- ###### MODEL DE MODIFICATION ###### -->
                         <div class="modal fade" id="updateModal_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

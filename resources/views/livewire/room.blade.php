@@ -382,7 +382,7 @@
                 })
             );
             $free_rooms_count = count($rooms) - $buzy_rooms_count;; ?>
-            <h4 class="">Total: <strong class="text-red"> {{count($rooms)}} </strong> | <button class="btn btn-sm btn-light"> Nombres de Chambres Occupées: <strong class="text-red">{{$buzy_rooms_count}}</strong> </button>| <button class="btn btn-sm btn-light"> Nombres de Chambres Libres: <strong class="text-primary">{{$free_rooms_count}}</strong> </button> </h4>
+            <h4 class="">Total: <strong class="text-red"> {{count($rooms)}} </strong> | Légende: <button class="btn btn-sm bg-light border border-dark">Libre <i class="bi text-primary bi-geo-alt-fill"></i>; Occupée: <i class="bi text-red bi-geo-alt-fill"></i></button> | <button class="btn btn-sm btn-light"> Nombres de Chambres Occupées: <strong class="text-red">{{$buzy_rooms_count}}</strong> </button>| <button class="btn btn-sm btn-light"> Nombres de Chambres Libres: <strong class="text-primary">{{$free_rooms_count}}</strong> </button> </h4>
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
                     <thead class="bg_dark">
@@ -409,10 +409,10 @@
                             <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
                             <td class="text-center">{{$room["House"]["name"]}}</td>
                             <td class="text-center">{{$room["House"]["Supervisor"]["name"]}}</td>
-                            <td class="text-center">{{$room["loyer"]}}</td>
-                            <td class="text-center">{{$room->LocativeCharge()}}</td>
+                            <td class="text-center"><span class="badge bg-dark">{{number_format($room["loyer"],2," "," ")}} </span> </td>
+                            <td class="text-center"><span class="badge bg-warning">{{number_format($room->LocativeCharge(),2," "," ")}} </span> </td>
                             <!-- <td class="text-center"><a href="{{$room['photo']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a> -->
-                            <td class="text-center"> <button class="btn btn-sm btn-light text-red">{{$room["total_amount"]}} fcfa </button> </td>
+                            <td class="text-center"> <button class="btn btn-sm btn-light text-red">{{number_format($room["total_amount"],2," "," ")}} fcfa </button> </td>
                             <td class="text-center">{{$room["Type"]['name']}}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#showLocators" onclick="showLocators_fun({{$room['id']}})">
@@ -423,12 +423,12 @@
                             <td class="text-center d-flex">
                                 <div class="dropdown">
                                     <button class="btn btn-sm bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-text-paragraph"></i> Action
+                                        <i class="bi bi-text-paragraph"></i> Action
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a href="#" class="dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
-                                        <li><a href="{{ route('room.DeleteRoom', crypId($room['id']))}}" class="dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i>Supprimer</a></li>
-                                        <li><a href="{{$room['photo']}}" class="dropdown-item btn btn-sm btn-light" rel="noopener noreferrer">Image <i class="bi bi-eye"></i></a></li>
+                                        <li><a href="#" class="w-100 dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        <li><a href="{{ route('room.DeleteRoom', crypId($room['id']))}}" class="w-100 dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i>Supprimer</a></li>
+                                        <li><a href="{{$room['photo']}}" class="w-100 dropdown-item btn btn-sm btn-light" rel="noopener noreferrer">Image <i class="bi bi-eye"></i></a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -468,6 +468,7 @@
                 <div class="modal-body">
                     <form id="update_form" method="POST" class="shadow-lg p-3 animate__animated animate__bounce" enctype="multipart/form-data">
                         @csrf
+                        @method("PATCH")
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -490,30 +491,6 @@
                                     <input type="text" id="rubbish" name="rubbish" placeholder="Les ordures ..." class="form-control">
                                 </div><br>
 
-                                <div class="mb-3">
-                                    <label for="" class="d-block">Vidange</label>
-                                    <input type="text" id="vidange" name="vidange" placeholder="La vidange ..." class="form-control">
-
-                                </div><br>
-
-                                <div class="water shadow-lg roundered p-2" id="show_water_info">
-
-                                    <div class="mb-3" id="water_discounter_inputs">
-                                        <span for="" class="d-block">Prix unitaire par mêtre cube</span>
-                                        <input id="unit_price" type="text" name="unit_price" placeholder="Prix unitaire en mèttre cube" class="form-control" id="">
-
-                                    </div>
-
-                                    <div class="mb-3" id="show_water_conventionnal_counter_inputs">
-                                        <span for="" class="d-block">Numéro du compteur</span>
-                                        <input id="water_counter_number" type="text" name="water_counter_number" placeholder="Numéro compteur" class="form-control">
-
-                                        <div class="">
-                                            <span for="" class="d-block">Index du compteur d'eau</span>
-                                            <input id="water_counter_start_index" type="text" name="water_counter_start_index" placeholder="Index début ...." class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                             <!--  -->
                             <div class="col-md-6">
@@ -522,26 +499,18 @@
                                     <input type="text" id="cleaning" name="cleaning" placeholder="Le nettoyage ..." class="form-control">
 
                                 </div><br>
-                                <div class="mb-3">
-                                    <label for="" class="d-block">Commentaire</label>
-                                    <textarea id="comments" name="comments" rows="1" placeholder="Laisser un commentaire ..." class="form-control" class="form-control" id=""></textarea>
-
-                                </div><br>
                                 <div id="">
                                     <div class="mb-3">
                                         <span for="" class="d-block">Numéro compteur</span>
                                         <input id="electricity_counter_number" type="text" name="electricity_counter_number" placeholder="Numéro compteur" class="form-control" id="">
                                     </div>
-                                    <div class="mb-3">
-                                        <span for="" class="d-block">Prix unitaire</span>
-                                        <input id="electricity_unit_price" type="text" name="electricity_unit_price" placeholder="Prix unitaire par kilowatheure " class="form-control" id="">
+                                </div><br>
 
-                                    </div>
-                                    <div class="mb-3">
-                                        <span for="" class="d-block">Index de début</span>
-                                        <input id="electricity_counter_start_index" type="text" name="electricity_counter_start_index" placeholder="Index début ...." class="form-control" id="">
-                                    </div>
-                                </div>
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Vidange</label>
+                                    <input type="text" id="vidange" name="vidange" placeholder="La vidange ..." class="form-control">
+
+                                </div><br>
                             </div>
                         </div>
                         <div class="modal-footer">
