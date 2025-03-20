@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('role_id')
                 ->nullable()
-                ->constrained()
+                ->constrained("_roles","id")
                 ->onUpdate("CASCADE")
                 ->onDelete("CASCADE");
             $table->foreignId('user_id')

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 #####========= ROLES ======####
 function IS_USER_HAS_SUPERVISOR_ROLE($user)
 {
-    if (in_array(env("SUPERVISOR_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
+    if (in_array(env("SUPERVISOR_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
         return true;
     }
 
@@ -24,7 +24,7 @@ function IS_USER_HAS_SUPERVISOR_ROLE($user)
 
 function IS_USER_HAS_ACCOUNT_AGENT_ROLE($user)
 {
-    if (in_array(env("ACCOUNT_AGENT_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
+    if (in_array(env("ACCOUNT_AGENT_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
         return true;
     }
 
@@ -33,7 +33,7 @@ function IS_USER_HAS_ACCOUNT_AGENT_ROLE($user)
 
 function IS_USER_HAS_ACCOUNT_CHIEF_ROLE($user)
 {
-    if (in_array(env("ACCOUNT_CHIEF_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
+    if (in_array(env("ACCOUNT_CHIEF_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
         return true;
     }
 
@@ -42,7 +42,7 @@ function IS_USER_HAS_ACCOUNT_CHIEF_ROLE($user)
 
 function IS_USER_HAS_MASTER_ROLE($user)
 {
-    if (in_array(env("MASTER_ROLE_ID"), $user->roles->pluck("id")->toArray())) {
+    if (in_array(env("MASTER_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
         return true;
     }
 

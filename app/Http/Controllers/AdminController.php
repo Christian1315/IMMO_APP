@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class AdminController extends Controller
 {

@@ -16,6 +16,8 @@ class Role extends Model
         "owner"
     ];
 
+    protected $table = "_roles";
+
     function Owner(): BelongsTo
     {
         return $this->belongsTo(User::class, "owner");

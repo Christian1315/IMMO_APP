@@ -26,7 +26,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($user->roles as $role)
+                        @foreach($user->_roles as $role)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center">{{$role["label"]}}</td>

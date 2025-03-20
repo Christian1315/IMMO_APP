@@ -363,6 +363,8 @@ class UserController extends Controller
             alert()->error('Echec', "Cet utilisateur n'existe pas!");
             return redirect()->back();
         }
+
+        $user->load("_roles");
         return view("users.roles", compact("user"));
     }
 
