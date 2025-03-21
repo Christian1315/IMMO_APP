@@ -142,7 +142,7 @@ class Room extends Component
         $supervisors = [];
 
         foreach ($users as $user) {
-            $user_roles = $user->roles; ##recuperation des roles de ce user
+            $user_roles = $user->_roles; ##recuperation des roles de ce user
 
             foreach ($user_roles as $user_role) {
                 if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {

@@ -407,8 +407,8 @@
                         <tr class="align-items-center">
                             <td class="text-center d-flex">{{$loop->index + 1}}</td>
                             <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
-                            <td class="text-center">{{$room["House"]["name"]}}</td>
-                            <td class="text-center">{{$room["House"]["Supervisor"]["name"]}}</td>
+                            <td class="text-center"><span class="badge bg-light text-dark">  {{$room["House"]["name"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark">{{$room["House"]["Supervisor"]["name"]}}</span></td>
                             <td class="text-center"><span class="badge bg-dark">{{number_format($room["loyer"],2," "," ")}} </span> </td>
                             <td class="text-center"><span class="badge bg-warning">{{number_format($room->LocativeCharge(),2," "," ")}} </span> </td>
                             <!-- <td class="text-center"><a href="{{$room['photo']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a> -->
@@ -426,7 +426,7 @@
                                         <i class="bi bi-text-paragraph"></i> Action
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a href="#" class="w-100 dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        <li><a href="#" class="dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
                                         <li><a href="{{ route('room.DeleteRoom', crypId($room['id']))}}" class="w-100 dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i>Supprimer</a></li>
                                         <li><a href="{{$room['photo']}}" class="w-100 dropdown-item btn btn-sm btn-light" rel="noopener noreferrer">Image <i class="bi bi-eye"></i></a></li>
                                     </ul>

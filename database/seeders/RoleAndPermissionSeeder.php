@@ -10,14 +10,14 @@ use Spatie\Permission\Models\Permission;
 
 class RoleAndPermissionSeeder extends Seeder
 {
-    private function createCrudValidatePermissions($name, $permission, $group)
+    private function createCrudValidatePermissions($name, $permission, $group = null)
     {
         return [
             "Voir les $name" => "$permission.view",
             "Créer des $name" => "$permission.create",
             "Modifier les $name" => "$permission.edit",
             "Supprimer des $name" => "$permission.delete",
-            "Valider les $name" => "$permission.validate",
+            // "Valider les $name" => "$permission.validate",
         ];
     }
 
@@ -25,74 +25,109 @@ class RoleAndPermissionSeeder extends Seeder
     {
         $permissionGroups = [
             'Administration' => array_merge(
-                $this->createCrudValidatePermissions('utilisateurs', 'users', 'Administration'),
-                $this->createCrudValidatePermissions('rôles', 'roles', 'Administration')
+                $this->createCrudValidatePermissions('utilisateurs', 'users','utilisateurs'),
+                $this->createCrudValidatePermissions('rôles', 'roles','roles')
             ),
 
-            'Catalogue' => array_merge(
-                $this->createCrudValidatePermissions('familles d\'articles', 'famille-article', 'Catalogue'),
-                $this->createCrudValidatePermissions('articles', 'articles', 'Catalogue'),
-                $this->createCrudValidatePermissions('tarifications', 'tarification', 'Catalogue')
+            'Propriétaires' => array_merge(
+                $this->createCrudValidatePermissions('propriétaires', 'proprio','propriétaires'),
             ),
 
-            'Achat' => array_merge(
-                $this->createCrudValidatePermissions('fournisseurs', 'fournisseur', 'Achat'),
-                $this->createCrudValidatePermissions('pré-commandes', 'programmations', 'Achat'),
-                $this->createCrudValidatePermissions('bons de commande', 'bon-commandes', 'Achat'),
-                $this->createCrudValidatePermissions('factures fournisseur', 'factures', 'Achat'),
-                $this->createCrudValidatePermissions('règlements fournisseur', 'reglements', 'Achat'),
-                $this->createCrudValidatePermissions('livraisons fournisseur', 'livraisons', 'Achat'),
-                $this->createCrudValidatePermissions('approvisionnement fournisseur', 'approvisionnements', 'Achat'),
-            ),
-
-            'Ventes' => array_merge(
-                $this->createCrudValidatePermissions('clients', 'vente.clients', 'Ventes'),
-                $this->createCrudValidatePermissions('sessions de caisse', 'vente.sessions', 'Ventes'),
-                $this->createCrudValidatePermissions('factures client', 'vente.facture', 'Ventes'),
-                $this->createCrudValidatePermissions('règlements client', 'vente.reglement', 'Ventes'),
-                $this->createCrudValidatePermissions('livraisons client', 'vente.livraisons', 'Ventes'),
-                $this->createCrudValidatePermissions('factures proforma', 'facture.proformas', 'Ventes'),
+            'Maisons' => array_merge(
+                $this->createCrudValidatePermissions('maisons', 'house','maisons'),
                 [
-                    "Voir les détails" => "facture.proformas.details",
+                    "Arrêter un état" => "location.stop.state",
+                    "Gestion des cautions" => "location.generate.caution",
                 ]
             ),
 
-            'Revendeur' => array_merge(
-                $this->createCrudValidatePermissions('factures revendeur', 'revendeur.facture', 'Revendeur'),
-                $this->createCrudValidatePermissions('ventes spéciales', 'revendeur.speciales', 'Revendeur'),
+            'Chambres' => array_merge(
+                $this->createCrudValidatePermissions('chambres', 'room','chambres'),
+            ),
+
+            'Locataires' => array_merge(
+                $this->createCrudValidatePermissions('locataires', 'locator','Locataires'),
+            ),
+
+            'Locations' => array_merge(
+                $this->createCrudValidatePermissions('Locations', 'location','Locations'),
+                $this->createCrudValidatePermissions('locataires à jour', 'locator.paid','Locations'),
+                $this->createCrudValidatePermissions('locataires impayés', 'locator.unpaid','Locations'),
+                $this->createCrudValidatePermissions('locataires démenagés', 'locator.removed','Locations'),
                 [
-                    'Voir les validations vente' => 'revendeur.normale.rapport.view',
-                    'Voir les validations spéciales' => 'revendeur.speciale.rapport.view'
+                    "Encaisser une location" => "location.collect",
+                    "Deménager un locataire" => "location.removed",
+                    "Imprimer les rapports" => "location.print.report",
+                    "Génerer les états de cautions" => "location.generate.cautions.state",
+                    "Génerer les états des proratas" => "location.generate.proratas.state",
                 ]
             ),
 
-            'Rapports Achats' => [
-                'Voir rapports pré-commandes' => 'rapports.pre-commandes.view',
-                'Voir rapports bon commandes' => 'rapports.bon-commandes.view',
-                'Voir rapports factures achat' => 'rapports.facture-achats.view',
-                'Voir rapports livraisons achat' => 'rapports.livraison-achats.view',
-                'Voir rapports règlements achat' => 'rapports.reglement-achats.view',
-                'Voir rapports compte fournisseur' => 'rapports.compte-fournisseur.view',
-                'Exporter rapports achats' => 'rapports.achats.export'
-            ],
+            'Paiement propriétaires' => array_merge(
+                [
+                    "Voir les paiement des propriétaires" => "proprio.payement.view",
+                    "Payer un paropriétaire" => "proprio.payement",
+                    "Imprimer les états" => "proprio.print.state",
+                    "Imprimer les rapports" => "location.print.report",
+                    "Génerer les états de cautions" => "location.generate.cautions.state",
+                    "Génerer les états des proratas" => "location.generate.proratas.state",
+                ]
+            ),
 
-            'Rapports Ventes' => [
-                'Voir ventes par article' => 'rapports.ventes-articles.view',
-                'Voir ventes par famille' => 'rapports.ventes-familles.view',
-                'Voir ventes par client' => 'rapports.ventes-clients.view',
-                'Voir ventes journalières' => 'rapports.vente-journaliere.view',
-                'Voir suivi créances' => 'rapports.creances.view',
-                'Voir rapports sessions' => 'vente.sessions.rapport.view',
-                'Voir compte client' => 'rapports.compte-client.view',
-                'Exporter rapports ventes' => 'rapports.ventes.export'
-            ],
+            'Validation des paiements propriétaires' => array_merge(
+                [
+                    "Voir la validation des paiement des propriétaires" => "proprio.payement.validation.view",
+                    "Valider un paiement" => "proprio.payement.validate",
+                    "Rejeter un paiement" => "proprio.payement.cancel",
+                ]
+            ),
 
-            'Rapports Stocks' => [
-                'Voir mouvements stock' => 'rapports.mouvement-stock.view',
-                'Voir stock disponible' => 'rapports.stock-dispo.view',
-                'Voir rotations stock' => 'stock.rotation.view',
-                'Exporter rapports stocks' => 'rapports.stocks.export'
-            ],
+            'Factures' => array_merge(
+                $this->createCrudValidatePermissions('factures', 'invoices','Factures'),
+            ),
+
+            'Caisses' => array_merge(
+                [
+                    "Voir les Caisses" => "caisses.view",
+                    "Créditer une caisse" => "caisses.credite",
+                    "Decréditer une Caisse" => "caisses.decredite",
+                ]
+            ),
+
+            'Factures electicité' => array_merge(
+                [
+                    "Voir les locations ayant d'électricité" => "electicity.invoices.view",
+                    "Genérer une facture d\'électricité d'une location" => "electicity.invoices.generate",
+                    "Arrêter les états de facture d'électricité d'une location" => "electicity.invoices.stop.state",
+                    "Payer une facture d'électricité d'une location" => "electicity.invoices.payement",
+                    "Imprimer les états de facture d'électricité d'une location" => "electicity.invoices.print",
+                    "Modifier l'index de fin d'une location" => "electicity.invoices.print",
+                ]
+            ),
+
+            'Factures d\'eau' => array_merge(
+                [
+                    "Voir les locations ayant d'eau" => "water.invoices.view",
+                    "Genérer une facture d\'eau d'une location" => "water.invoices.generate",
+                    "Arrêter les états de facture d'eau d'une location" => "water.invoices.stop.state",
+                    "Payer une facture d'eau d'une location" => "water.invoices.payement",
+                    "Imprimer les états de facture d'eau d'une location" => "water.invoices.print",
+                    "Modifier l'index de fin d'une location" => "water.invoices.print",
+                ]
+            ),
+
+            'Statistiques' => array_merge(
+                [
+                    "Voir les statistiques" => "statistiques.view",
+                ]
+            ),
+
+            'Taux de recouvrement' => array_merge(
+                [
+                    "Voir les taux de recouvrement" => "recovery.rates.view",
+                    "Génerer les états des taux de recouvrement" => "generate.recovery.rates.states",
+                ]
+            ),
         ];
 
         // Création des permissions

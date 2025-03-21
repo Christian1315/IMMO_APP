@@ -391,16 +391,16 @@
                                         aria-expanded="false">
                                         <i class="bi bi-kanban-fill"></i> &nbsp; Gérer
                                     </button>
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu p-2">
                                         @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_admin)
                                         <li>
                                             <a href="{{ route('house.DeleteHouse', crypId($house['id'])) }}"
-                                                data-confirm-delete="true" class="btn btn-sm bg-red"><i
+                                                data-confirm-delete="true" class="w-100 btn btn-sm bg-red"><i
                                                     class="bi bi-archive-fill"></i> Supprimer</a>
                                         </li>
 
                                         <li>
-                                            <button class="btn btn-sm bg-warning" data-bs-toggle="modal"
+                                            <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal"
                                                 data-bs-target="#updateModal"
                                                 onclick="updateModal_fun({{ $house['id'] }})"><i
                                                     class="bi bi-person-lines-fill"></i> Modifier</button>
@@ -413,14 +413,14 @@
                                         IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                                         <li>
                                             <a href="/house/{{ crypId($house['id']) }}/{{ crypId($current_agency['id']) }}/stopHouseState"
-                                                class="btn btn-sm bg-warning text-dark"><i
+                                                class="w-100 btn btn-sm bg-warning text-dark"><i
                                                     class="bi bi-sign-stop-fill"></i>&nbsp; Arrêter les
                                                 états</a>
                                         </li>
                                         @endif
 
                                         <li>
-                                            <button class="btn btn-sm bg-light" data-bs-toggle="modal"
+                                            <button class="w-100 btn btn-sm bg-light" data-bs-toggle="modal"
                                                 data-bs-target="#cautionModal"
                                                 onclick="cautionModal_fun({{ $house['id'] }})"><i
                                                     class="bi bi-file-earmark-pdf-fill"></i> Gestion des cautions

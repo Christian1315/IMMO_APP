@@ -170,12 +170,12 @@
                                     <button type="button" class="btn btn-sm bg-dark dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                                         <span class="visually-hidden"> <i class="bi bi-kanban"></i> Gérer </span>
                                     </button>
-                                    <ul class="dropdown-menu p-1">
-                                        <a href="{{route('user.ArchiveAccount',crypId($user->id))}}" class="btn btn-sm btn-success">Archiver</a>
-                                        <a href="{{route('user.AttachRoleToUser',crypId($user->id))}}" target="__blank" class="btn btn-sm btn-light">Affecter rôle</a>
-                                        <a href="{{route('user.DuplicatAccount',crypId($user->id))}}" class="btn btn-sm btn-dark">Duppliquer</a>
-                                        <button class="btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$user['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
-                                        <a href="{{route('user.DeleteAccount',crypId($user->id))}}" data-confirm-delete="true" class="btn btn-sm bg-red"><i class="bi bi-archive-fill"></i> Supprimer</a>
+                                    <ul class="dropdown-menu p-2">
+                                        <a href="{{route('user.ArchiveAccount',crypId($user->id))}}" class="w-100 btn btn-sm btn-success">Archiver</a>
+                                        <a href="{{route('user.AttachRoleToUser',crypId($user->id))}}" target="__blank" class="w-100 btn btn-sm btn-light">Affecter rôle</a>
+                                        <a href="{{route('user.DuplicatAccount',crypId($user->id))}}" class="w-100 btn btn-sm btn-dark">Duppliquer</a>
+                                        <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$user['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
+                                        <a href="{{route('user.DeleteAccount',crypId($user->id))}}" data-confirm-delete="true" class="w-100 btn btn-sm bg-red"><i class="bi bi-archive-fill"></i> Supprimer</a>
                                     </ul>
                                 </div>
                             </td>

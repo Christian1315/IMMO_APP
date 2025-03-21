@@ -255,7 +255,7 @@
                             <th class="text-center">N°</th>
                             <th class="text-center">Nom</th>
                             <th class="text-center">Prénom</th>
-                            <th class="text-center">Email</th>
+                            <!-- <th class="text-center">Email</th> -->
                             <!-- <th class="text-center">Pièce ID</th> -->
                             <th class="text-center">Phone</th>
                             <th class="text-center">Avaliseur</th>
@@ -272,11 +272,11 @@
                         @foreach((session()->get("locators_filtred")?session()->get("locators_filtred"):$locators) as $locator)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center">{{$locator["name"]}}</td>
+                            <td class="text-center"><span class="badge bg-dark">{{$locator["name"]}}</span> </td>
                             <td class="text-center">{{$locator["prenom"]}}</td>
-                            <td class="text-center">{{$locator["email"]}}</td>
+                            <!-- <td class="text-center">{{$locator["email"]}}</td> -->
                             <!-- <td class="text-center">{{$locator["card_id"]}}</td> -->
-                            <td class="text-center">{{$locator["phone"]}}</td>
+                            <td class="text-center"><span class="badge text-dark bg-light"> {{$locator["phone"]}}</span> </td>
                             <td class="text-center">
                                 @if($locator->avaliseur)
                                 <a class='btn btn-sm btn-light shadow' href='#' data-bs-toggle='modal' data-bs-target='#showAvalisor' onclick='showAvalisorModal({{$locator['id']}})'><i class='bi bi-eye-fill'></i></a>
@@ -308,12 +308,12 @@
                             @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="d-flex">
                                 <div class="dropdown">
-                                    <button class="btn _btn-dark bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-sm  bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-gear"></i> Actions
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a href="#" class="dropdown-item btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$locator->id}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
-                                        <li><a href="{{ route('locator.DeleteLocataire', crypId($locator->id)) }}" class="dropdown-item btn btn-sm btn-light" data-confirm-delete="true"><i class="bi bi-archive-fill"></i> &nbsp; Suprimer</a></li>
+                                        <li><a href="#" class="dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$locator->id}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        <li><a href="{{ route('locator.DeleteLocataire', crypId($locator->id)) }}" class="dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i> &nbsp; Suprimer</a></li>
                                         <li><a class="w-100 dropdown-item" href="#">Adresse: {{$locator["adresse"]}}</a></li>
                                         <li><a class="w-100 dropdown-item" href="#">Card ID: {{$locator["card_id"]}}</a></li>
                                     </ul>

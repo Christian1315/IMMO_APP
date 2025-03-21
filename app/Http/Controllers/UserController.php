@@ -365,6 +365,7 @@ class UserController extends Controller
         }
 
         $user->load("_roles");
+        // dd($user->_roles);
         return view("users.roles", compact("user"));
     }
 

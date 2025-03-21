@@ -9,6 +9,7 @@ use App\Models\Departement;
 use App\Models\House as ModelsHouse;
 use App\Models\HouseType;
 use App\Models\Quarter;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\Zone;
 use Illuminate\Support\Facades\Http;
@@ -216,7 +217,7 @@ class House extends Component
         $supervisors = [];
 
         foreach ($users as $user) {
-            $user_roles = $user->roles; ##recuperation des roles de ce user
+            $user_roles = $user->_roles; ##recuperation des roles de ce user
 
             foreach ($user_roles as $user_role) {
                 if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
@@ -224,7 +225,6 @@ class House extends Component
                 }
             }
         }
-        $this->supervisors = array_unique($supervisors);
         $this->supervisors = array_unique($supervisors);
     }
 

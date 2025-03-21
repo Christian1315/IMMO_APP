@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SettingsSeeder::class,
+            RoleAndPermissionSeeder::class,
+            
+            // AdminUserSeeder::class,
+            AllPermissionToSuperAdminSeeder::class
         ]);
     }
 }

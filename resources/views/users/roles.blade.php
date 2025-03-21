@@ -16,7 +16,7 @@
 
             <div class="table-responsive">
                 <table id="myTable" class="table table-striped table-sm shadow-lg">
-                    @if($user->roles)
+                    @if($user->_roles)
                     <thead class="bg_dark">
                         <tr>
                             <th class="text-center">N°</th>

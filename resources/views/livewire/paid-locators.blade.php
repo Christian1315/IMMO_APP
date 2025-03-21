@@ -103,17 +103,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        
+
                         @foreach (session('filteredLocators') ? session("filteredLocators") : $locators as $location)
                         <tr class="align-items-center">
                             <td class="text-center">{{ $loop->index + 1 }}</td>
-                            <td class="text-center">{{ $location['House']['name'] }}</td>
+                            <td class="text-center"><span class="badge bg-dark"> {{ $location['House']['name'] }}</span> </td>
                             <td class="text-center">
-                                {{ $location->House->Supervisor->name }}
+                                <span class="badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span>
                             </td>
                             <td class="text-center">{{ $location['Room']['number'] }}</td>
-                            <td class="text-center">{{ $location['Locataire']['name'] }}
-                                {{ $location['Locataire']['prenom'] }} ({{ $location['Locataire']['phone'] }})
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark">{{ $location['Locataire']['name'] }} {{ $location['Locataire']['prenom'] }} ({{ $location['Locataire']['phone'] }}) </span>
                             </td>
 
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
