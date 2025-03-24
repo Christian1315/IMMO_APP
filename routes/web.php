@@ -56,7 +56,9 @@ Route::controller(UserController::class)->group(function () {
     Route::get('/logout', "Logout")->name("logout");
     Route::match(["GET", "POST"], '/demande-reinitialisation', "DemandReinitializePassword")->name("demandeReinitialisation");
     Route::match(["GET", "POST"], '/reinitialisation', "ReinitializePassword")->name("Reinitialisation");
-    Route::any('add', 'AddUser')->name("AddUser");
+    Route::post('add', 'AddUser')->name("AddUser");
+
+    Route::get('users/{id}/retrieve', 'RetrieveUser')->name("user.RetrieveUser");
     Route::any('users/{id}/roles', 'GetUserRoles')->name("user.GetUserRoles");
     Route::any('{id}/archive', 'ArchiveAccount')->name("user.ArchiveAccount");
 

@@ -5,13 +5,14 @@ namespace App\Livewire;
 use App\Models\Agency;
 use App\Models\Profil;
 use App\Models\Rang;
-use App\Models\Role;
+// use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Role;
 
 class Setting extends Component
 {
@@ -74,9 +75,12 @@ class Setting extends Component
     public $generalError = "";
     public $generalSuccess = "";
 
-
     function mount()
     {
+        $user = auth()->user();
+
+        // dd($user->hasRole('Super Administrateur'));
+        
         // RANGS
         $this->refreshRangs();
 

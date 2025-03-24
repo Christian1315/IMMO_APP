@@ -1,5 +1,5 @@
 <div>
-    @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+    @can("proprio.create")
     <div>
         <div class="d-flex header-bar">
             <h2 class="accordion-header">
@@ -9,7 +9,6 @@
             </h2>
         </div>
     </div>
-    @endif
 
     <!-- ADD PROPRIETOR -->
     <div class="modal fade" id="staticBackdrop" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -147,7 +146,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn bg-red">Enregistrer</button>
+                            <button class="w-100 btn bg-red"> <i class="bi bi-check-circle-fill"></i> Enregistrer</button>
                         </div>
                     </form>
                 </div>
@@ -157,6 +156,7 @@
         </div>
     </div>
     <br>
+    @endcan
 
     <!-- TABLEAU DE LISTE -->
     <div class="row">
@@ -175,9 +175,9 @@
                             <th class="text-center">Contrat</th>
                             <!-- <th class="text-center">Adresse</th> -->
                             <th class="text-center">Maisons</th>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+                            @can("proprio.edit")
                             <th class="text-center">Actions</th>
-                            @endif
+                            @endcan
                         </tr>
                     </thead>
                     <tbody>
@@ -197,11 +197,11 @@
                                     <i class="bi bi-eye-fill"></i> &nbsp; Voir
                                 </button>
                             </td>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
-                            <td class="text-center d-flex">
+                            @can("proprio.edit")
+                            <td class="text-center">
                                 <button class="btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$proprietor['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</button>
                             </td>
-                            @endif
+                            @endcan
                         </tr>
                         @endforeach
                     </tbody>
@@ -229,6 +229,7 @@
     </div>
 
     <!-- ###### MODEL DE MODIFICATION ###### -->
+    @can("proprio.edit")
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -284,13 +285,14 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Modifier</button>
+                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Modifier</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    @endcan
 
     <script type="text/javascript">
         function show_houses_fun(id) {

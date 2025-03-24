@@ -11,6 +11,7 @@ use App\Models\UserRight;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -44,7 +45,6 @@ class UserController extends Controller
             "DuplicatAccount"
         ]);
     }
-
 
     #########################======= LES VALIDATIONS ============##########
 
@@ -127,9 +127,6 @@ class UserController extends Controller
     }
 
     ############################====== FIN VALIDATIONS ===========################
-
-
-
 
     ############################====== LES METHODES ============################
 
@@ -355,106 +352,6 @@ class UserController extends Controller
         return redirect()->route("home");
     }
 
-    ###____ET USER ROLES
-    function GetUserRoles(Request $request, $userId)
-    {
-        $user = User::findOrFail(deCrypId($userId));
-        if (!$user) {
-            alert()->error('Echec', "Cet utilisateur n'existe pas!");
-            return redirect()->back();
-        }
-
-        $user->load("_roles");
-        // dd($user->_roles);
-        return view("users.roles", compact("user"));
-    }
-
-    ###____ATTACHER UN ROLE
-    function AttachRoleToUser(Request $request, $userId)
-    {
-        $user = User::findOrFail(deCrypId($userId));
-        if (!$user) {
-            alert()->error('Echec', "Cet utilisateur n'existe pas!");
-            return redirect()->back();
-        }
-
-        ##__GET REQUEST
-        if ($request->method() == "GET") {
-            $roles = Role::all();
-            return view("users.affect-role", compact("roles", "user"));
-        }
-
-        ###__POST REQUEST
-        $current_user = request()->user();
-        $formData = $request->all();
-
-        $current_user = request()->user();
-        if ($current_user->is_admin) {
-            $user = User::where(['id' => $formData['user_id']])->get();
-        } else {
-            $user = User::where(['id' => $formData['user_id'], 'owner' => $current_user->id])->get();
-        }
-
-
-        $role = role::where('id', $formData['role_id'])->get();
-        if (count($role) == 0) {
-            alert()->error('Echec', "Cet rôle n'existe pas!");
-            return redirect()->back();
-        };
-
-        $is_this_attach_existe = UserRole::where(["user_id" => $formData['user_id'], "role_id" => $formData['role_id']])->first();
-        if ($is_this_attach_existe) {
-            alert()->error('Echec', "Cet utilisateur dispose déjà de ce role!");
-            return redirect()->back();
-        }
-        ##__
-
-        $user_role = new UserRole();
-        $user_role->user_id = $formData['user_id'];
-        $user_role->role_id = $formData['role_id'];
-        $user_role->save();
-
-        ###___
-        alert()->success('Succès', "Rôle affecté avec succès!!");
-        return redirect()->back();
-    }
-
-    ###____RETIRER UN ROLE
-    function DesAttachRoleToUser(Request $request)
-    {
-        $current_user = request()->user();
-        $formData = $request->all();
-
-        if ($current_user->is_admin) {
-            $user = User::where(['id' => $formData['user_id']])->get();
-        } else {
-            $user = User::where(['id' => $formData['user_id'], 'owner' => $current_user->id])->get();
-        }
-        if (count($user) == 0) {
-            alert()->error('Echec', "Cet utilisateur n'existe pas!");
-            return redirect()->back();
-        };
-
-        $role = Role::where('id', $formData['role_id'])->get();
-        if (count($role) == 0) {
-            alert()->error('Echec', "Ce rôle n'existe pas!");
-            return redirect()->back();
-        };
-
-        ###___retrait du role qui lui a été affecté par defaut
-        $user_role = UserRole::where(["user_id" => $formData['user_id'], "role_id" => $formData['role_id']])->first();
-        if (!$user_role) {
-            alert()->error('Echec', "Ce user ne dispose pas de ce role!");
-            return redirect()->back();
-        }
-
-        $user_role->delete();
-
-        ###___
-        alert()->success('Succès', "Rôle retiré avec succès!!");
-        return redirect()->back();
-    }
-
     #DUPLIQUER UN COMPTE
     function DuplicatAccount(Request $request, $userId)
     {
@@ -502,11 +399,10 @@ class UserController extends Controller
         return redirect()->back();
     }
 
-
     #MODIFIER UN COMPTE
     function UpdateCompte(Request $request, $userId)
     {
-        $user = User::findOrFail(deCrypId($userId));
+        $user = User::findOrFail($userId);
         if (!$user) {
             alert()->error('Echec', "Cet utilisateur n'existe pas!");
             return redirect()->back();
@@ -516,11 +412,19 @@ class UserController extends Controller
         $user->update($request->all());
         ###___
 
+        if ($userId == 1 || $userId == 2) {## quand c'est un admin ou un master
+            $user->update(["agency" => null]);
+        }
+        
         // pour une modification de mot de passe on passe à une deconnection
         if ($request->password) {
             alert()->success('Succès', 'Mot de passe modifié avec succès!');
             return redirect()->route("logout");
         }
+
+        // update des roles
+        DB::table('model_has_roles')->where('model_id', $user->id)->delete();
+        $user->assignRole($request->input('roles'));
 
         alert()->success('Succès', 'Compte modifié avec succès!');
         return redirect()->back();
@@ -657,108 +561,110 @@ class UserController extends Controller
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #MODIFIER UN PASSWORD
-    function UpdatePassword(Request $request, $id)
+    // RETRIEVE USER
+    function RetrieveUser($id)
     {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR USER_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #VALIDATION DES DATAs DEPUIS LA CLASS USER_HELPER
-        $validator = $this->NEW_PASSWORD_Validator($request->all());
-        if ($validator->fails()) {
-            #RENVOIE D'ERREURE VIA **sendResponse** DE LA CLASS USER_HELPER
-            return $this->sendError($validator->errors(), 404);
-        }
-
-        #RECUPERATION D'UN USER VIA SON **id**
-        return $this->_updatePassword($request->all(), $id);
+        $user = User::with('roles')->findOrFail($id);
+        return response()->json($user);
     }
 
-    function AttachRightToUser(Request $request)
+    ###____ET USER ROLES
+    function GetUserRoles(Request $request, $userId)
     {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS USER_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #VALIDATION DES DATAs DEPUIS LA CLASS USER_HELPER
-        $validator = $this->ATTACH_Validator($request->all());
-
-        if ($validator->fails()) {
-            #RENVOIE D'ERREURE VIA **sendResponse** DE LA CLASS USER_HELPER
-            return $this->sendError($validator->errors(), 404);
+        $user = User::findOrFail(deCrypId($userId));
+        if (!$user) {
+            alert()->error('Echec', "Cet utilisateur n'existe pas!");
+            return redirect()->back();
         }
 
-        return $this->rightAttach($request->all());
+        $user->load("_roles");
+        // dd($user->_roles);
+        return view("users.roles", compact("user"));
     }
 
-
-
-
-    ###___RECUPERATION DE TOUT LES AGENTS COMPTABLES
-    function GetAllAccountAgents(Request $request)
+    ###____ATTACHER UN ROLE
+    function AttachRoleToUser(Request $request, $userId)
     {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR USER_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
+        $user = User::findOrFail(deCrypId($userId));
+        if (!$user) {
+            alert()->error('Echec', "Cet utilisateur n'existe pas!");
+            return redirect()->back();
+        }
+
+        ##__GET REQUEST
+        if ($request->method() == "GET") {
+            $roles = Role::all();
+            return view("users.affect-role", compact("roles", "user"));
+        }
+
+        ###__POST REQUEST
+        $current_user = request()->user();
+        $formData = $request->all();
+
+        $current_user = request()->user();
+        if ($current_user->is_admin) {
+            $user = User::where(['id' => $formData['user_id']])->get();
+        } else {
+            $user = User::where(['id' => $formData['user_id'], 'owner' => $current_user->id])->get();
+        }
+
+
+        $role = role::where('id', $formData['role_id'])->get();
+        if (count($role) == 0) {
+            alert()->error('Echec', "Cet rôle n'existe pas!");
+            return redirect()->back();
         };
+
+        $is_this_attach_existe = UserRole::where(["user_id" => $formData['user_id'], "role_id" => $formData['role_id']])->first();
+        if ($is_this_attach_existe) {
+            alert()->error('Echec', "Cet utilisateur dispose déjà de ce role!");
+            return redirect()->back();
+        }
+        ##__
+
+        $user_role = new UserRole();
+        $user_role->user_id = $formData['user_id'];
+        $user_role->role_id = $formData['role_id'];
+        $user_role->save();
 
         ###___
-        return $this->_getAllAccountAgents($request);
+        alert()->success('Succès', "Rôle affecté avec succès!!");
+        return redirect()->back();
     }
 
-
-
-    ###___DESAFFECTATION D'UN SUPERVISEUR A UN AGENT COMPTABLE
-    function DetachSupervisorToAccountyAgent(Request $request)
+    ###____RETIRER UN ROLE
+    function DesAttachRoleToUser(Request $request)
     {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR USER_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
+        $current_user = request()->user();
+        $formData = $request->all();
+
+        if ($current_user->is_admin) {
+            $user = User::where(['id' => $formData['user_id']])->get();
+        } else {
+            $user = User::where(['id' => $formData['user_id'], 'owner' => $current_user->id])->get();
+        }
+        if (count($user) == 0) {
+            alert()->error('Echec', "Cet utilisateur n'existe pas!");
+            return redirect()->back();
         };
 
-        ###___VALIDATION DES DATAS
-        $validator = $this->Affect_Supervisor_Validator($request->all());
-        if ($validator->fails()) {
-            return $this->sendError($validator->errors(), 505);
+        $role = Role::where('id', $formData['role_id'])->get();
+        if (count($role) == 0) {
+            alert()->error('Echec', "Ce rôle n'existe pas!");
+            return redirect()->back();
+        };
+
+        ###___retrait du role qui lui a été affecté par defaut
+        $user_role = UserRole::where(["user_id" => $formData['user_id'], "role_id" => $formData['role_id']])->first();
+        if (!$user_role) {
+            alert()->error('Echec', "Ce user ne dispose pas de ce role!");
+            return redirect()->back();
         }
 
-        ###___
-        return $this->_desaffectSupervisorToAccountyAgent($request);
-    }
+        $user_role->delete();
 
-    function SearchUser(Request $request, $userId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        return $this->search($request, $userId);
+        ###___
+        alert()->success('Succès', "Rôle retiré avec succès!!");
+        return redirect()->back();
     }
 }

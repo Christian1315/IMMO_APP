@@ -10,7 +10,7 @@ ul {
     padding: .5rem !important;
 }
 
-ul li a{
+ul li a,ul button{
     width: 100%!important;
 }
 

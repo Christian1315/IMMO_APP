@@ -99,77 +99,57 @@
                                         <i class="bi bi-arrow-left-circle-fill"></i> &nbsp; Retour
                                     </a>
                                 </li>
-
                             </ul>
                             @else
+
                             <ul class="nav flex-column">
-
-                                @if ($active == 'proprietor')
+                                <!-- Proprietaires -->
+                                @can("proprio.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="/crypId({{ $agency['id'] }})/proprietor">
+                                    <a class="nav-link text-white @if($active == 'proprietor') active @endif" href="/{{crypId($agency['id'])}}/proprietor">
                                         <i class="bi bi-person-fill-gear"></i>
                                         Propriétaires
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white"
-                                        href="/{{ crypId($agency['id']) }}/proprietor">
-                                        <i class="bi bi-person-fill-gear"></i>
-                                        Propriétaires
-                                    </a>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'house')
+                                <!-- Maisons -->
+                                @can("house.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="/{{ crypId($agency['id']) }}/house">
+                                    <a class="nav-link text-white @if($active == 'house') active @endif" href="/{{ crypId($agency['id']) }}/house">
                                         <i class="bi bi-house-add-fill"></i>
                                         Maisons
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="/{{ crypId($agency['id']) }}/house">
-                                        <i class="bi bi-house-add-fill"></i>
-                                        Maisons
-                                    </a>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'room')
+                                <!-- Chambres -->
+                                @can("room.view")
                                 <li class="nav-item">
-                                    <a class="nav-link text-white active"
+                                    <a class="nav-link text-white @if($active == 'room') active @endif"
                                         href="/{{ crypId($agency['id']) }}/room">
                                         <i class="bi bi-hospital-fill"></i>
                                         Chambres
                                     </a>
                                 </li>
-                                @else
+                                @endcan
+
+                                <!-- Locataires -->
+                                @can("locator.view")
                                 <li class="nav-item">
-                                    <a class="nav-link text-white" href="/{{ crypId($agency['id']) }}/room">
-                                        <i class="bi bi-hospital-fill"></i>
-                                        Chambres
+                                    <a class="nav-link text-white @if($active == 'locator') active @endif"
+                                        href="/{{ crypId($agency['id']) }}/locator">
+                                        <i class="bi bi-person-fill-gear"></i>
+                                        Locataires
                                     </a>
                                 </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'locator')
-                                <li class="nav-item">
-                                    <a class="dropdown-item text-white active"
-                                        href="/{{ crypId($agency['id']) }}/locator">Locataires</a>
-                                </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="dropdown-item text-white"
-                                        href="/{{ crypId($agency['id']) }}/locator">Locataires</a>
-                                </li>
-                                @endif
-
-                                @if ($active == 'location')
+                                <!-- LOcations -->
+                                @can("location.view")
                                 <li class="nav-item">
                                     <div class="btn-group dropdown-center">
-                                        <a class="nav-link text-white dropdown-toggle active" href="#"
+                                        <a class="nav-link text-white dropdown-toggle @if($active == 'location') active @endif" href="#"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-person-fill-gear"></i>
                                             Locations
@@ -178,188 +158,122 @@
                                             <li><a class="dropdown-item"
                                                     href="/{{ crypId($agency['id']) }}/location">Toutes les
                                                     locations</a></li>
+                                            <!-- Loacataires à jour -->
+                                            @can("locator.paid.view")
                                             <li><a class="dropdown-item"
                                                     href="/{{ crypId($agency['id']) }}/paid_locators">Locataires
                                                     à jour</a></li>
+                                            @endcan
+
+                                            <!-- LOcataires en impayés -->
+                                            @can("locator.unpaid.view")
                                             <li><a class="dropdown-item"
                                                     href="/{{ crypId($agency['id']) }}/unpaid_locators">Locataires
                                                     en impayé</a></li>
+                                            @endcan
 
+                                            <!-- Locataires déménagés -->
+                                            @can("locator.removed.view")
                                             <li><a class="dropdown-item"
                                                     href="/{{ crypId($agency['id']) }}/removed_locators">Locataires
                                                     démenagés</a></li>
+                                            @endcan
                                         </ul>
                                     </div>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <div class="btn-group dropdown-center">
-                                        <a class="nav-link text-white dropdown-toggle" href="#"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-person-fill-gear"></i>
-                                            Locations
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/location">Toutes les
-                                                    locations</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/paid_locators">Locataires
-                                                    à jour</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/unpaid_locators">Locataires
-                                                    en impayé</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/removed_locators">Locataires
-                                                    démenagés</a></li>
-                                        </ul>
-                                    </div>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'paiement')
+                                <!-- PAIEMENT -->
+                                @can("proprio.payement.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active text-white"
+                                    <a class="nav-link @if($active == 'paiement') active @endif text-white"
                                         href="/{{ crypId($agency['id']) }}/paiement">
                                         <i class="bi bi-currency-exchange"></i>
                                         Payer Propriétaire
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white"
-                                        href="/{{ crypId($agency['id']) }}/paiement">
-                                        <i class="bi bi-currency-exchange"></i>
-                                        Payer Propriétaire
-                                    </a>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if (auth())
-                                @if (auth()->user()->is_master || auth()->user()->is_admin)
-                                @if ($active == 'initiation')
+                                <!-- Valider paiement -->
+                                @can("proprio.payement.validation.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active"
+                                    <a class="nav-link text-white @if ($active == 'initiation') active @endif"
                                         href="/{{ crypId($agency['id']) }}/initiation">
                                         <i class="bi bi-cash-coin"></i>
                                         Valider paiement
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white"
-                                        href="/{{ crypId($agency['id']) }}/initiation">
-                                        <i class="bi bi-cash-coin"></i>
-                                        Valider paiement
-                                    </a>
-                                </li>
-                                @endif
-                                @endif
-                                @endif
+                                @endcan
 
-                                @if ($active == 'facture')
+                                <!-- les factures -->
+                                @can ("invoices.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active text-white"
+                                    <a class="nav-link @if ($active == 'facture') active @endif text-white"
                                         href="/{{ crypId($agency['id']) }}/factures">
                                         <i class="bi bi-file-pdf"></i>
                                         Factures
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white"
-                                        href="/{{ crypId($agency['id']) }}/factures">
-                                        <i class="bi bi-file-pdf"></i>
-                                        Factures
-                                    </a>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'caisse')
+
+                                <!-- CAISSES -->
+                                @can("caisses.view")
                                 <li class="nav-item">
                                     <div class="btn-group dropdown-center">
-                                        <a class="nav-link active text-white dropdown-toggle" href="#"
+                                        <a class="nav-link @if ($active == 'caisse') active @endif text-white dropdown-toggle" href="#"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
                                         </a>
-                                        @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+
                                         <ul class="dropdown-menu dropdown-menu-dark">
                                             <li><a class="dropdown-item active"
                                                     href="/{{ crypId($agency['id']) }}/caisses">Toutes les
                                                     caisses</a></li>
+                                            <!-- Crediter une caisse -->
+                                            @can("caisses.credite")
                                             <li><a class="dropdown-item"
                                                     href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
                                             </li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
-                                            </li>
-                                        </ul>
-                                        @endif
-                                    </div>
-                                </li>
-                                @else
-                                <li class="nav-item">
-                                    <div class="btn-group dropdown-center">
-                                        <a class="nav-link text-white dropdown-toggle" href="#"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item active"
-                                                    href="/{{ crypId($agency['id']) }}/caisses">Toutes les
-                                                    caisses</a></li>
-                                            @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
-                                            </li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
-                                            </li>
-                                            @endif
-                                        </ul>
-                                    </div>
-                                </li>
-                                @endif
+                                            @endcan
 
-                                @if ($active == 'electricity')
+                                            <!-- decaisser une caisse -->
+                                            @can("caisses.decredite")
+                                            <li><a class="dropdown-item"
+                                                    href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
+                                            </li>
+                                            @endcan
+                                        </ul>
+                                    </div>
+                                </li>
+                                @endcan
+
+                                <!-- Electricté -->
                                 <li class="nav-item">
                                     <div class="btn-group dropdown-center">
-                                        <a class="nav-link active text-white dropdown-toggle" href="#"
+                                        <a class="nav-link @if($active == 'electricity') active @endif text-white dropdown-toggle" href="#"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-ev-station"></i> &nbsp; Electricité / Eau
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item active"
+                                            <!-- electricite -->
+                                            @can("electicity.invoices.view")
+                                            <li><a class="dropdown-item @if($active == 'electricity') active @endif"
                                                     href="/{{ crypId($agency['id']) }}/electricity/locations">Electricité</a>
                                             </li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </li>
-                                @else
-                                <li class="nav-item">
-                                    <div class="btn-group dropdown-center">
-                                        <a class="nav-link text-white dropdown-toggle" href="#"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-ev-station"></i> &nbsp;Electricité / Eau
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item active"
-                                                    href="/{{ crypId($agency['id']) }})/electricity/locations">Electricité</a>
-                                            </li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </li>
-                                @endif
+                                            @endcan
 
+                                            <!-- eau -->
+                                            @can("water.invoices.view")
+                                            <li><a class="dropdown-item @if($active == 'water') active @endif"
+                                                    href="/{{ crypId($agency['id']) }}/eau/locations">Eau</a>
+                                            </li>
+                                            @endcan
+                                        </ul>
+                                    </div>
+                                </li>
                             </ul>
 
-                            @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
                             <h6
                                 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                                 <span>Paramètres & Statistiques</span>
@@ -369,42 +283,31 @@
                             </h6>
 
                             <ul class="nav flex-column">
-                                @if ($active == 'statistique')
+                                <!-- statistiques -->
+                                @can("statistiques.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active text-white"
+                                    <a class="nav-link @if ($active == 'statistique') active @endif text-white"
                                         href="/{{ crypId($agency['id']) }}/statistique">
                                         <i class="bi bi-pc-display-horizontal"></i> &nbsp; Statistiques
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white"
-                                        href="/{{ crypId($agency['id']) }}/statistique">
-                                        <i class="bi bi-pc-display-horizontal"></i> &nbsp;Statistiques
-                                    </a>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'filtrage')
+                                <!-- bilan agence -->
+                                @can("bilan.view")
                                 <li class="nav-item">
-                                    <a class="nav-link active text-white"
+                                    <a class="nav-link @if ($active == 'filtrage') active @endif text-white"
                                         href="/{{ crypId($agency['id']) }}/filtrage">
                                         <i class="bi bi-filter-circle"></i> &nbsp; Bilan
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white"
-                                        href="/{{ crypId($agency['id']) }}/filtrage">
-                                        <i class="bi bi-filter-circle"></i> &nbsp;Bilan
-                                    </a>
-                                </li>
-                                @endif
+                                @endcan
 
-                                @if ($active == 'recovery')
+                                <!-- Recouvrement -->
+                                @can("recovery.rates.view")
                                 <li class="nav-item">
                                     <div class="btn-group dropdown-center">
-                                        <a class="nav-link active text-white dropdown-toggle"
+                                        <a class="nav-link @if ($active == 'recovery') active @endif text-white dropdown-toggle"
                                             href="#" data-bs-toggle="dropdown"
                                             aria-expanded="false">
                                             <i class="bi bi-reception-4"></i> &nbsp; Taux de recouvrement
@@ -428,35 +331,8 @@
                                         </ul>
                                     </div>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <div class="btn-group dropdown-center">
-                                        <a class="nav-link text-white dropdown-toggle" href="#"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-reception-4"></i> &nbsp; Taux de recouvrement
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item active"
-                                                    href="/{{ crypId($agency['id']) }}/recovery_05_to_echeance_date">Recouvrement
-                                                    au 05</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/recovery_10_to_echeance_date">Recouvrement
-                                                    au 10</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/recovery_qualitatif">Recouvrement
-                                                    qualitatif</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/performance">Taux
-                                                    de performance</a></li>
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/recovery_quelconque_date">Quelconque
-                                                    date</a></li>
-                                        </ul>
-                                    </div>
-                                </li>
-                                @endif
+                                @endcan
                             </ul>
-                            @endif
                             @endif
                         </div>
                     </div>
@@ -488,7 +364,7 @@
                                     <h5 class="modal-title fs-5" id="exampleModalLabel">Modification de mot de passe
                                     </h5>
                                 </div>
-                                <form action="{{ route('user.UpdateCompte', crypId(auth()->user()->id)) }}"
+                                <form action="{{ route('user.UpdateCompte', auth()->user()->id) }}"
                                     method="post">
                                     @csrf
                                     @method('PATCH')

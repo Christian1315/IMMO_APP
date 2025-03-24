@@ -19,7 +19,7 @@
 
     <body>
         <div class="main">
-            <div class="container-fluid">
+            <!-- <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12 px-0 mx-0 fixed-top">
                         <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-lg py-0">
@@ -41,7 +41,7 @@
                         </nav>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- content -->
             <div class="container-fluid " id="login-page">
@@ -50,15 +50,21 @@
 
                 <!-- CONTENT -->
                 {{ $slot }}
+
+                <div class="row">
+                    <div class="col-md-12 px-0 mx-0 py-2">
+                        <p class="text-center text-white">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
+                    </div>
+                </div>
             </div>
 
-            <div class="container-fluid fixed-bottom  shadow-lg py-0 bg-white">
+            <!-- <div class="container-fluid fixed-bottom  shadow-lg py-0 bg-white">
                 <div class="row">
                     <div class="col-md-12 px-0 mx-0 py-2">
                     <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
 
         <script src="fichiers/jquery.min.js"></script>

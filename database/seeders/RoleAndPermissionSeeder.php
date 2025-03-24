@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Securite\User;
+// use App\Models\Securite\User;
 use App\Models\User as ModelsUser;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -122,6 +122,12 @@ class RoleAndPermissionSeeder extends Seeder
                 ]
             ),
 
+            'Bilan' => array_merge(
+                [
+                    "Voir les bilans" => "bilan.view",
+                ]
+            ),
+
             'Taux de recouvrement' => array_merge(
                 [
                     "Voir les taux de recouvrement" => "recovery.rates.view",
@@ -160,9 +166,20 @@ class RoleAndPermissionSeeder extends Seeder
         $superAdmin->syncPermissions($allPermissions);
 
         // Assigner le rôle de super administrateur à l'utilisateur avec l'ID 1
-        $user = ModelsUser::find(1);
-        if ($user) {
-            $user->assignRole('Super Administrateur');
+        $user_admin = ModelsUser::find(1);
+        if ($user_admin) {
+            $user_admin->assignRole('Super Administrateur');
+        }
+
+
+        // Attribution de toutes les permissions au Master
+        $master = Role::findByName('Master');
+        $master->syncPermissions($allPermissions);## ajout de toutes les permisions au Master
+        
+        // Assigner le rôle de Master à l'utilisateur avec l'ID 2
+        $user_master = ModelsUser::find(2);
+        if ($user_master) {
+            $user_master->assignRole('Master');
         }
     }
 }
