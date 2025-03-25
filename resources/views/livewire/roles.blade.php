@@ -38,39 +38,19 @@
                                 </div>
                             </td>
                             <td class="px-4">
-                                <!-- Remplacer l'ancienne div des permissions par : -->
-                                <div class="d-flex align-items-center">
-                                    <div class="position-relative">
-                                        <button type="button"
-                                            class="btn btn-sm bg-red"
-                                            data-bs-toggle="popover"
-                                            data-bs-placement="top"
-                                            data-bs-trigger="focus"
-                                            title="Permissions"
-                                            data-bs-html="true"
-                                            data-bs-content="
-                                                <div class='permissions-popover'>
-                                                    @php
-                                                        $groupedPermissions = $role->permissions->groupBy(function($permission) {
-                                                            return explode('.', $permission->name)[0];
-                                                        });
-                                                    @endphp
-                                                    @foreach($groupedPermissions as $group => $permissions)
-                                                        <div class='permission-group mb-2'>
-                                                            <div class='fw-bold text-uppercase small text-muted mb-1'>{{ $group }}</div>
-                                                            @foreach($permissions as $permission)
-                                                                <div class='small mb-1'>
-                                                                    <i class='fas fa-check text-success me-1'></i>
-                                                                    {{ explode('.', $permission->name)[1] }}
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endforeach
-                                                ">
-                                            <span>{{ $role->permissions->count() }} <i class="bi bi-list-check"></i></span>
-                                            <i class="fas fa-chevron-down ms-1 small" style="color: #cc3301;"></i>
-                                        </button>
-                                    </div>
+                                <div class="form-control w-100" style="height: auto;overflow-y: scroll;height:100px " name="" rows="1" class="form-control" id="">
+                                    @php
+                                    $groupedPermissions = $role->permissions->groupBy(function($permission) {
+                                    return $permission->name;
+                                    });
+                                    @endphp
+                                    @foreach($groupedPermissions as $group => $permissions)
+                                    <ul class="list-group">
+                                        @foreach($permissions as $permission)
+                                        <li class="">{{$permission->description}}</li>
+                                        @endforeach
+                                    </ul>
+                                    @endforeach
                                 </div>
                             </td>
                             <td class="px-4">
@@ -774,7 +754,7 @@
                                 </div>
                                 <br>
                                 <!-- utlisateurs -->
-                                 <p class="text-red">Les utilisateurs ayant déjà un rôle, sont désactivés</p>
+                                <p class="text-red">Les utilisateurs ayant déjà un rôle, sont désactivés</p>
                                 <select id="userResult" name="user" class="form-select form-select-sm form-control" aria-label="Small select example">
                                     <option selected>Selectionnez un utilisateur</option>
                                     @foreach($users as $user)

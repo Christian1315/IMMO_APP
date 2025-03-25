@@ -36,8 +36,8 @@ class RoleAndPermissionSeeder extends Seeder
             'Maisons' => array_merge(
                 $this->createCrudValidatePermissions('maisons', 'house','maisons'),
                 [
-                    "Arrêter un état" => "location.stop.state",
-                    "Gestion des cautions" => "location.generate.caution",
+                    "Arrêter un état" => "house.stop.state",
+                    "Gestion des cautions" => "house.generate.caution",
                 ]
             ),
 
