@@ -372,11 +372,6 @@ class AdminController extends Controller
         return view("admin.statistiques");
     }
 
-    function Rights(Request $request)
-    {
-        return view("admin.rights");
-    }
-
     function Eau(Request $request, $agencyId)
     {
         $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));

@@ -123,75 +123,37 @@
                                     <span data-feather="plus-circle"></span>
                                 </a>
                             </h6>
-                            @if(auth()->user())
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+                            @if(auth()->user()->hasRole('Super Administrateur') || auth()->user()->hasRole('Master'))
                             <ul class="nav flex-column mb-2">
 
-                                @if($active=="setting")
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="/setting">
+                                    <a class="text-white nav-link @if($active=='setting') active @endif" href="/setting">
                                         <i class="bi bi-gear-fill"></i>
                                         Utilisateurs
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="/setting">
-                                        <i class="bi bi-gear-fill"></i>
-                                        Utilisateurs
-                                    </a>
-                                </li>
-                                @endif
 
-                                @if($active=="supervisor")
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="/supervisor">
+                                    <a class="text-white nav-link @if($active=='supervisor') active @endif" href="/supervisor">
                                         <i class="bi bi-people-fill"></i>
                                         Superviseurs
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="/supervisor">
-                                        <i class="bi bi-people-fill"></i>
-                                        Superviseurs
-                                    </a>
-                                </li>
-                                @endif
 
-                                @if($active=="right")
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="/right">
+                                    <a class="text-white nav-link @if($active=='role') active @endif" href="{{route('roles.index')}}">
                                         <i class="bi bi-person-wheelchair"></i>
-                                        Les Droits
+                                        Les Rôles
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="/right">
-                                        <i class="bi bi-person-wheelchair"></i>
-                                        Les Droits
-                                    </a>
-                                </li>
-                                @endif
 
-                                @if($active=="statistique")
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="/statistique">
+                                    <a class="text-white nav-link @if($active=='statistique') active @endif" href="/statistique">
                                         <i class="bi bi-flag-fill"></i>
                                         Statistiques
                                     </a>
                                 </li>
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="/statistique">
-                                        <i class="bi bi-flag-fill"></i>
-                                        Statistiques
-                                    </a>
-                                </li>
-                                @endif
                             </ul>
-                            @endif
                             @endif
                         </div>
                     </div>
@@ -208,7 +170,7 @@
                     <div class="container-fluid bg-white shadow-lg py-3 bg-white mt-5">
                         <div class="row">
                             <div class="col-md-12 px-0 mx-0">
-                                <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong></p>
+                                <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
                             </div>
                         </div>
                     </div>

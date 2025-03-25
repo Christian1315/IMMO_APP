@@ -58,9 +58,8 @@ class UserController extends Controller
             'agency' => ['required', 'integer'],
             // 'email' => ['required', 'email', Rule::unique('users')],
             'email' => ['required', 'email'],
-            'profil' => ['required', 'integer'],
-            'rang' => ['required', 'integer'],
-            'agency' => ['required', 'integer'],
+            // 'profil' => ['required', 'integer'],
+            // 'rang' => ['required', 'integer'],
         ];
     }
 
@@ -81,11 +80,11 @@ class UserController extends Controller
             'agency.required' => "Veillez préciser l'agence",
             'agency.integer' => "L'agence doit être de type entier!",
 
-            'profil.required' => "Veillez préciser le profil",
-            'profil.integer' => "Le profil doit être de type entier!",
+            // 'profil.required' => "Veillez préciser le profil",
+            // 'profil.integer' => "Le profil doit être de type entier!",
 
-            'rang.required' => "Veillez préciser le rang",
-            'rang.integer' => "Le rang doit être de type entier!",
+            // 'rang.required' => "Veillez préciser le rang",
+            // 'rang.integer' => "Le rang doit être de type entier!",
         ];
     }
 
@@ -142,8 +141,8 @@ class UserController extends Controller
         $formData['pass_default'] = Custom_Timestamp();
         $formData['password'] = $formData['username'];
         $formData['owner'] = $user->id;
-        $formData['rang_id'] = $formData['rang'];
-        $formData['profil_id'] = $formData['profil'];
+        // $formData['rang_id'] = $formData['rang'];
+        // $formData['profil_id'] = $formData['profil'];
 
         #ENREGISTREMENT
         $create_user = User::create($formData);

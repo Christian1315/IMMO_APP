@@ -15,6 +15,7 @@ use App\Http\Controllers\PaiementInitiationController;
 use App\Http\Controllers\ProprietorController;
 use App\Http\Controllers\RightController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\RoleController;
 use App\Models\User;
 use App\Notifications\SendNotification;
 use Illuminate\Support\Facades\Notification;
@@ -48,6 +49,17 @@ Route::get("/mail", function () {
 ######============ HOME ROUTE ============#########################
 Route::controller(HomeController::class)->group(function () {
     Route::get('/', "Home")->name("home");
+});
+
+// ROLES
+Route::controller(RoleController::class)->group(function (){
+    Route::get("/roles/index","index")->name("roles.index");
+    Route::post("/roles/store","store")->name("roles.store");
+    Route::get("/roles/{id}/retrieve","retrieve")->name("roles.retrieve");
+    Route::patch("/roles/{id}/update","update")->name("roles.update");
+    Route::any("/roles/{id}/destroy","_destroy")->name("roles._destroy");
+    Route::post("/roles/{id}/affect","affectToUser")->name("roles.affectToUser");
+    Route::post("/roles/{id}/remove","removeFromUser")->name("roles.removeFromUser");
 });
 
 ######============ USERS ROUTE ============#########################
@@ -223,7 +235,6 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('client', "Client")->name("client");
     Route::get('initiation', "Initiation")->name("initiation");
     Route::get('supervisor', "Supervisors")->name("supervisor");
-    Route::get('right', "Rights")->name("right");
     Route::get('statistique', "Statistique")->name("statistique");
     Route::get('{house}/stopState', "StopState")->name("locationFacture");
 });
