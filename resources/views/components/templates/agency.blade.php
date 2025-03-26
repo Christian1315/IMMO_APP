@@ -149,7 +149,7 @@
                                 @can("location.view")
                                 <li class="nav-item">
                                     <div class="btn-group dropdown-center">
-                                        <a class="nav-link text-white dropdown-toggle @if($active == 'location') active @endif" href="#"
+                                        <a class="w-100 nav-link text-white dropdown-toggle @if($active == 'location') active @endif" href="#"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="bi bi-person-fill-gear"></i>
                                             Locations
@@ -369,8 +369,7 @@
                                     @csrf
                                     @method('PATCH')
                                     <div class="modal-body">
-                                        <input type="text" name="password" class="form-control" id="">
-                                        {{-- <button type="submit" class="w-100 btn-sm bg-red">Enregistrer</button> --}}
+                                        <input type="text" required name="password" class="form-control" id="">
                                     </div>
                                     <div class="modal-footer">
                                         <button type="submit" class="w-100 btn btn-sm bg-red">Enregistrer</button>

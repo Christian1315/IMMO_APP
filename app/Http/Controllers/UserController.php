@@ -411,10 +411,10 @@ class UserController extends Controller
         $user->update($request->all());
         ###___
 
-        if ($userId == 1 || $userId == 2) {## quand c'est un admin ou un master
+        if ($userId == 1 || $userId == 2) { ## quand c'est un admin ou un master
             $user->update(["agency" => null]);
         }
-        
+
         // pour une modification de mot de passe on passe à une deconnection
         if ($request->password) {
             alert()->success('Succès', 'Mot de passe modifié avec succès!');
@@ -453,27 +453,11 @@ class UserController extends Controller
     ###___AFFECTATION D'UN SUPERVISEUR A UN AGENT COMPTABLE
     function AffectSupervisorToAccountyAgent(Request $request, $supervisor)
     {
-        $user = User::findOrFail(deCrypId($supervisor));
+        // dd($request->all());
+        $user = User::findOrFail($supervisor);
         if (!$user) {
             alert()->error('Echec', "Ce superviseur n'existe pas!");
             return redirect()->back();
-        }
-
-        ####___GET REQUEST
-        if ($request->method() == "GET") {
-            $agents = [];
-
-            foreach (User::all() as $user) {
-                ##recuperation des roles de ce user
-                $user_roles = $user->roles;
-
-                foreach ($user_roles as $user_role) {
-                    if ($user_role->id == env("ACCOUNT_AGENT")) {
-                        array_push($agents, $user);
-                    }
-                }
-            }
-            return view("users.affect-agent-comptable", compact("agents", "user"));
         }
 
         ###___VALIDATION DES DATAS
@@ -487,8 +471,6 @@ class UserController extends Controller
         $messages = self::affect_supervisor_messages();
 
         Validator::make($formData, $rules, $messages)->validate();
-
-
 
         $agent_account = User::find($formData["agent_account"]);
         $supervisor = User::find($formData["supervisor"]);
@@ -515,36 +497,13 @@ class UserController extends Controller
         }
 
         ###__VERIFICATION DU VRAI ROLE D'UN AGENT COMPTABLE
-        $agent_account_roles = $agent_account->roles; ##recuperation des roles de ce user
-
-        ###__CETTE VARIABLE DEFINI SI CET UTILISATEUR DISPOSE VRAIMENT DU ROLE D'UN AGENT COMPTABLE 
-        $is_this_user_really_agent_account =  false;
-
-        foreach ($agent_account_roles as $user_role) {
-            if ($user_role->id == env("ACCOUNT_AGENT")) {
-                $is_this_user_really_agent_account = true;
-            }
-        }
-
-        if (!$is_this_user_really_agent_account) {
+        if (!$agent_account->hasRole("Gestionnaire de compte")) {
             alert()->error('Echec', "Désolé! L'utilisateur ( " .  $agent_account['name'] . " ) ne dispose vraiment pas du rôle d'un agent comptable");
             return redirect()->back();
         }
-
-        ###__VERIFICATION DU VRAI ROLE DU SUPERVISEUR
-        $supervisor_roles = $supervisor->roles; ##recuperation des roles de ce user
-
-        ###__CETTE VARIABLE DEFINI SI CET UTILISATEUR DISPOSE VRAIMENT DU ROLE D'UN AGENT COMPTABLE 
-        $is_this_user_really_supervisor =  false;
-
-        foreach ($supervisor_roles as $user_role) {
-            if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                $is_this_user_really_supervisor = true;
-            }
-        }
-
-        if (!$is_this_user_really_supervisor) {
-            alert()->error('Echec', "Désolé! L'utilisateur ( " .  $supervisor['name'] . " ) ne dispose vraiment pas du rôle d'un superviseur!");
+        ###__VERIFICATION DU VRAI ROLE D'UN SUPERVISEUR
+        if (!$supervisor->hasRole("Superviseur")) {
+            alert()->error('Echec', "Désolé! L'utilisateur ( " .  $agent_account['name'] . " ) ne dispose vraiment pas du rôle d'un superviseur");
             return redirect()->back();
         }
 
@@ -563,7 +522,7 @@ class UserController extends Controller
     // RETRIEVE USER
     function RetrieveUser($id)
     {
-        $user = User::with('roles')->findOrFail($id);
+        $user = User::with('roles', 'account_agents')->findOrFail($id);
         return response()->json($user);
     }
 

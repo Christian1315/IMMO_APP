@@ -42,8 +42,6 @@ class Roles extends Component
 
         // ROLES
         $this->refreshRoles("");
-        
-
     }
 
     public function render()

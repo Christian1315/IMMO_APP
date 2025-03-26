@@ -83,7 +83,6 @@ class HouseController extends Controller
     function _AddHouse(Request $request)
     {
         #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-        dd($request->all());
         $formData = $request->all();
         Validator::make($formData, self::house_rules(), self::house_messages())->validate();
 
@@ -140,16 +139,7 @@ class HouseController extends Controller
         }
 
         ##__VERIFIONS SI LE UER_SUPERVISOR DISPOSE VRAIMENT DU ROLE D'UN SUPERVISEUR
-        $user_roles = $user_supervisor->roles; ##recuperation des roles de ce user_supervisor
-        $is_this_user_supervisor_has_supervisor_role = false; ##cette variable permet de verifier si user_supervisor dispose vraiment du rôle d'un superviseur
-
-        foreach ($user_roles as $user_role) {
-            if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                $is_this_user_supervisor_has_supervisor_role = true;
-            }
-        }
-
-        if (!$is_this_user_supervisor_has_supervisor_role) {
+        if (!$user_supervisor->hasRole("Superviseur")) {
             alert()->error("Echec", "Ce utilisateur choisi comme superviseur ne dispose vraiment pas le rôle d'un superviseur!");
             return redirect()->back()->withInput();
         }
@@ -165,7 +155,7 @@ class HouseController extends Controller
             $formData["image"] = asset("houses_images/" . $image_name);
         }
 
-        $request->locative_commission = $request->locative_commission ? $request->locative_commission : 10;
+        $formData["locative_commission"] = $request->locative_commission ? $request->locative_commission : 10;
 
         House::create($formData);
 

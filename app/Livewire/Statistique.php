@@ -58,15 +58,6 @@ class Statistique extends Component
         $this->refreshThisHousesHouses();
     }
 
-    function refresh($message)
-    {
-        $this->generalSuccess = $message;
-        $this->showCautions = false;
-        $this->show_locatorsBefore = false;
-        $this->show_locatorsAfter = false;
-        $this->currentHouse = [];
-    }
-
     public function render()
     {
         return view('livewire.statistique');

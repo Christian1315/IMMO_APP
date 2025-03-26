@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
+function supervisors() {
+    $users = User::with(["account_agents"])->get()->filter(function ($user) {
+        return $user->hasRole('Superviseur');
+    });
+    return $users;
+}
 
 #####========= ROLES ======####
 function IS_USER_HAS_SUPERVISOR_ROLE($user)

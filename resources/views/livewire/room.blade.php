@@ -1,22 +1,28 @@
 <div>
-    @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
     <!-- AJOUT D'UN TYPE DE CHAMBRE -->
     <div class="text-left">
+        @can("room.add.type")
         <button type="button" class="btn btn btn-sm bg-light shadow roundered" data-bs-toggle="modal" data-bs-target="#room_type">
             <i class="bi bi-cloud-plus-fill"></i>Ajouter un type de chambre
         </button>
+        @endcan
+        @can("room.add.nature")
         <button type="button" class="btn btn btn-sm bg-light shadow roundered" data-bs-toggle="modal" data-bs-target="#room_nature">
             <i class="bi bi-cloud-plus-fill"></i>Ajouter une nature de chambre
         </button>
+        @endcan
     </div>
     <br>
-    @endif
+
     <!-- Modal room type-->
+    @can("room.add.type")
     <div class="modal fade" id="room_type" aria-labelledby="room_type" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fs-5">Type de chambre</h5>
+                    <button type="button" class="btn btn-sm text-red" data-bs-dismiss="modal"><i
+                            class="bi bi-x-circle"></i></button>
                 </div>
                 <form action="{{route('room.AddType')}}" method="POST">
                     @csrf
@@ -29,16 +35,19 @@
                                 <div class="mb-3">
                                     <textarea required name="description" class="form-control" placeholder="Description ...."></textarea>
                                 </div>
+                                <br>
+                                <button class="w-100 btn btn-sm bg-red"><i class="bi bi-building-check"></i> Enregistrer</button>
                             </div>
-                            <button class="btn btn-sm bg-red"><i class="bi bi-building-check"></i> Enregistrer</button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    @endcan
 
     <!-- Modal room nature-->
+    @can("room.add.nature")
     <div class="modal fade" id="room_nature" aria-labelledby="room_nature" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -56,17 +65,19 @@
                                 <div class="mb-3">
                                     <textarea required name="description" class="form-control" placeholder="Description ...."></textarea>
                                 </div>
+                                <br>
+                                <button class="w-100 btn btn-sm bg-red"><i class="bi bi-building-check"></i> Enregistrer</button>
                             </div>
                         </div>
-                        <button class="btn btn-sm bg-red"><i class="bi bi-building-check"></i> Enregistrer</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    @endcan
 
     <!-- FORM HEADER -->
-    @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+    @can("room.create")
     <div class="d-flex header-bar">
         <h2 class="accordion-header">
             <button type="button" class="btn btn-sm bg-dark" data-bs-toggle="modal" data-bs-target="#addRoom">
@@ -74,7 +85,7 @@
             </button>
         </h2>
     </div>
-    @endif
+    @endcan
 
     <!-- ### FILTRE ###-->
     <small class="d-block">
@@ -96,7 +107,7 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
+                                    @foreach(supervisors() as $supervisor)
                                     <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
                                     @endforeach
                                 </select>
@@ -138,6 +149,7 @@
     <br><br>
 
     <!-- ADD ROOM -->
+    @can("room.create")
     <div class="modal fade" id="addRoom" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -257,7 +269,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="" class="d-block">Nettoyage</label>
-                                    <input type="text" value="{{old('cleaning')}}" name="cleaning" placeholder="Le nettoyage ..." class="form-control">
+                                    <input type="number" value="{{old('cleaning')}}" name="cleaning" placeholder="Le nettoyage ..." class="form-control">
                                     @error("cleaning")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -358,7 +370,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn bg-red">Enregistrer</button>
+                            <button class="w-100 btn-sm btn bg-red"><i class="bi bi-check-circle-fill"></i> Enregistrer</button>
                         </div>
                     </form>
                 </div>
@@ -368,6 +380,7 @@
             </div>
         </div>
     </div>
+    @endcan
 
     <!-- TABLEAU DE LISTE -->
     <div class="row">
@@ -397,9 +410,7 @@
                             <th class="text-center">Loyer Total</th>
                             <th class="text-center">Type de Chambre</th>
                             <th class="text-center">Locataires</th>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Actions</th>
-                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -407,7 +418,7 @@
                         <tr class="align-items-center">
                             <td class="text-center d-flex">{{$loop->index + 1}}</td>
                             <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
-                            <td class="text-center"><span class="badge bg-light text-dark">  {{$room["House"]["name"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$room["House"]["name"]}}</span></td>
                             <td class="text-center"><span class="badge bg-light text-dark">{{$room["House"]["Supervisor"]["name"]}}</span></td>
                             <td class="text-center"><span class="badge bg-dark">{{number_format($room["loyer"],2," "," ")}} </span> </td>
                             <td class="text-center"><span class="badge bg-warning">{{number_format($room->LocativeCharge(),2," "," ")}} </span> </td>
@@ -419,20 +430,22 @@
                                     <i class="bi bi-eye-fill"></i> &nbsp; Voir
                                 </button>
                             </td>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center d-flex">
                                 <div class="dropdown">
                                     <button class="btn btn-sm bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-text-paragraph"></i> Action
                                     </button>
                                     <ul class="dropdown-menu">
+                                        @can("room.edit")
                                         <li><a href="#" class="dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$room['id']}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        @endcan
+                                        @can("room.delete")
                                         <li><a href="{{ route('room.DeleteRoom', crypId($room['id']))}}" class="w-100 dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i>Supprimer</a></li>
+                                        @endcan
                                         <li><a href="{{$room['photo']}}" class="w-100 dropdown-item btn btn-sm btn-light" rel="noopener noreferrer">Image <i class="bi bi-eye"></i></a></li>
                                     </ul>
                                 </div>
                             </td>
-                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -458,6 +471,7 @@
         </div>
     </div>
 
+    @can("room.edit")
     <!-- ###### MODEL DE MODIFICATION ###### -->
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -512,17 +526,14 @@
 
                                 </div><br>
 
-                                @if(IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_master || auth()->user()->is_admin)
-
                                 <div class="mb-3">
                                     <span for="" class="d-block">Prix unitaire d'électricité</span>
-                                    <input id="update_electricity_unit_price" type="text" name="electricity_unit_price"  class="form-control">
+                                    <input id="update_electricity_unit_price" type="text" name="electricity_unit_price" class="form-control">
                                 </div> <br>
                                 <div class="mb-3" id="water_discounter_inputs">
                                     <span for="" class="d-block">Prix unitaire d'eau</span>
                                     <input id="update_unit_price" type="text" name="unit_price" class="form-control">
                                 </div>
-                                @endif
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -533,6 +544,7 @@
             </div>
         </div>
     </div>
+    @endcan
 
     <script type="text/javascript">
         function showLocators_fun(id) {

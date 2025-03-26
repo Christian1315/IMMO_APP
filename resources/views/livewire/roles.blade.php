@@ -42,7 +42,7 @@
                                     @php
                                     $groupedPermissions = $role->permissions->groupBy(function($permission) {
                                     return $permission->name;
-                                    });
+                                    }); 
                                     @endphp
                                     @foreach($groupedPermissions as $group => $permissions)
                                     <ul class="list-group">

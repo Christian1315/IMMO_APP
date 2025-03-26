@@ -1,6 +1,6 @@
 <div>
 
-    @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+    @can("location.add.type")
     <!-- AJOUT D'UN TYPE DE CHAMBRE -->
     <div class="text-left">
         <button type="button" class="btn btn btn-sm bg-light shadow roundered" data-bs-toggle="modal" data-bs-target="#location_type">
@@ -36,12 +36,15 @@
             </div>
         </div>
     </div>
+    @endcan
 
     <small>
         <input type="checkbox" hidden class="btn-check" id="displayLocatorsOptions" onclick="displayFiltreOptions()">
         <label class="btn btn-light" for="displayLocatorsOptions"><i class="bi bi-file-earmark-pdf-fill"></i>Filtrer les locations</label>
         <!--  -->
+        @can("location.generate.cautions.state.agency")
         <a href="{{route('location._ManageCautions',crypId($current_agency->id))}}" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i> états des cautions de l'agence</a> &nbsp;
+        @endcan
         <button data-bs-toggle="modal" data-bs-target="#ShowSearchLocatorsByHouseForm" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-file-pdf-fill"></i> Prestation par période</button>
     </small>
 
@@ -95,13 +98,14 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
+                                    @foreach(supervisors() as $supervisor)
                                     <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -126,9 +130,10 @@
                                     <option value="{{$house['id']}}"> {{$house["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -153,15 +158,17 @@
                                     <option value="{{$house->Proprietor->id}}"> {{$house->Proprietor->firstname}} {{$house->Proprietor->lastname}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+    @can("location.create")
     <div class="d-flex header-bar">
         <small>
             <button type="button" class="btn btn-sm bg-dark" data-bs-toggle="modal" data-bs-target="#addLocation">
@@ -170,7 +177,6 @@
         </small>
     </div>
     <br><br>
-    @endif
 
     <!-- ADD LOCATION -->
     <div class="modal fade" id="addLocation" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -254,7 +260,7 @@
                                 <div class="mb-3">
                                     <label class="d-block" for="">Caution d'électricité</label>
                                     <span class="text-center text-red"> {{$caution_electric_error}} </span>
-                                    <input value="{{old('caution_electric')}}" type="text" name="caution_electric" class="form-control" placeholder="Caution d'électricité...">
+                                    <input value="{{old('caution_electric')}}" type="number" name="caution_electric" class="form-control" placeholder="Caution d'électricité...">
                                     @error("caution_electric")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -292,7 +298,7 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <label class="d-block" for="">Caution eau</label>
-                                    <input value="{{old('caution_water')}}" type="text" name="caution_water" class="form-control" placeholder="Caution eau ....">
+                                    <input value="{{old('caution_water')}}" type="number" name="caution_water" class="form-control" placeholder="Caution eau ....">
                                     @error("caution_water")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -333,7 +339,7 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <span>Frais de reprise de peinture</span><br>
-                                    <input value="{{old('frais_peiture')}}" type="text" name="frais_peiture" class="form-control" placeholder="Frais de reprise de peinture ....">
+                                    <input value="{{old('frais_peiture')}}" type="number" name="frais_peiture" class="form-control" placeholder="Frais de reprise de peinture ....">
                                     @error("frais_peiture")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -359,7 +365,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn bg-red">Enregistrer</button>
+                            <button class="w-100 btn-sm btn bg-red"><i class="bi bi-check-circle-fill"></i> Enregistrer</button>
                         </div>
                     </form>
                 </div>
@@ -368,8 +374,12 @@
             </div>
         </div>
     </div>
+    @endcan
 
-    @if(IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) && !IS_USER_HAS_MASTER_ROLE(auth()->user()) && !auth()->user()->is_master && !auth()->user()->is_admin)
+
+    <!-- ENCAISSEMENT POUR UN SUPERVISEUR -->
+    @if(auth()->user()->hasRole("Supervisor"))
+    @can("location.collect")
     <div class="d-flex header-bar">
         <small>
             <button type="button" class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#encaisse_for_supervisor">
@@ -468,24 +478,24 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
+                        <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
     <br>
+    @endcan
     @endif
 
     <!-- TABLEAU DE LISTE -->
-    @if(!IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+    @if(!auth()->user()->hasRole("Supervisor"))
     <div class="row">
         <div class="col-12">
             <?php
             $now = strtotime(date("Y/m/d", strtotime(now())));
 
             $locations = session("locations_filtred") ? session("locations_filtred") : $locations;
-
 
             $paid_locators = $locations->where("status", '!=', 3)->filter(function ($location) use ($now) {
                 $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
@@ -520,9 +530,7 @@
                             <!-- <th class="text-center">Echéance actuelle</th> -->
                             <th class="text-center">Echeance</th>
                             {{-- <th class="text-center">Commentaire</th> --}}
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Actions</th>
-                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -539,59 +547,76 @@
                             <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
                             <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
-                            <td class="text-center">{{$location["loyer"]}}</td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{number_format($location["loyer"],0," "," ") }}</span></td>
                             <td class="text-center text-red"><span class="text-uppercase badge bg-light text-dark"><i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small></span> </td>
 
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center">
                                 <div class="btn-group dropstart">
                                     <button class="btn bg-red btn-sm dropdown-toggle" style="z-index: 0;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-kanban-fill"></i> &nbsp; Gérer
                                     </button>
                                     <ul class="dropdown-menu">
+                                        <!-- quand le locataire n'est pas demenagé -->
                                         @if ($location->status!=3)
+                                        @can("location.collect")
                                         <li>
                                             <button data-bs-toggle="modal" data-bs-target="#encaisse_{{$location['id']}}" class="w-100 btn btn-sm bg-dark">
                                                 <i class="bi bi-currency-exchange"></i> Encaisser
                                             </button>
                                         </li>
+                                        @endcan
+
+                                        @can("location.removed")
                                         <li>
                                             <button data-bs-toggle="modal" data-bs-target="#demenage_{{$location['id']}}" class="w-100 btn btn-sm bg-red">
                                                 <i class="bi bi-folder-x"></i> Démenager
                                             </button>
                                         </li>
+                                        @endcan
 
+                                        @can("location.edit")
                                         <li>
                                             <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$location['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
                                         </li>
+                                        @endcan
                                         @endif
+
+                                        @can("location.generate.invoices")
                                         <li>
                                             <button class="w-100 btn btn-sm btn-light text-dark" data-bs-toggle="modal" data-bs-target="#shoFactures_{{$location['id']}}"><i class="bi bi-printer"></i> Gérer les factures</button>
                                         </li>
+                                        @endcan
+
+                                        @can("location.print.report")
                                         <li>
                                             <a target="_blank" href="{{route('location.imprimer',crypId($location['id']))}}" class="btn btn-sm bg-light text-dark w-100"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer rapport</a>
                                         </li>
+                                        @endcan
 
                                         <li>
                                             <a href="{{$location['img_contrat']}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-eye"></i> Contrat de location </a>
                                         </li>
 
+                                        @can("location.generate.cautions.state")
                                         <li>
                                             <a target="_blank" href="{{route('location._ManageLocationCautions',$location->id)}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-file-earmark-pdf"></i> Etats des cautions </a>
                                         </li>
+                                        @endcan
 
+                                        @can("location.generate.proratas.state")
                                         <li>
                                             <a target="_blank" @style(["pointer-events:none"=>!$location->Locataire->prorata,"cursor:default"=>!$location->Locataire->prorata]) data-role="disabled" href="{{route('location._ManageLocationProrata',$location->id)}}" class="btn btn-sm text-dark btn-light w-100" rel="noopener noreferrer"><i class="bi bi-file-earmark-pdf"></i> Etats des proratas </a>
                                         </li>
-
+                                        @endcan
                                     </ul>
                                 </div>
                             </td>
-                            @endif
                         </tr>
 
                         @if ($location->status!=3)
+                        
                         <!-- ###### MODEL D'ENCAISSEMENT ###### -->
+                        @can("location.collect")
                         <div class="modal fade" id="encaisse_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -665,14 +690,16 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
+                                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+                        @endcan
 
                         <!-- ###### MODEL DE DEMENAGEMENT ###### -->
+                        @can("location.removed")
                         <div class="modal fade" id="demenage_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -692,14 +719,16 @@
                                             <textarea name="move_comments" required class="form-control" placeholder="Donner une raison justifiant ce déménagement"></textarea>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
+                                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
                                         </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
+                        @endcan
 
                         <!-- ###### MODEL DE MODIFICATION ###### -->
+                        @can("location.edit")
                         <div class="modal fade" id="updateModal_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
@@ -809,15 +838,18 @@
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="submit" class="btn btn-sm bg-red">Modifier</button>
+                                                <button type="submit" class="w-100 btn btn-sm bg-red">Modifier</button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        @endcan
                         @endif
+
                         <!-- ###### MODEL DE SHOW DES FACTURES ###### -->
+                        @can("location.generate.invoices")
                         <div class="modal fade" id="shoFactures_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-scrollable">
                                 <div class="modal-content">
@@ -847,7 +879,7 @@
                                                             <option value="{{$status['id']}}" @if($status['id']==$facture->id) selected @endif>{{$status["name"]}}</option>
                                                             @endforeach
                                                         </select>
-                                                        <button type="submit" class="btn btn-sm bg-red"> <i class="bi bi-check-all"></i> Traiter</button>
+                                                        <button type="submit" class="w-100 btn btn-sm bg-red"> <i class="bi bi-check-all"></i> Traiter</button>
                                                     </form>
                                                 </li>
                                                 @endforeach
@@ -860,6 +892,8 @@
                                 </div>
                             </div>
                         </div>
+                        @endcan
+
                         @endforeach
                     </tbody>
                 </table>

@@ -25,48 +25,58 @@ class RoleAndPermissionSeeder extends Seeder
     {
         $permissionGroups = [
             'Administration' => array_merge(
-                $this->createCrudValidatePermissions('utilisateurs', 'users','utilisateurs'),
-                $this->createCrudValidatePermissions('rôles', 'roles','roles')
+                $this->createCrudValidatePermissions('utilisateurs', 'users', 'utilisateurs'),
+                $this->createCrudValidatePermissions('rôles', 'roles', 'roles')
             ),
 
             'Propriétaires' => array_merge(
-                $this->createCrudValidatePermissions('propriétaires', 'proprio','propriétaires'),
+                $this->createCrudValidatePermissions('propriétaires', 'proprio', 'propriétaires'),
             ),
 
             'Maisons' => array_merge(
-                $this->createCrudValidatePermissions('maisons', 'house','maisons'),
+                $this->createCrudValidatePermissions('maisons', 'house', 'maisons'),
                 [
                     "Arrêter un état" => "house.stop.state",
                     "Gestion des cautions" => "house.generate.caution",
+                    "Ajouter un type de maison" => "house.add.type",
                 ]
             ),
 
             'Chambres' => array_merge(
-                $this->createCrudValidatePermissions('chambres', 'room','chambres'),
+                $this->createCrudValidatePermissions('chambres', 'room', 'chambres'),
+                [
+                    "Ajouter un type de chambre" => "room.add.type",
+                    "Ajouter une nature de chambre" => "room.add.nature"
+                ]
             ),
 
             'Locataires' => array_merge(
-                $this->createCrudValidatePermissions('locataires', 'locator','Locataires'),
+                $this->createCrudValidatePermissions('locataires', 'locator', 'Locataires'),
             ),
 
             'Locations' => array_merge(
-                $this->createCrudValidatePermissions('Locations', 'location','Locations'),
-                $this->createCrudValidatePermissions('locataires à jour', 'locator.paid','Locations'),
-                $this->createCrudValidatePermissions('locataires impayés', 'locator.unpaid','Locations'),
-                $this->createCrudValidatePermissions('locataires démenagés', 'locator.removed','Locations'),
+                $this->createCrudValidatePermissions('Locations', 'location', 'Locations'),
+                $this->createCrudValidatePermissions('locataires à jour', 'locator.paid', 'Locations'),
+                $this->createCrudValidatePermissions('locataires impayés', 'locator.unpaid', 'Locations'),
+                $this->createCrudValidatePermissions('locataires démenagés', 'locator.removed', 'Locations'),
                 [
                     "Encaisser une location" => "location.collect",
                     "Deménager un locataire" => "location.removed",
                     "Imprimer les rapports" => "location.print.report",
+                    "Génerer les états de cautions de l'agence" => "location.generate.cautions.state.agency",
                     "Génerer les états de cautions" => "location.generate.cautions.state",
                     "Génerer les états des proratas" => "location.generate.proratas.state",
+
+                    "Génerer les factures" => "location.generate.invoices",
+
+                    "Ajouter un type de location" => "location.add.type",
                 ]
             ),
 
             'Paiement propriétaires' => array_merge(
                 [
                     "Voir les paiement des propriétaires" => "proprio.payement.view",
-                    "Payer un paropriétaire" => "proprio.payement",
+                    "Payer un propriétaire" => "proprio.payement",
                     "Imprimer les états" => "proprio.print.state",
                     "Imprimer les rapports" => "location.print.report",
                     "Génerer les états de cautions" => "location.generate.cautions.state",
@@ -83,7 +93,7 @@ class RoleAndPermissionSeeder extends Seeder
             ),
 
             'Factures' => array_merge(
-                $this->createCrudValidatePermissions('factures', 'invoices','Factures'),
+                $this->createCrudValidatePermissions('factures', 'invoices', 'Factures'),
             ),
 
             'Caisses' => array_merge(
@@ -174,8 +184,8 @@ class RoleAndPermissionSeeder extends Seeder
 
         // Attribution de toutes les permissions au Master
         $master = Role::findByName('Master');
-        $master->syncPermissions($allPermissions);## ajout de toutes les permisions au Master
-        
+        $master->syncPermissions($allPermissions); ## ajout de toutes les permisions au Master
+
         // Assigner le rôle de Master à l'utilisateur avec l'ID 2
         $user_master = ModelsUser::find(2);
         if ($user_master) {

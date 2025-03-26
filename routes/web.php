@@ -83,7 +83,7 @@ Route::controller(UserController::class)->group(function () {
     Route::get('{id}/duplicate', 'DuplicatAccount')->name("user.DuplicatAccount");
     Route::any('{id}/update', 'UpdateCompte')->name("user.UpdateCompte");
     Route::delete('{id}/delete', 'DeleteAccount')->name("user.DeleteAccount");
-    Route::match(["GET", "POST"], 'attach-supervisor-to-agent_account/{supervisor}', 'AffectSupervisorToAccountyAgent')->name("user.AffectSupervisorToAccountyAgent"); #Affecter un superviseur à un agent comptable
+    Route::post('attach-supervisor-to-agent_account/{supervisor}', 'AffectSupervisorToAccountyAgent')->name("user.AffectSupervisorToAccountyAgent"); #Affecter un superviseur à un agent comptable
 
 
     ##___

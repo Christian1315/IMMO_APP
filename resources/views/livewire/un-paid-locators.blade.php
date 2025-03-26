@@ -22,13 +22,14 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
+                                    @foreach(supervisors() as $supervisor)
                                     <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -53,9 +54,10 @@
                                     <option value="{{$house['id']}}"> {{$house["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -88,15 +90,12 @@
                         @foreach(session('filteredLocators')?session('filteredLocators'):$locators as $location)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index+1}}</td>
-                            <td class="text-center">{{$location["House"]["name"]}}</td>
-                            <td class="text-center">
-                                {{ $location->House->Supervisor->name }}
-                            </td>
+                            <td class="text-center"> <span class="badge bg-dark text-white">{{$location["House"]["name"]}}</span> </td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{ $location->House->Supervisor->name }} </span> </td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
-                            <td class="text-center">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</td>
-
+                            <td class="text-center"> <span class="badge bg-light text-dark"> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}}) </span> </td>
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
-                            <td class="text-center">{{$location["loyer"]}}</td>
+                            <td class="text-center"> <span class="badge bg-dark text-white"> {{number_format($location->loyer,0," "," ")}}</span> </td>
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}</small> <small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>  </td>
                         </tr>
                         @endforeach

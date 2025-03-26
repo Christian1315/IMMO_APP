@@ -309,7 +309,7 @@ class LocataireController extends Controller
                     ]
                 )->validate();
             }
-
+            
             if (!$cardType) {
                 alert()->error("Echec", "Ce Type de carte n'existe pas!");
                 return back()->withInput();

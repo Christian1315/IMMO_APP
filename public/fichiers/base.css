@@ -2,16 +2,22 @@
     font-family: "Montserat";
 }
 
-.badge{
-    font-size: 15px!important;
+.badge {
+    font-size: 15px !important;
+}
+
+.nav-link:hover,.nav-link.active {
+    color: #cc3301 !important;
+    background-color: #f6f6f6!important;
 }
 
 ul {
     padding: .5rem !important;
 }
 
-ul li a,ul button{
-    width: 100%!important;
+ul li a,
+ul button {
+    width: 100% !important;
 }
 
 body {

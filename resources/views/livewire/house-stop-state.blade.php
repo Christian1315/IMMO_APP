@@ -4,9 +4,11 @@
         <h4> <strong>Superviseur: <span class="text-red">{{$house->Supervisor?$house->Supervisor->name:"---"}}</span> </strong></h4>
         &nbsp;&nbsp;
 
+        @can("house.stop.state")
         <button class="btn btn-md bg-red" data-bs-toggle="modal" data-bs-target="#exampleModal">
         <i class="bi bi-sign-stop"></i> Arrêter les états de cette maison
         </button>
+        @endcan
     </div>
     <br>
 
@@ -40,7 +42,7 @@
                             Nbre de mois récouvré:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{$house["nbr_month_paid"]}} </strong>
+                            <strong>= {{number_format($house["nbr_month_paid"],0," ","v")}} </strong>
                         </td>
                     </tr>
                     <tr>
@@ -48,7 +50,7 @@
                             Montant total récouvré:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{$house["total_amount_paid"]}} fcfa </strong>
+                            <strong>= {{number_format($house["total_amount_paid"],0," "," ")}} fcfa </strong>
                         </td>
                     </tr>
                     <tr>
@@ -64,7 +66,7 @@
                             Dépense totale:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{$house["actuel_depenses"]}} fcfa </strong>
+                            <strong>= {{number_format($house["actuel_depenses"],0," "," ") }} fcfa </strong>
                         </td>
                     </tr>
                     <tr>
@@ -72,7 +74,7 @@
                             Net à payer au propriétaire:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{$house["net_to_paid"]}} fcfa </strong>
+                            <strong>= {{number_format($house["net_to_paid"],0," "," ") }} fcfa </strong>
                         </td>
                     </tr>
                 </tbody>

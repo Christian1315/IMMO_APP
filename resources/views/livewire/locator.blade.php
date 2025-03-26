@@ -1,5 +1,5 @@
 <div>
-    @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+    @can("locator.create")
     <div class="d-flex header-bar">
         <h2 class="accordion-header">
             <button type="button" class="btn btn-sm bg-dark" data-bs-toggle="modal" data-bs-target="#addLocator">
@@ -7,7 +7,7 @@
             </button>
         </h2>
     </div>
-    @endif
+    @endcan
 
     <input type="checkbox" hidden class="btn-check" id="displayLocatorsOptions" onclick="displayLocatorsOptions_fun()">
     <label class="btn btn-light" for="displayLocatorsOptions"><i class="bi bi-file-earmark-pdf-fill"></i>Filtrer les locataires</label>
@@ -30,13 +30,14 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
+                                    @foreach(supervisors() as $supervisor)
                                     <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -61,15 +62,17 @@
                                     <option value="{{$house['id']}}"> {{$house["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+    @can("locator.create")
     <!-- ADD ROOM -->
     <div class="modal fade" id="addLocator" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -241,6 +244,7 @@
             </div>
         </div>
     </div>
+    @endcan
     <br><br>
 
     <!-- TABLEAU DE LISTE -->
@@ -263,9 +267,7 @@
                             <th class="text-center">Maisons</th>
                             <th class="text-center">Superviseurs</th>
                             <th class="text-center">Chambres</th>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Actions</th>
-                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -279,7 +281,7 @@
                             <td class="text-center"><span class="badge text-dark bg-light"> {{$locator["phone"]}}</span> </td>
                             <td class="text-center">
                                 @if($locator->avaliseur)
-                                <a class='btn btn-sm btn-light shadow' href='#' data-bs-toggle='modal' data-bs-target='#showAvalisor' onclick='showAvalisorModal({{$locator['id']}})'><i class='bi bi-eye-fill'></i></a>
+                                <a class='btn btn-sm btn-light shadow' href='#' data-bs-toggle='modal' data-bs-target='#showAvalisor' onclick="showAvalisorModal({{$locator['id']}})"><i class='bi bi-eye-fill'></i></a>
                                 @else
                                 ---
                                 @endif
@@ -305,23 +307,24 @@
                                     <i class="bi bi-eye-fill"></i>
                                 </button>
                             </td>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="d-flex">
                                 <div class="dropdown">
                                     <button class="btn btn-sm  bg-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-gear"></i> Actions
                                     </button>
                                     <ul class="dropdown-menu">
+                                        @can("locator.edit")
                                         <li><a href="#" class="dropdown-item btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal" onclick="updateModal_fun({{$locator->id}})"><i class="bi bi-person-lines-fill"></i> Modifier</a></li>
+                                        @endcan
+                                        @can("locator.delete")
                                         <li><a href="{{ route('locator.DeleteLocataire', crypId($locator->id)) }}" class="dropdown-item btn btn-sm bg-red" data-confirm-delete="true"><i class="bi bi-archive-fill"></i> &nbsp; Suprimer</a></li>
+                                        @endcan
                                         <li><a class="w-100 dropdown-item" href="#">Adresse: {{$locator["adresse"]}}</a></li>
                                         <li><a class="w-100 dropdown-item" href="#">Card ID: {{$locator["card_id"]}}</a></li>
                                     </ul>
                                 </div>
                             </td>
-                            @endif
                         </tr>
-
                         @endforeach
                     </tbody>
                 </table>
@@ -378,6 +381,7 @@
     </div>
 
 
+    @can("locator.edit")
     <!-- ###### MODEL DE MODIFICATION ###### -->
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -465,6 +469,7 @@
             </div>
         </div>
     </div>
+    @endcan
 </div>
 
 
@@ -489,8 +494,8 @@
 
             $("#avar_nom").html(avalisor.ava_name)
             $("#avar_prenom").html(avalisor.ava_prenom)
-            $("#avar_link").html(avalisor.ava_phone)
-            $("#avar_phone").html(avalisor.ava_parent_link)
+            $("#avar_link").html(avalisor.ava_parent_link)
+            $("#avar_phone").html(avalisor.ava_phone)
 
         }).catch((error) => {
             alert("une erreure s'est produite")

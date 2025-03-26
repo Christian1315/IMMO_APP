@@ -24,14 +24,14 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach ($supervisors as $supervisor)
+                                    @foreach (supervisors() as $supervisor)
                                     <option value="{{ $supervisor['id'] }}"> {{ $supervisor['name'] }} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i>Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i>
-                            Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -57,10 +57,11 @@
                                     <option value="{{ $house['id'] }}"> {{ $house['name'] }} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i>
+                                    Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i>
-                            Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -119,7 +120,7 @@
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
                                     {{ \Carbon\Carbon::parse($location['latest_loyer_date'])->locale('fr')->isoFormat('MMMM YYYY') }}</small>
                             </td>
-                            <td class="text-center">{{ $location['loyer'] }}</td>
+                            <td class="text-center">{{number_format($location->loyer,0," "," ")}}</td>
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i>
                                     {{ \Carbon\Carbon::parse($location['echeance_date'])->locale('fr')->isoFormat('D MMMM YYYY') }}</small>
                                 <small class="text-dark">({{ $location->pre_paid ? 'PRE_PAYE' : '' }}

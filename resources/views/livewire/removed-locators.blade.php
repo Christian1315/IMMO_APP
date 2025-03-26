@@ -22,13 +22,13 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
-                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} ({{$supervisor['id']}}) </option>
+                                    @foreach(supervisors() as $supervisor)
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
                                     @endforeach
-                                </select>
+                                </select> <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>
@@ -53,9 +53,10 @@
                                     <option value="{{$house['id']}}"> {{$house["name"]}} </option>
                                     @endforeach
                                 </select>
+                                <br>
+                                <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
                     </form>
                 </div>
             </div>

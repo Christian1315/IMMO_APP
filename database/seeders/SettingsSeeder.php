@@ -109,7 +109,7 @@ class SettingsSeeder extends Seeder
                 'name' => 'admin',
                 'username' => 'admin',
                 'email' => 'admin@gmail.com',
-                'password' => '$2y$10$CI5P59ICr/HOihqlnYUrLeKwCajgMKd34HB66.JsJBrIOQY9fazrG', #admin
+                'password' => '$2y$10$/TENF.kr0zZmZNb4oR.MA.eYTF.G6GysetAwZC..i2GgEbNnJyGBW', #superadmin
                 "rang_id" => \App\Models\Rang::find(1),
                 "profil_id" => \App\Models\Profil::find(9),
                 'is_super_admin' => true,
@@ -122,7 +122,7 @@ class SettingsSeeder extends Seeder
                 'name' => 'Master Edou',
                 'username' => 'edou',
                 'email' => 'edou@gmail.com',
-                'password' => '$2y$10$CI5P59ICr/HOihqlnYUrLeKwCajgMKd34HB66.JsJBrIOQY9fazrG', #admin
+                'password' => '$2y$10$SWziehAKpVYGvq9BEgsIHevwqWWxjXHbRdGzaLex1Lnx4VH1rIQTS', #edouadmin
                 "rang_id" => \App\Models\Rang::find(1),
                 "profil_id" => \App\Models\Profil::find(9),
                 // 'is_admin' => true,

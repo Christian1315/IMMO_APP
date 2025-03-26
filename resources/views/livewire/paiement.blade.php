@@ -40,7 +40,9 @@
                             </td>
 
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-dark"> <i class="bi bi-calendar-check-fill"></i> <strong> {{$house["house_last_state"]?$house["house_last_state"]["stats_stoped_day"] : ($house->PayementInitiations->last()? $house->PayementInitiations->last()->stats_stoped_day:"---")}} </strong> </button>
+                                <button class="btn btn-sm btn-light shadow-lg text-dark"> <i class="bi bi-calendar-check-fill"></i>
+                                    <strong>{{$house["house_last_state"]? $house["house_last_state"]["stats_stoped_day"]  : ($house->PayementInitiations->last()? $house->PayementInitiations->last()->stats_stoped_day:"---")}} </strong>
+                                </button>
                             </td>
                             <td class="text-center">
                                 @if($house['house_last_state'])
@@ -74,12 +76,20 @@
                                 @if($house['house_last_state']["proprietor_paid"])
                                 ---
                                 @else
+
+                                @can("proprio.payement")
                                 <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid_{{$house['id']}}"><i class="bi bi-currency-exchange"></i>Payer</button>
+                                @endcan
+
                                 @endif
                                 @else
                                 @if($house->PayementInitiations->last())
                                 @if($house->PayementInitiations->last()->status==3)
+
+                                @can("proprio.payement")
                                 <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid_{{$house['id']}}" title="Opération réjetée pour raison de -- ({{$house->PayementInitiations->last()->rejet_comments}})"><i class="bi bi-currency-exchange"></i> {{$house['net_to_paid']!=0?$house['net_to_paid']:($house->PayementInitiations->last()?$house->PayementInitiations->last()->amount:0)}} Repayer</button>
+                                @endcan
+
                                 @else
                                 ---
                                 @endif
@@ -90,7 +100,9 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a  href="{{route('house.ShowHouseStateImprimeHtml',crypId($house['id']))}}" class="btn text-dark btn-sm bg-light"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer les états</button>
+                                @can("proprio.print.state")
+                                <a href="{{route('house.ShowHouseStateImprimeHtml',crypId($house['id']))}}" class="btn text-dark btn-sm bg-light"><i class="bi bi-file-earmark-pdf-fill"></i> Imprimer les états</a>
+                                @endcan
                             </td>
                         </tr>
 
@@ -116,7 +128,7 @@
                                                     <span class="text-red">{{$message}}</span>
                                                     @enderror
                                                     <div class="text-right mt-2">
-                                                        <button class="btn btn-sm bg-red">Valider</button>
+                                                        <button class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle-fill"></i> Valider</button>
                                                     </div>
                                                 </div>
                                             </div>

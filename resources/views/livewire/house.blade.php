@@ -1,5 +1,5 @@
 <div>
-    @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) || auth()->user()->is_admin)
+    @can("house.add.type")
     <!-- AJOUT D'UN TYPE DE CHAMBRE -->
     <div class="text-left">
         <button type="button" class="btn btn btn-sm bg-light shadow roundered" data-bs-toggle="modal"
@@ -8,13 +8,13 @@
         </button>
     </div>
     <br>
-    @endif
     <!-- Modal room type-->
     <div class="modal fade" id="room_type" aria-labelledby="room_type" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fs-5">Type de maison</h5>
+                    <button type="button" class="btn-close btn btn-sm btn-light text-red" data-bs-dismiss="modal" aria-label="Close"><i class="bi bi-x-circle"></i></button>
                 </div>
                 <form action="{{ route('house.AddHouseType') }}" method="POST">
                     @csrf
@@ -39,14 +39,15 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn bg-dark"><i class="bi bi-building-check"></i> Enregistrer</button>
+                        <button class="w-100 btn-sm btn bg-red"><i class="bi bi-building-check"></i> Enregistrer</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    @endif
 
-    @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()) || auth()->user()->is_admin)
+    @can("house.create")
     <div>
         <div class="d-flex header-bar">
             <h2 class="accordion-header">
@@ -56,68 +57,6 @@
             </h2>
         </div>
     </div>
-    @endif
-
-    <!-- ### FILTRE ###-->
-    <small class="d-block">
-        <button data-bs-toggle="modal" data-bs-target="#filtreBySupervisor" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par superviseur</button>
-        <button data-bs-toggle="modal" data-bs-target="#filtreByPeriod" class="btn mx-2 btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par période</button>
-    </small>
-
-    <!-- FILTRE PAR SUPERVISEUR -->
-    <div class="modal fade" id="filtreBySupervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <p class="" id="exampleModalLabel">Filter par superviseur</p>
-                </div>
-                <div class="modal-body">
-                    <form action="{{route('house.FiltreHouseBySupervisor',$current_agency->id)}}" method="POST">
-                        @csrf
-                        <div class="row">
-                            <div class="col-md-12">
-                                <label>Choisissez un superviseur</label>
-                                <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
-                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FILTRE PAR PERIOD -->
-    <div class="modal fade" id="filtreByPeriod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <p class="" id="exampleModalLabel">Filter par période</p>
-                </div>
-                <div class="modal-body">
-                    <form action="{{route('house.FiltreHouseByPeriode',$current_agency->id)}}" method="POST">
-                        @csrf
-                        <div class="row">
-                            <div class="col-6">
-                                <label for="">Date de debut</label>
-                                <input type="date" required name="debut" class="form-control">
-                            </div>
-                            <div class="col-6">
-                                <label for="">Date de fin</label>
-                                <input type="date" required name="fin" class="form-control">
-                            </div>
-                        </div>
-                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <br><br>
 
     <!-- ADD HOUSE -->
     <div class="modal fade" id="addHouse" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
@@ -264,7 +203,7 @@
                                     <label for="" class="d-block">Superviseur</label>
                                     <select class="form-select form-control" value="{{ old('supervisor') }}"
                                         name="supervisor" aria-label="Default select example">
-                                        @foreach ($supervisors as $supervisor)
+                                        @foreach (supervisors() as $supervisor)
                                         <option value="{{ $supervisor['id'] }}">{{ $supervisor['name'] }}
                                         </option>
                                         @endforeach
@@ -311,7 +250,7 @@
 
                         </div>
                         <div class="modal-footer">
-                            <button class="btn bg-red">Enregistrer</button>
+                            <button class="w-100 btn-sm btn bg-red"><i class="bi bi-check-circle-fill"></i> Enregistrer</button>
                         </div>
                     </form>
                 </div>
@@ -320,6 +259,68 @@
             </div>
         </div>
     </div>
+    @endcan
+
+    <!-- ### FILTRE ###-->
+    <small class="d-block">
+        <button data-bs-toggle="modal" data-bs-target="#filtreBySupervisor" class="btn btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par superviseur</button>
+        <button data-bs-toggle="modal" data-bs-target="#filtreByPeriod" class="btn mx-2 btn-sm bg-light text-dark text-uppercase"><i class="bi bi-funnel"></i> Filtrer par période</button>
+    </small>
+
+    <!-- FILTRE PAR SUPERVISEUR -->
+    <div class="modal fade" id="filtreBySupervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filter par superviseur</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('house.FiltreHouseBySupervisor',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Choisissez un superviseur</label>
+                                <select required name="supervisor" class="form-control">
+                                    @foreach(supervisors() as $supervisor)
+                                    <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTRE PAR PERIOD -->
+    <div class="modal fade" id="filtreByPeriod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="" id="exampleModalLabel">Filter par période</p>
+                </div>
+                <div class="modal-body">
+                    <form action="{{route('house.FiltreHouseByPeriode',$current_agency->id)}}" method="POST">
+                        @csrf
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="">Date de debut</label>
+                                <input type="date" required name="debut" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label for="">Date de fin</label>
+                                <input type="date" required name="fin" class="form-control">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-sm bg-red mt-2"><i class="bi bi-funnel"></i> Filtrer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br><br>
 
     <!-- TABLEAU DE LISTE -->
     <div class="row">
@@ -392,33 +393,33 @@
                                         <i class="bi bi-kanban-fill"></i> &nbsp; Gérer
                                     </button>
                                     <ul class="dropdown-menu p-2">
-                                        @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_admin)
+                                        @can("house.delete")
                                         <li>
                                             <a href="{{ route('house.DeleteHouse', crypId($house['id'])) }}"
                                                 data-confirm-delete="true" class="w-100 btn btn-sm bg-red"><i
                                                     class="bi bi-archive-fill"></i> Supprimer</a>
                                         </li>
+                                        @endcan
 
+                                        @can("house.edit")
                                         <li>
                                             <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal"
                                                 data-bs-target="#updateModal"
                                                 onclick="updateModal_fun({{ $house['id'] }})"><i
                                                     class="bi bi-person-lines-fill"></i> Modifier</button>
                                         </li>
-                                        @endif
+                                        @endcan
 
-                                        @if (IS_USER_HAS_MASTER_ROLE(auth()->user()) ||
-                                        auth()->user()->is_master ||
-                                        auth()->user()->is_admin ||
-                                        IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+                                        @can("house.stop.state")
                                         <li>
                                             <a href="/house/{{ crypId($house['id']) }}/{{ crypId($current_agency['id']) }}/stopHouseState"
                                                 class="w-100 btn btn-sm bg-warning text-dark"><i
                                                     class="bi bi-sign-stop-fill"></i>&nbsp; Arrêter les
                                                 états</a>
                                         </li>
-                                        @endif
+                                        @endcan
 
+                                        @can("house.generate.caution")
                                         <li>
                                             <button class="w-100 btn btn-sm bg-light" data-bs-toggle="modal"
                                                 data-bs-target="#cautionModal"
@@ -426,6 +427,7 @@
                                                     class="bi bi-file-earmark-pdf-fill"></i> Gestion des cautions
                                             </button>
                                         </li>
+                                        @endcan
                                         <li>
                                             <a title="Voir l'image" href="{{ $house['image'] }}" target="_blank"
                                                 class="btn btn-sm shadow-lg roundered w-100"
@@ -523,7 +525,7 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-check-circle"></i>
+                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i>
                                 Modifier</button>
                         </div>
                     </form>

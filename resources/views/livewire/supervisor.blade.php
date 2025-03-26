@@ -4,7 +4,7 @@
         <div class="col-12">
             <div class="table-responsive table-responsive-list shadow-lg p-3">
                 <table id="myTable" class="table table-striped table-sm">
-                    <h4 class="">Total: <strong class="text-red"> {{count($supervisors)}} </strong> </h4>
+                    <h4 class="">Total: <strong class="text-red"> {{count(supervisors())}} </strong> </h4>
 
                     <thead class="bg_dark">
                         <tr>
@@ -18,62 +18,119 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($supervisors as $supervisor)
+                        @foreach(supervisors() as $supervisor)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center">{{$supervisor["name"]}}</td>
                             <td class="text-center">{{$supervisor["email"]}}</td>
                             <td class="text-center">{{$supervisor["phone"]}}</td>
-                            <td class="text-center text-red"> <strong> <i class="bi bi-calendar2-check-fill"></i> {{date("d/m/Y",strtotime($supervisor["created_at"]))}} </strong> </th>
+                            <td class="text-center text-red"> <strong> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($supervisor->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }}  </strong> </th>
                             <td class="text-center text-red">
-                                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#exampleModal_{{$supervisor->id}}"><i class="bi bi-list-check"></i></button>
-                                <!-- {{$supervisor->account_agents->first()?$supervisor->account_agents->first()->name:"---"}} -->
+                                <button class="btn btn-sm btn-light" onclick="showAgentModal({{$supervisor->id}})" data-bs-toggle="modal" data-bs-target="#supervisorAgentModal"><i class="bi bi-list-check"></i></button>
                             </td>
                             <td class="text-center">
-                                <a target="__blank" href="{{route('user.AffectSupervisorToAccountyAgent',crypId($supervisor['id']))}}" class="btn text-dark btn-sm bg-light mx-1">Affecter à un agent comptable</button>
+                                <button class="btn text-dark btn-sm bg-light mx-1" onclick="affectToAgent({{$supervisor->id}})" data-bs-toggle="modal" data-bs-target="#affectationModal"><i class="bi bi-link"></i>Affecter à un agent comptable</button>
                             </td>
                         </tr>
-
-
-                        <!-- Modal -->
-                        <div class="modal fade" id="exampleModal_{{$supervisor->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header text-center">
-                                        <p class="fs-5 text-center" id="exampleModalLabel">Superviseur: <strong class="text-red"> {{$supervisor->name}}</strong> </p>
-                                    </div>
-                                    <div class="modal-body">
-                                        @if(count($supervisor->account_agents)>0)
-                                        <ul class="list-group text-center">
-                                            @foreach($supervisor->account_agents as $agent)
-                                            <li class="list-group-item">{{$agent->name}}</li>
-                                            @endforeach
-                                        </ul>
-                                        @else
-                                        <p class="text-center">Aucun agent associé</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         @endforeach
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
 
-            <!-- pagination -->
-            <div class="justify-center my-2">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination">
-                        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                    </ul>
-                </nav>
+    <!-- Modal des agents -->
+    <div class="modal fade" id="supervisorAgentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <p class="fs-5 text-center" id="exampleModalLabel">Superviseur: <strong class="text-red supervisor_name"> </strong> </p>
+                </div>
+                <div class="modal-body" id="agentsBody">
+                    <!-- gerer ave du JS -->
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal affectation de superviseur à un agent -->
+    <div class="modal fade" id="affectationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <p class="fs-5 text-center" id="exampleModalLabel">Superviseur: <strong class="text-red supervisor_name"> </strong> </p>
+                </div>
+                <div class="modal-body">
+                    <form id="affectationModalForm" method="post">
+                        @csrf
+                        <input type="hidden" name="user_id" id="user_id">
+                        <label for="">Choisissez un agent</label>
+                        <select id="agent-select" required name="agent" class="form-select mb-3 form-control">
+                            @foreach($compteAgents as $agent)
+                            <option value="{{$agent->id}}">{{$agent->name}}</option>
+                            @endforeach
+                        </select>
+                        <div class="modal-footer justify-center">
+                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-link"></i> Affecter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // show supervisor agents
+        function showAgentModal(id) {
+            axios.get(`/users/${id}/retrieve`).then((response) => {
+                let data = response.data;
+
+                $('.supervisor_name').html(data.name);
+                $("#agentsBody").empty();
+
+                let content = ''
+
+                if (data.account_agents.length > 0) {
+                    let rows = ''
+                    data.account_agents.forEach(agent => {
+                        rows += `
+                            <li class="list-group-item">${agent.name}</li>
+                        `
+                    });
+
+                    content = `
+                        <ul class="list-group text-center">
+                            ${rows}
+                        </ul>
+                    `
+                } else {
+                    content = `<p class="text-center">Aucun agent associé</p>`
+                }
+
+                $("#agentsBody").append(content)
+
+                $('#supervisorAgentModal').modal('show');
+
+            }).catch((error) => {
+                alert("une erreure s'est produite")
+                console.log(error)
+            })
+        }
+
+        // affect supervisor to agents
+        function affectToAgent(id) {
+            axios.get(`/users/${id}/retrieve`).then((response) => {
+                let data = response.data;
+
+                $('.supervisor_name').html(data.name);
+                $('#user_id').val(id);
+
+                $('#affectationModalForm').attr("action", `attach-supervisor-to-agent_account/${id}`)
+                $('#affectationModal').modal('show');
+            }).catch((error) => {
+                alert("une erreure s'est produite")
+                console.log(error)
+            })
+        }
+    </script>
 </div>
