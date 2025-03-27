@@ -941,6 +941,7 @@ class LocationController extends Controller
 
             $formData["description"] = "Encaissement de paiement à la date " . $facture->created_at . " par le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " )";
             $formData["sold"] = $formData["amount"];
+            $formData["sold_added"] = $formData["amount"];
 
             ###___VERIFIONS LE SOLD ACTUEL DU COMPTE ET VOYONS SI ça DEPPASE OU PAS LE PLAFOND
 
@@ -952,7 +953,8 @@ class LocationController extends Controller
             ###___
             if ($accountSold) { ##__Si ce compte dispose déjà d'un sold
                 $formData["old_sold"] = $accountSold->sold;
-                $formData["sold_added"] = $accountSold->sold_added;
+                // $formData["sold_added"] = $accountSold->sold_added;
+
 
                 ##__voyons si le sold atteint déjà le plafond de ce compte
                 if ($accountSold->sold >= $account->plafond_max) {
@@ -1072,6 +1074,7 @@ class LocationController extends Controller
             // }
 
             ###__ON ARRËTE LES ETATS
+            
             $data["owner"] = $formData["owner"];
             $data["house"] = $formData["house"];
             $data["state_stoped_day"] = now();
@@ -1107,7 +1110,6 @@ class LocationController extends Controller
             }
 
             ###___Génerons une dernière facture pour cette maison pour actualiser les infos de la dernière facture à l'arrêt de cet etat
-
             $stateFactureData = [
                 "owner" => $user->id,
                 "location" => $location->id,

@@ -20,7 +20,7 @@
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <p class="" id="exampleModalLabel">Générer par période</p>
+                                <p class="" id="exampleModalLabel">Filter par période</p>
                             </div>
                             <div class="modal-body">
                                 <form action="" method="POST">
@@ -83,17 +83,17 @@
                             @if(count($factures)>0)
                             @foreach($factures as $facture)
                             <tr class="align-items-center">
-                                <td class="text-center "><button class="text-red btn btn-sm btn-light"> {{$facture["facture_code"]}}</button></td>
-                                <td class="text-center text-red"><button class="btn btn-sm btn-light"> {{$facture["Location"]["House"]["Supervisor"]["name"]}}</button></td>
-                                <td class="text-center">{{$facture["Owner"]["name"]}}</td>
-                                <td class="text-center"> <button class="btn btn-sm btn-light">{{$facture["Location"]["House"]["name"]}} </button> </td>
-                                <td class="text-center">{{$facture["Location"]["Room"]["number"]}} </td>
+                                <td class="text-center "><span class="badge text-red bg-light"> {{$facture["facture_code"]?$facture["facture_code"]:"---"}}</span></td>
+                                <td class="text-center text-red"><span class="badge bg-light text-dark"> {{$facture["Location"]["House"]["Supervisor"]["name"]}}</span></td>
+                                <td class="text-center"> <span class="badge bg-dark">{{$facture["Owner"]["name"]}} </span> </td>
+                                <td class="text-center"> <span class="badge bg-light text-dark">{{$facture["Location"]["House"]["name"]}} </span> </td>
+                                <td class="text-center"> <span class="badge bg-light text-dark">{{$facture["Location"]["Room"]["number"]}} </span> </td>
                                 <td class="text-center"><button class="btn btn-sm btn-light">{{$facture["Location"]["Locataire"]["name"]}} {{$facture["Location"]["Locataire"]["prenom"]}} </button> </td>
                                 <td class="text-center"> <a target="__blank" href="{{$facture['facture']}}" class="btn btn-sm btn-light shadow-sm"><i class="bi bi-eye"></i></a>
                                 </td>
-                                <td class="text-center">{{$facture['amount']}}</td>
-                                <td class="text-center text-red"><button class="btn btn-sm btn-light text-red"> <b>{{ \Carbon\Carbon::parse($facture['echeance_date'])->locale('fr')->isoFormat('MMMM YYYY') }} </b></button> </td>
-                                <td class="text-center text-red"><button class="btn btn-sm btn-light text-red"> <b>{{ \Carbon\Carbon::parse($facture->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </b></button> </td>
+                                <td class="text-center"><span class="badge bg-success text-white"><i class="bi bi-currency-dollar"></i> {{number_format($facture['amount'],2,"."," ")}}</span></td>
+                                <td class="text-center text-red"><span class="badge bg-light text-red"> <b>{{ \Carbon\Carbon::parse($facture['echeance_date'])->locale('fr')->isoFormat('D MMMM YYYY') }} </b></span> </td>
+                                <td class="text-center text-red"><span class="badge bg-light text-red"> <b>{{ \Carbon\Carbon::parse($facture->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </b></span> </td>
                                 <td class="text-center">
                                     <textarea name="" rows="1" class="form-control" id="" placeholder="{{$facture->comments}}"></textarea>
                                 </td>

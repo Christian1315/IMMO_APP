@@ -74,7 +74,7 @@
                             Net à payer au propriétaire:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{number_format($house["net_to_paid"],0," "," ") }} fcfa </strong>
+                            <strong>= {{number_format($house["net_to_paid"],2,"."," ") }} fcfa </strong>
                         </td>
                     </tr>
                 </tbody>
@@ -98,7 +98,7 @@
                             <th class="text-center">Téléphone</th>
                             <th class="text-center">Chambre</th>
                             <th class="text-center">Loyer Mensuel</th>
-                            <th class="text-center">Mmois payé(s)</th>
+                            <th class="text-center">Mois payé(s)</th>
                             <th class="text-center">Montant payé</th>
                             <th class="text-center">Dernier loyé</th>
                             <th class="text-center">Mois d'effet</th>

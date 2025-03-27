@@ -65,7 +65,7 @@ class Paiement extends Component
 
         ######______
         foreach ($this->Houses as $house) {
-            $house = GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house);
+            GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house);
         }
     }
 

@@ -197,7 +197,7 @@
                                 <!-- Valider paiement -->
                                 @can("proprio.payement.validation.view")
                                 <li class="nav-item">
-                                    <a class="nav-link text-white @if ($active == 'initiation') active @endif"
+                                    <a class="nav-link text-white @if($active == 'initiation') active @endif"
                                         href="/{{ crypId($agency['id']) }}/initiation">
                                         <i class="bi bi-cash-coin"></i>
                                         Valider paiement
@@ -219,32 +219,9 @@
 
                                 <!-- CAISSES -->
                                 @can("caisses.view")
-                                <li class="nav-item">
-                                    <div class="btn-group dropdown-center">
-                                        <a class="nav-link @if ($active == 'caisse') active @endif text-white dropdown-toggle" href="#"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="bi bi-wallet-fill"></i> &nbsp; Caisses
-                                        </a>
-
-                                        <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item active"
-                                                    href="/{{ crypId($agency['id']) }}/caisses">Toutes les
-                                                    caisses</a></li>
-                                            <!-- Crediter une caisse -->
-                                            @can("caisses.credite")
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/encaisser">Créditer</a>
-                                            </li>
-                                            @endcan
-
-                                            <!-- decaisser une caisse -->
-                                            @can("caisses.decredite")
-                                            <li><a class="dropdown-item"
-                                                    href="/{{ crypId($agency['id']) }}/decaisser">Décaisser</a>
-                                            </li>
-                                            @endcan
-                                        </ul>
-                                    </div>
+                                <li class="nav-item"><a class="nav-link text-white @if($active=='caisse') active @endif"
+                                        href="/{{ crypId($agency['id']) }}/caisses"><i class="bi bi-currency-dollar"></i> Toutes les
+                                        caisses</a>
                                 </li>
                                 @endcan
 

@@ -69,7 +69,7 @@ class AgencyDashbord extends Component
         $this->locators_count = count($agency_locators);
         $this->locations_count = count($agency_locations);
         $this->factures_count = count($agency_factures);
-        $this->paiement_count = count($agency_paiements);
+        $this->paiement_count = $this->houses_count;
 
         // ROOMS
         $rooms = Room::all();

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire;
 
 // use Illuminate\Support\Facades\Http;
@@ -9,8 +10,11 @@ class Caisses extends Component
     public $agency;
     public $agencyAccounts = [];
 
+    public $houses = [];
+    
     function mount($agency)
     {
+        $this->houses = $this->agency->_Houses;
         $this->agency = $agency;
         $this->agencyAccounts = $this->agency->_AgencyAccounts;
     }

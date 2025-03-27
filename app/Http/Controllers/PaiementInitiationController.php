@@ -106,7 +106,7 @@ class PaiementInitiationController extends Controller
         $formData["manager"] = $user->id;
         $formData["status"] = 1;
         $formData["comments"] = "Initiation de paiement d'une somme de (" . $formData["amount"] . " ) au proprietaire (" . $proprietor->firstname . " " . $proprietor->lastname . " )";
-        $PaiementInitiation = PaiementInitiation::create($formData);
+        PaiementInitiation::create($formData);
 
         ###___ACTUALISATION DU STATE DANS L'ARRET DES ETATS
         $state = HomeStopState::where(["house" => $formData["house"]])->find($formData["state"]);
@@ -147,11 +147,11 @@ class PaiementInitiationController extends Controller
 
         if ($accountSold) {
             if ($accountSold->sold < $PaiementInitiation->amount) {
-                alert()->error("Echèc", "Le sold du compte Loyer de cette agence est insuffisant pour faire cette initiation!");
+                alert()->error("Echèc", "Le sold du compte Loyer de cette agence est insuffisant pour valider ce paiement!");
                 return back()->withInput();
             }
         } else {
-            alert()->error("Echèc", "Le Compte Loyer n'est pas actualisé");
+            alert()->error("Echèc", "Le Compte Loyer n'a pas de solde");
             return back()->withInput();
         }
 
@@ -209,7 +209,7 @@ class PaiementInitiationController extends Controller
         };
 
         if ($PaiementInitiation->status == 3) {
-            alert()->error("Echèc", "Cette initiation de paiement a été déjà rejétée, vous ne pouvez la rejeté à nouveau");
+            alert()->error("Echèc", "Cette initiation de paiement a été déjà rejétée, vous ne pouvez la rejeter à nouveau");
             return back()->withInput();
         };
 
@@ -219,7 +219,7 @@ class PaiementInitiationController extends Controller
 
         ###___ACTUALISATION DU STATE DANS L'ARRET DES ETATS
         $state = HomeStopState::where(["house" => $PaiementInitiation->House->id])->find($PaiementInitiation->House->States->last()->id);
-        // detachement des factures loiées à ce state
+        // detachement des factures liées à ce state
         foreach ($state->AllFactures as $facture) {
             $facture->old_state = $facture->state;
             $facture->state = null;
@@ -235,13 +235,12 @@ class PaiementInitiationController extends Controller
         // }
 
         //suppression du state
-        $state->delete();
 
         ##__retranchement de l'initiation de payement 
         $PaiementInitiation->old_state = $state->id;
         $PaiementInitiation->stats_stoped_day = $state->stats_stoped_day;
         $PaiementInitiation->recovery_rapport = $state->recovery_rapport;
-        $PaiementInitiation->proprietor_paid = $state->proprietor_paid;
+        $PaiementInitiation->proprietor_paid = false;
 
         $PaiementInitiation->state = null;
         
@@ -251,7 +250,7 @@ class PaiementInitiationController extends Controller
         //suppression du state
         $state->delete();
         ####___
-        alert()->success("Succès", "Initiation de paiement réjetée avec succès!");
+        alert()->success("Succès", "Paiement réjeté avec succès!");
         return back()->withInput();
     }
 }

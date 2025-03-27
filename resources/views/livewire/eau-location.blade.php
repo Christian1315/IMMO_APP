@@ -1,10 +1,13 @@
 <div>
-    @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
+    @can("water.invoices.generate")
     <button class="btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#generate_water_facture"><i class="bi bi-file-earmark-pdf-fill"> </i> Génerer une facture d'eau </button>
     <br>
+    @endcan
 
     <small>
+        @can("water.invoices.stop.state")
         <button class="btn btn-sm bg-red text-white text-uppercase" data-bs-toggle="modal" data-bs-target="#stop_house_water_state"><i class="bi bi-stop-circle"></i> Arrêter les états</button>
+        @endcan
         <input type="checkbox" hidden class="btn-check" id="displayLocatorsOptions" onclick="displayFiltreOptions()">
         <label class="btn btn-light" for="displayLocatorsOptions"><i class="bi bi-file-earmark-pdf-fill"></i>Filtrer les locations</label>
     </small>
@@ -33,7 +36,7 @@
                             <div class="col-md-12">
                                 <label>Choisissez un superviseur</label>
                                 <select required name="supervisor" class="form-control">
-                                    @foreach($supervisors as $supervisor)
+                                    @foreach(supervisors() as $supervisor)
                                     <option value="{{$supervisor['id']}}"> {{$supervisor["name"]}} </option>
                                     @endforeach
                                 </select>
@@ -101,6 +104,7 @@
     </div>
 
     <!-- GENERATE WATER FACTURE  -->
+    @can("water.invoices.generate")
     <div class="modal fade" id="generate_water_facture" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -131,7 +135,7 @@
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div>
-                                <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-card-list"></i> Génerer</button>
+                                <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-card-list"></i> Génerer</button>
                             </form>
                         </div>
                         <br>
@@ -140,8 +144,10 @@
             </div>
         </div>
     </div>
+    @endcan
 
     <!-- STOP  WATER STATE  -->
+    @can("water.invoices.stop.state")
     <div class="modal fade" id="stop_house_water_state" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -165,7 +171,7 @@
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div>
-                                <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-stop-circle"></i> Arrêter l'état</button>
+                                <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-stop-circle"></i> Arrêter l'état</button>
                             </form>
                         </div>
                         <br>
@@ -174,8 +180,9 @@
             </div>
         </div>
     </div>
-    @endif
+    @endcan
     <br>
+
     <div class="row">
         <div class="col-12">
             @php
@@ -201,9 +208,7 @@
                             <th class="text-center">Nbr arrièrées </th>
                             <th class="text-center">Arriérés </th>
                             <th class="text-center">Montant dû</th>
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <th class="text-center">Payer</th>
-                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -213,17 +218,16 @@
                             <td class="text-center"> <span class="badge bg-dark text-white">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} </span> </td>
                             <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["House"]["name"]}} ({{$location->House->Supervisor->name}})</span></td>
                             <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["Locataire"]["phone"]}}</span></td>
-                            <td class="text-center"> <span class="badge bg-warning text-white"> {{$location["Room"]["electricity_counter_start_index"]}}</span> </td>
+                            <td class="text-center"> <span class="badge bg-warning text-white"> {{$location["Room"]["water_counter_start_index"]}}</span> </td>
                             <td class="text-center"> <strong class="badge bg-dark text-zhite"> {{$location["end_index"]?$location["end_index"]:0}}</strong> </td>
                             <td class="text-center"> <strong class=""> <span class="badge bg-light text-dark">{{number_format($location->Room->unit_price,2,'.',' ')}}</span> </strong> </td>
-                            <td class="text-center"> <strong class="text-red shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]? number_format($location["total_un_paid_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["current_amount"]? number_format($location["current_amount"],2," "," ") :0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["paid_facture_amount"]? number_format($location["paid_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
-                            <td class="text-center text-red"> {{$location["nbr_un_paid_facture_amount"]? number_format($location["nbr_un_paid_facture_amount"],2," "," ") :0}}</td>
-                            <td class="text-center"> <strong class="text-red shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["un_paid_facture_amount"]? number_format($location["un_paid_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="text-success shadow btn btn-sm"> <i class="bi bi-currency-exchange"></i> {{$location["rest_facture_amount"]? number_format($location["rest_facture_amount"],2," "," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge text-red bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]? number_format($location["total_un_paid_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge text-success bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["current_amount"]? number_format($location["current_amount"],2,"."," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge text-success bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["paid_facture_amount"]? number_format($location["paid_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
+                            <td class="text-center text-red"> <span class="badge bg-light text-dark">{{$location["nbr_un_paid_facture_amount"]? number_format($location["nbr_un_paid_facture_amount"],2,"."," ") :0}}</span> </td>
+                            <td class="text-center"> <strong class="badge bg-light text-red"> <i class="bi bi-currency-exchange"></i> {{$location["un_paid_facture_amount"]? number_format($location["un_paid_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge bg-light text-success"> <i class="bi bi-currency-exchange"></i> {{$location["rest_facture_amount"]? number_format($location["rest_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
 
-                            @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin || IS_USER_HAS_SUPERVISOR_ROLE(auth()->user()))
                             <td class="text-center">
                                 <div class="dropdown">
                                     <a class="btn btn-sm bg-red dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -231,21 +235,27 @@
                                     </a>
 
                                     <ul class="dropdown-menu">
+                                        @can("water.invoices.payement")
                                         <a href="#" class="dropdown-item btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#ShowLocationFactures_{{$location['id']}}">
                                             <i class="bi bi-currency-exchange"></i>&nbsp; Payer
                                         </a>
+                                        @endcan
+
+                                        @can("water.invoices.print")
                                         <a href="#" class="dropdown-item btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#state_impression_{{$location['id']}}"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer les états</a>
-                                        @if(IS_USER_HAS_MASTER_ROLE(auth()->user()) || auth()->user()->is_master || auth()->user()->is_admin)
+                                        @endcan
+
+                                        @can("water.invoices.change.index")
                                         <a href="#" class="dropdown-item btn btn-sm bg-warning text-uppercase" data-bs-toggle="modal" data-bs-target="#updateLastFactureEndIndex_{{$location['id']}}"><i class="bi bi-pencil-square"></i> Changer l'index de fin</a>
-                                        @endif
+                                        @endcan
+
                                     </ul>
                                 </div>
-
                             </td>
-                            @endif
                         </tr>
 
                         <!-- ###### FACTURES D'EAU -->
+                        @can("water.invoices.stop.state")
                         <div class="modal fade" id="ShowLocationFactures_{{$location['id']}}" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
@@ -278,13 +288,15 @@
                                 </div>
                             </div>
                         </div>
+                        @endcan
 
                         <!-- ###### IMPRESSION DES ETATS -->
+                        @can("water.invoices.print")
                         <div class="modal fade" id="state_impression_{{$location['id']}}" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <span class="">Location: <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->ElectricityFactures)!=0?$location->ElectricityFactures->first()->end_index: $location->Room->electricity_counter_start_index}} ;<strong>Index fin: </strong>{{$location->end_index}}; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}} </span>
+                                        <span class="">Location: <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->ElectricityFactures)!=0?$location->ElectricityFactures->first()->end_index: $location->Room->water_counter_start_index}} ;<strong>Index fin: </strong>{{$location->end_index}}; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}} </span>
                                     </div>
                                     <div class="modal-body">
                                         <ul class="list-group">
@@ -303,13 +315,15 @@
                                 </div>
                             </div>
                         </div>
+                        @endcan
 
                         <!-- ###### MODIFIER L'INDEX DE LA DERNIERE FACTURE -->
+                        @can("water.invoices.change.index")
                         <div class="modal fade" id="updateLastFactureEndIndex_{{$location['id']}}" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <span class="">Location: <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->ElectricityFactures)!=0?$location->ElectricityFactures->first()->end_index: $location->Room->electricity_counter_start_index}} ;<strong>Index fin: </strong>{{$location->end_index}}; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}} </span>
+                                        <span class="">Location: <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->ElectricityFactures)!=0?$location->ElectricityFactures->first()->end_index: $location->Room->water_counter_start_index}} ;<strong>Index fin: </strong>{{$location->end_index}}; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}} </span>
                                     </div>
                                     <div class="modal-body">
                                         @php
@@ -331,6 +345,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endcan
 
                         @endforeach
                     </tbody>

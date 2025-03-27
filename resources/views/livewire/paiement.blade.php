@@ -21,83 +21,60 @@
                     </thead>
                     <tbody>
                         @foreach($Houses as $house)
+                        
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center"> {{$house["name"]}}</td>
+                            <td class="text-center"> <span class="badge bg-light text-dark"> {{$house["name"]}}</span> </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["total_amount_paid"]}} fcfa </strong> </button>
+                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["total_amount_paid"],2,"."," ")}} fcfa </strong>
                             </td>
 
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["commission"]}} fcfa </strong> </button>
+                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["commission"],2,"."," ")}} fcfa </strong>
                             </td>
 
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{$house["last_depenses"]}} fcfa </strong> </button>
+                                <strong class="badge bg-light text-red"><i class="bi bi-currency-exchange"></i> {{$house["last_depenses"]}} fcfa </strong>
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["net_to_paid"]!=0?$house["net_to_paid"] : ($house->PayementInitiations->last()? $house->PayementInitiations->last()->amount:0)}} fcfa </strong> </button>
+                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{$house["net_to_paid"]!=0?$house["net_to_paid"] : ($house->PayementInitiations->last()? number_format($house->PayementInitiations->last()->amount,2,"."," ") :0)}} fcfa </strong>
                             </td>
 
                             <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-dark"> <i class="bi bi-calendar-check-fill"></i>
-                                    <strong>{{$house["house_last_state"]? $house["house_last_state"]["stats_stoped_day"]  : ($house->PayementInitiations->last()? $house->PayementInitiations->last()->stats_stoped_day:"---")}} </strong>
-                                </button>
+                                <strong class="badge bg-light text-dark"> <i class="bi bi-calendar-check"></i>
+                                    {{$house["house_last_state"]?
+                                        \Carbon\Carbon::parse(date($house["house_last_state"]["stats_stoped_day"]))->locale('fr')->isoFormat('D MMMM YYYY') : 
+                                        ($house->PayementInitiations->last()? 
+                                            \Carbon\Carbon::parse(date($house->PayementInitiations->last()->stats_stoped_day))->locale('fr')->isoFormat('D MMMM YYYY'):
+                                            "---"
+                                            )
+                                    }}
+                                </strong>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center d-flex">
                                 @if($house['house_last_state'])
-                                @if($house['house_last_state']["proprietor_paid"])
-                                <button disabled class="btn btn-sm bg-light text-success">Payé</button>
-                                @elseif ($house->PayementInitiations->last())
-                                @if ($house->PayementInitiations->last()->status==3)
-                                <button class="btn btn-sm bg-light text-red" title="{{$house->PayementInitiations->last()->rejet_comments}}"> <i class="bi bi-eye"></i> Rejeté</button>
-                                @else
-                                <button disabled class="btn btn-sm bg-light text-red"> Non payé</button>
+                                    @if($house->house_last_state->proprietor_paid)
+                                        <span aria-disabled="true" class="badge bg-light text-success">Payé</span>
+                                    @else
+                                        <span aria-disabled="" class="badge bg-light text-red"> Non payé</span>
+                                    @endif
                                 @endif
-                                @else
-                                <button disabled class="btn btn-sm bg-light text-red"> Non payé</button>
-                                @endif
-                                @else
 
                                 @if($house->PayementInitiations->last())
-                                @if($house->PayementInitiations->last()->status==3)
-                                <button disabled class="btn btn-sm bg-light text-red"> Non payé</button>
-                                @else
-                                <button disabled class="btn btn-sm bg-light text-red"> Repayé</button>
-                                @endif
-                                @else
-                                ---
-                                @endif
-
+                                    @if($house->PayementInitiations->last()->status==3)
+                                        <span aria-disabled="true" class="badge bg-light text-red">mais Rejeté</span>
+                                    @endif
                                 @endif
                             </td>
                             <td class="text-center">
                                 @if($house['house_last_state'])
-                                @if($house['house_last_state']["proprietor_paid"])
-                                ---
-                                @else
-
-                                @can("proprio.payement")
-                                <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid_{{$house['id']}}"><i class="bi bi-currency-exchange"></i>Payer</button>
-                                @endcan
-
-                                @endif
-                                @else
-                                @if($house->PayementInitiations->last())
-                                @if($house->PayementInitiations->last()->status==3)
-
-                                @can("proprio.payement")
-                                <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid_{{$house['id']}}" title="Opération réjetée pour raison de -- ({{$house->PayementInitiations->last()->rejet_comments}})"><i class="bi bi-currency-exchange"></i> {{$house['net_to_paid']!=0?$house['net_to_paid']:($house->PayementInitiations->last()?$house->PayementInitiations->last()->amount:0)}} Repayer</button>
-                                @endcan
-
-                                @else
-                                ---
+                                    @if(!$house['house_last_state']["proprietor_paid"])
+                                        @can("proprio.payement")
+                                            <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid_{{$house['id']}}"><i class="bi bi-currency-exchange"></i>Payer</button>
+                                        @endcan
+                                    @endif
                                 @endif
 
-                                @else
-                                ---
-                                @endif
-                                @endif
                             </td>
                             <td class="text-center">
                                 @can("proprio.print.state")
@@ -128,7 +105,7 @@
                                                     <span class="text-red">{{$message}}</span>
                                                     @enderror
                                                     <div class="text-right mt-2">
-                                                        <button class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle-fill"></i> Valider</button>
+                                                        <button class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Valider</button>
                                                     </div>
                                                 </div>
                                             </div>

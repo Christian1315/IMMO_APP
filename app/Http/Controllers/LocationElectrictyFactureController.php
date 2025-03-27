@@ -89,7 +89,7 @@ class LocationElectrictyFactureController extends Controller
         }
 
         // ######_________
-        $kilowater_unit_price = (int) $location->electricity_unit_price;
+        $kilowater_unit_price = $location->Room->electricity_unit_price;
         $formData["amount"] = $formData["consomation"] * $kilowater_unit_price;
 
         // dd($formData["amount"]);

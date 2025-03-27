@@ -31,7 +31,7 @@ class CaisseMouvements extends Component
         }
 
         ###
-        $agency_account_mouvements = AgencyAccountSold::with(["_Account", "WaterFacture", "House", "WaterFacture"])->where(["agency_account" => $this->agency_account])->orderBy("id", "desc")->get();
+        $agency_account_mouvements = AgencyAccountSold::with(["_Account", "WaterFacture", "House", "WaterFacture"])->where(["agency_account" => $this->agency_account])->orderBy("visible",'asc')->get();
 
         $this->agencyAccountsSolds = $agency_account_mouvements;
         $this->Account = $agencyAccount->_Account;

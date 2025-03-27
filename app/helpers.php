@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
-function supervisors() {
+function supervisors()
+{
     $users = User::with(["account_agents"])->get()->filter(function ($user) {
         return $user->hasRole('Superviseur');
     });
@@ -320,14 +321,15 @@ function GET_HOUSE_DETAIL($house)
 
     $locations = $house->Locations->where("status", "!=", 3);
 
+    // dd($locations->pluck("id"));
+
     ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
-    foreach ($locations as $location) {
+    foreach ($locations as $key => $location) {
         if ($house_last_state) {
             ###___quand il y a arrêt d'etat
             ###__on recupere les factures du dernier arrêt des etats de la maison
             $last_state_date = $house_last_state->created_at;
             $now = now();
-
             $location_factures = Facture::where(["location" => $location->id, "state_facture" => 0])->whereBetween("created_at", [$last_state_date, $now])->get();
         } else {
             ###___s'il n'y a pas de dernier état, on prends en compte toutes les factures de la maison
@@ -348,7 +350,7 @@ function GET_HOUSE_DETAIL($house)
         $nbr_facture_amount_paid_array = [];
         ####___________
 
-        $location_states = $location->House->States;
+        // $location_states = $location->House->States;
 
         ####==== les factures du dernier etat =======######
         // if (count($location_states) != 0) {
@@ -428,20 +430,7 @@ function GET_HOUSE_DETAIL($house)
     $house["commission"] = ($house["total_amount_paid"] * $house->commission_percent) / 100;
     ####________
 
-    $house["net_to_paid"] = 0;
-
-    if (count($house->States) != 0) {
-        $house_last_state = $house->States->last();
-        ###_______on recupere la derniere facture de la table, copnsiderant ce state 
-        $house_last_state_facture = $house_last_state->AllFactures->last();
-
-        if (!$house_last_state_facture->state_facture) { ###___c'est pas une facture d'arrêt d'état
-            $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"]);
-        }
-    } else {
-        ###_____
-        $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"]);
-    }
+    $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"]);
 
     ####____RAJOUTONS LES INFOS DE TAUX DE PERFORMANCE DE LA MAISON
     $creation_date = date("Y/m/d", strtotime($house["created_at"]));

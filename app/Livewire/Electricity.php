@@ -98,6 +98,7 @@ class Electricity extends Component
         foreach ($locations as $location) {
             if (count($location->ElectricityFactures) != 0) {
                 $latest_facture = $location->ElectricityFactures[0]; ##__dernier facture de cette location
+                // dd($latest_facture);
 
                 ##___Cette variable determine si la derniere facture est pour un arrêt de state
 
@@ -111,6 +112,7 @@ class Electricity extends Component
 
                 ###___le montant actuel à payer pour cette location revient au montant de sa dernière facture
                 ###__quand la dernière facture est payée, le current_amount devient 0 
+                // dd($latest_facture);
                 $location["current_amount"] = $latest_facture["paid"] ? 0 : $latest_facture["amount"];
 
                 #####______montant payé
@@ -155,6 +157,7 @@ class Electricity extends Component
 
                 ###__Montant dû
                 $location["rest_facture_amount"] = $location["total_un_paid_facture_amount"] - $location["paid_facture_amount"];
+                // dd($location);
             } else {
                 ###___l'index de fin de cette location revient à l'index de fin de sa dernière facture
                 $location["end_index"] = 0;
@@ -181,7 +184,6 @@ class Electricity extends Component
                 ###__Montant dû
                 $location["rest_facture_amount"] = 0;
             }
-            // $location["factures"] = $location_factures;
             array_push($agency_locations, $location);
         }
 
@@ -192,12 +194,14 @@ class Electricity extends Component
     ###___HOUSES
     function refreshThisAgencyHouses()
     {
-        $this->houses = $this->current_agency->_Locations->map(function ($location) {
+        $locations = $this->current_agency->_Locations->where("status", "!=", 3);
+        $houses = [];
+        foreach ($locations as $location) {
             if ($location->Room->electricity) {
-                return $location->House;
+                array_push($houses, $location->House);
             }
-        });
-        $this->houses = collect($this->houses)->unique()->values();
+        }
+        $this->houses = collect($houses)->unique()->values();
     }
 
     function mount($agency)

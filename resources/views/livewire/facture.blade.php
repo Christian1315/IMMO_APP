@@ -38,6 +38,7 @@
             <br><br>
         </div>
     </div>
+
     <div class="row">
         <div class="col-12">
             <div class="table-responsive">
@@ -61,7 +62,7 @@
                     <tbody>
                         @foreach($factures as $facture)
                         <tr class="align-items-center">
-                            <td class="text-center "><button class="text-red btn btn-sm btn-light"> {{$facture["facture_code"]}}</button></td>
+                            <td class="text-center "><span class="badge text-red btn-light"> {{$facture["facture_code"]?$facture["facture_code"]:'--'}}</span></td>
                             <td class="text-center text-red"><button class="btn btn-sm btn-light"> {{$facture["Location"]["House"]["Supervisor"]["name"]}}</button></td>
                             <td class="text-center">{{$facture["Owner"]["name"]}}</td>
                             <td class="text-center"> <button class="btn btn-sm btn-light">{{$facture["Location"]["House"]["name"]}} </button> </td>

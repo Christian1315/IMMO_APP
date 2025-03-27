@@ -111,7 +111,7 @@ class RoleAndPermissionSeeder extends Seeder
                     "Arrêter les états de facture d'électricité d'une location" => "electicity.invoices.stop.state",
                     "Payer une facture d'électricité d'une location" => "electicity.invoices.payement",
                     "Imprimer les états de facture d'électricité d'une location" => "electicity.invoices.print",
-                    "Modifier l'index de fin d'une location" => "electicity.invoices.print",
+                    "Modifier l'index de fin d'une location" => "electicity.invoices.change.index",
                 ]
             ),
 
@@ -122,7 +122,7 @@ class RoleAndPermissionSeeder extends Seeder
                     "Arrêter les états de facture d'eau d'une location" => "water.invoices.stop.state",
                     "Payer une facture d'eau d'une location" => "water.invoices.payement",
                     "Imprimer les états de facture d'eau d'une location" => "water.invoices.print",
-                    "Modifier l'index de fin d'une location" => "water.invoices.print",
+                    "Modifier l'index de fin d'une location" => "water.invoices.change.index",
                 ]
             ),
 
