@@ -194,7 +194,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn bg-red">Enregistrer</button>
+                            <button class="w-100 btn-sm btn bg-red"><i class="bi bi-check-circle-fill"></i> Enregistrer</button>
                         </div>
                     </form>
                 </div>
