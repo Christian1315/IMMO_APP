@@ -3,26 +3,19 @@
         <div class="d-flex header-bar">
             <h2 class="accordion-header">
                 <button type="button" class="btn btn-sm bg-dark" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                   <i class="bi bi-cloud-plus-fill"></i> Ajouter
+                    <i class="bi bi-cloud-plus-fill"></i> Ajouter
                 </button>
             </h2>
         </div>
     </div>
 
     <small>
-        @if(auth())
-        @if(auth()->user()->is_master || auth()->user()->is_admin || auth()->user()->user_agency)
         <button wire:click="displayCautionOptions" class="btn btn-sm bg-light text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i>@if($display_caution_options) Fermer @else Génerer les états des cautions @endif</button> &nbsp;
 
         @if($display_caution_options)
         <button wire:click="GenerateAllAgencyiesCaution" class="btn btn-sm bg-light d-block"><i class="bi bi-file-earmark-pdf-fill"></i> Pour toutes les agences </button>
         <button wire:click="showGenerateCautionByPeriodeForm" class="btn btn-sm bg-light d-block"><i class="bi bi-calendar-minus"></i> @if($generate_caution_by_periode) Fermer @else Par période @endif</button>
         <button wire:click="ShowGenerateCautionByHouseForm" class="btn btn-sm bg-light d-block"><i class="bi bi-house-check-fill"></i>@if($generate_caution_by_house) Fermer @else Par maison @endif </button>
-        @endif
-
-        @else
-        <button disabled class="btn btn-sm bg-red text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les états des cautions </button> &nbsp;
-        @endif
         @endif
     </small>
     <br><br>
@@ -93,7 +86,7 @@
             <div class="col-12">
                 <div class="alert bg-dark text-white">
                     Cautions générées avec succès! Cliquez sur le lien ci-dessous pour la télécharger: <br>
-                    <a class="text-red" href="{{$cautions_link}}"  rel="noopener noreferrer">Télécharger</a>
+                    <a class="text-red" href="{{$cautions_link}}" rel="noopener noreferrer">Télécharger</a>
                 </div>
             </div>
         </div>
@@ -106,7 +99,7 @@
             <div class="col-12">
                 <div class="alert bg-dark text-white">
                     Statistique des prestations générées avec succès! Cliquez sur le lien ci-dessous pour la télécharger: <br>
-                    <a class="text-red" href="{{$cautions_link}}"  rel="noopener noreferrer">Télécharger</a>
+                    <a class="text-red" href="{{$cautions_link}}" rel="noopener noreferrer">Télécharger</a>
                 </div>
             </div>
         </div>
@@ -237,29 +230,29 @@
                         @foreach($agencies as $agency)
                         <tr class="align-items-center text-center">
                             <td class="text-center">{{$loop->index+1}}</td>
-                            <td class="text-center">{{$agency["name"]}}</td>
-                            <td class="text-center">{{$agency["phone"]}}</td>
-                            <td class="text-center">{{$agency["email"]}}</td>
-                            <td class="text-center">{{$agency->city}}</td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$agency["name"]}} </span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$agency["phone"]}} </span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$agency["email"]}} </span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$agency->city}} </span></td>
                             <td class="text-center">
                                 @if($agency->rccm_file)
-                                <a href="{{$agency->rccm_file}}" class="text-danger"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
+                                <a href="{{$agency->rccm_file}}" class="btn btn-sm text-danger" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>
                                 @else
                                 ---
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a  href="/{{$agency['id']}}/show_prestation_statistique"  class="btn btn-sm bg-dark shadow-lg"><i class="bi bi-list-ol"></i> Prestation</a>
+                                <a href="/{{$agency['id']}}/show_prestation_statistique" class="btn btn-sm bg-dark shadow-lg"><i class="bi bi-list-ol"></i> Prestation</a>
                             </td>
-                            <td class="text-center"> <a href="{{$agency->ifu_file}}" class="text-danger"  rel="noopener noreferrer"><i class="bi bi-eye"></i></a> </td>
+                            <td class="text-center"> <a href="{{$agency->ifu_file}}" class="text-danger" rel="noopener noreferrer"><i class="bi bi-eye"></i></a> </td>
                             <td class="text-center">
                                 <div class="dropdown">
-                                    <button class="btn btn-light textx-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="btn btn-sm bg-light text-red dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-hand-index-thumb"></i> Gérer
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a  class="text-dark btn btn-sm" href="/{{$agency['id']}}/caution_html" class="shadow-lg"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les Cautions</a></li>
-                                        <li><a target="_blank"  href="/{{crypId($agency['id'])}}/manage-agency" class="btn btn-sm bg-warning text-dark text-uppercase">
+                                        <li><a class="text-dark btn btn-sm" href="/{{$agency['id']}}/caution_html" class="shadow-lg"><i class="bi bi-file-earmark-pdf-fill"></i> Génerer les Cautions</a></li>
+                                        <li><a target="_blank" href="/{{crypId($agency['id'])}}/manage-agency" class="btn btn-sm bg-warning text-dark text-uppercase">
                                                 <i class="bi bi-house-x-fill"></i> Gérer l'agence
                                             </a>
                                         </li>
