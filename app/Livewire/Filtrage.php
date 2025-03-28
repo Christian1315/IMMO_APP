@@ -77,30 +77,6 @@ class Filtrage extends Component
     ###___HOUSES
     function refreshThisAgencyBilan()
     {
-        // $supervisor = "null";
-        // $action = "agency";
-
-        // $response = Http::withHeaders($this->headers)->get($this->BASE_URL . "immo/agency/" . $this->agency['id'] . "/$supervisor/$action/bilan")->json();
-        // if (!$response) {
-        //     $this->generalError = "Une erreure est survenue! Veuillez réessayez plus tard!";
-        // } else {
-        //     if (!$response["status"]) {
-        //         $this->houses = [];
-        //     } else {
-
-        //         $this->proprietors = $response["data"]["__proprietors"];
-        //         $this->houses = $response["data"]["agency_houses"];
-        //         $this->locators = $response["data"]["locators"];
-        //         $this->locations = $response["data"]["locations"];
-        //         $this->rooms = $response["data"]["rooms"];
-        //         $this->factures = $response["data"]["_factures"];
-        //         $this->factures_total_amount = $response["data"]["factures_total_amount"];
-        //     }
-        // }
-
-
-
-        $agency_houses = [];
         $locations = [];
         $locators = [];
         $moved_locators = [];
@@ -110,7 +86,6 @@ class Filtrage extends Component
 
         foreach ($this->agency->_Houses as $house) {
             foreach ($house->Locations as $location) {
-
                 array_push($locations, $location);
                 array_push($locators, $location->Locataire);
                 array_push($rooms, $location->Room);
@@ -120,7 +95,7 @@ class Filtrage extends Component
                     array_push($moved_locators, $location->Locataire);
                 }
 
-                foreach ($location->AllFactures as $facture) {
+                foreach ($location->AllFactures->where("state_facture",false) as $facture) {
                     array_push($factures, $facture);
                     array_push($factures_total_amount, $facture["amount"]);
                 }
@@ -131,13 +106,13 @@ class Filtrage extends Component
         $this->proprietors = $this->agency->_Proprietors;
         $this->houses = $this->agency->_Houses;
         $this->locators  = $this->agency->_Locataires;
+        $this->locations  = collect($locations);
         $this->rooms  = $rooms;
         $agency["moved_locators"] = $moved_locators;
         $this->factures = $factures;
         $agency["rooms"] = $rooms;
         $this->factures_total_amount = $factures_total_amount;
     }
-
     ###____
 
     public function render()

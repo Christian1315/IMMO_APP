@@ -10,10 +10,10 @@
         <div class="col-md-12">
             <h3 class="">Maison : {{$house['name']}} </h3>
             <br>
-            <h6 class=""> Montant total: <em class="text-red"> {{$locationsFiltered["beforeStopDateTotal_to_paid"]}} </em> </h6>
+            <h6 class=""> Montant total: <b class="text-red"> {{number_format($locationsFiltered["beforeStopDateTotal_to_paid"],2,"."," ")}} fcfa</b> </h6>
 
             <div class="table-responsive shadow-lg p-3">
-                <table id="myTable" class="table table-striped table-sm shadow-lg p-3">
+                <table id="myTable" class="table table-striped table-sm p-3">
                     <thead class="bg_dark">
                         <tr>
                             <th class="text-center">N°</th>
@@ -29,12 +29,12 @@
                         @foreach($locationsFiltered['beforeStopDate'] as $locator)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center">{{$locator["name"]}}</td>
-                            <td class="text-center">{{$locator["prenom"]}}</td>
-                            <td class="text-center">{{$locator["phone"]}}</td>
-                            <td class="text-center">{{$locator["adresse"]}}</td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light text-red"><i class="bi bi-calendar2-check"></i> {{$locator["month"]}}</button> </td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light text-red">{{$locator["amount_paid"]}}</button> </td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$locator["name"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$locator["prenom"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$locator["phone"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$locator["adresse"]}}</span></td>
+                            <td class="text-center"> <span class="badge bg-light text-red"><i class="bi bi-calendar2-check"></i> {{\Carbon\Carbon::parse($locator["month"])->locale('fr')->isoFormat('D MMMM YYYY')}}</span> </td>
+                            <td class="text-center"> <span class="badge bg-light text-red">{{number_format($locator["amount_paid"],2,"."," ")}}</span> </td>
                         </tr>
                         @endforeach
                     </tbody>

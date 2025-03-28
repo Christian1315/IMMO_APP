@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agency;
 use App\Models\Facture;
+use App\Models\Location;
 use App\Models\Payement;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -308,30 +309,27 @@ class AdminController extends Controller
             ]
         )->validate();
 
-        $payements = Payement::all();
+        // dd($request->date);
+        $factures = Facture::get()->filter(function ($facture) use ($request){
+            $facture_date = date("Y-m-d",$facture->created_date);
+            return $request->date===$facture_date;
+            
+        });
+
+        // dd($factures);
+        $locations = Location::where("agency",deCrypId($agencyId))->whereIn("id",$factures->pluck("location"))->get();
+        // dd($locations);
 
         $locators = [];
 
-        ###___RECUPERATION DES PAYEMENTS LIES A CETTE LOCATION
-        $agency_paiements = [];
-        foreach ($payements as $payement) {
-            if ($payement->Location->agency == deCrypId($agencyId)) {
-                array_push($agency_paiements, $payement);
-            }
-        }
-
-        ##__
-        $date = date("d-m-Y", strtotime($formData["date"]));
-        foreach ($agency_paiements as $agency_paiement) {
-            $payement_date = date("d-m-Y", strtotime($agency_paiement->created_at));
-            if (strtotime($payement_date) == strtotime($date)) {
-                array_push($locators, $agency_paiement->Location->Locataire);
-            }
+        foreach ($locations as $location) {
+            array_push($locators,$location->Locataire);
         }
 
         ###___
+        session()->flash("any_date",$request->date);
         alert()->success("Succès", "Filtre éffectué avec succès!");
-        return back()->withInput()->with(["any_date" => $date, "locators" => $locators]);
+        return back()->withInput()->with(["locators" => $locators]);
     }
 
 

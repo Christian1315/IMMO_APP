@@ -21,16 +21,16 @@
                         @foreach($houses as $house)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center text-red"> <button class="btn btn-sm btn-light">{{$house["name"]}} </button> </td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light">@if($house["latitude"]) {{$house["latitude"]}} @else --- @endif </button> </td>
-                            <td class="text-center">@if($house["longitude"]) {{$house["longitude"]}} @else --- @endif</td>
-                            <td class="text-center">{{$house["Type"]["name"]}}</td>
-                            <td class="text-center text-red"> <button class="btn btn-sm btn-light"> {{$house["Supervisor"]["name"]}}</button> </td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light"> {{$house["Proprietor"]["lastname"]}} {{$house["Proprietor"]["firstname"]}}</button> </td>
+                            <td class="text-center text-red"> <span class="badge bg-light text-dark">{{$house["name"]}} </span> </td>
+                            <td class="text-center"> <span class="badge bg-light text-dark">@if($house["latitude"]) {{$house["latitude"]}} @else --- @endif </span> </td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> @if($house["longitude"]) {{$house["longitude"]}} @else --- @endif</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$house["Type"]["name"]}}</span></td>
+                            <td class="text-center text-red"> <span class="badge bg-light text-dark"> {{$house["Supervisor"]["name"]}}</span> </td>
+                            <td class="text-center"> <span class="badge bg-light text-dark"> {{$house["Proprietor"]["lastname"]}} {{$house["Proprietor"]["firstname"]}}</span> </td>
 
                             <td class="text-center">
-                                <a  href="{{route('location.FiltreBeforeStateDateStoped', crypId($house['id']))}}" class="btn btn-sm btn-dark"><i class="bi bi-caret-left-square"></i></a> &nbsp;
-                                <a  href="{{route('location.FiltreAfterStateDateStoped', crypId($house['id']))}}" class="btn btn-sm bg-red"><i class="bi bi-caret-right-square"></i></a>
+                                <a  href="{{route('location.FiltreBeforeStateDateStoped', crypId($house['id']))}}" class="btn btn-sm btn-dark" title="Avant arrêt des états"><i class="bi bi-caret-left-square"></i></a> &nbsp;
+                                <a  href="{{route('location.FiltreAfterStateDateStoped', crypId($house['id']))}}" class="btn btn-sm bg-red" title="Après arrêt des états"><i class="bi bi-caret-right-square"></i></a>
                                 &nbsp;
                             </td>
                         </tr>

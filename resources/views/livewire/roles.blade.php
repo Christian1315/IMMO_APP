@@ -234,7 +234,7 @@
 
     <!-- ADD ROLES -->
     <div class="modal fade" id="addRoleModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0">
                 <div class="modal-header text-white border-0 py-3 bg-light">
                     <div class="d-flex align-items-center">

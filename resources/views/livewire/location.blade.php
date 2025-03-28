@@ -946,7 +946,7 @@
                     $("#prorata_date").val(location_locataire.prorata_date)
                 }
             }).catch(() => {
-                alert("une erreure s'est produite")
+                //alert("une erreure s'est produite")
             })
         }
 
@@ -970,7 +970,7 @@
                 $('#loading').attr("hidden", "hidden");
 
             }).catch(() => {
-                alert("une erreure s'est produite")
+                //alert("une erreure s'est produite")
             })
         }
 

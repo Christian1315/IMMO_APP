@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -86,10 +85,10 @@ class Recovery05 extends Component
 
                     $location_payement_date = date("Y/m/d",  strtotime($facture->echeance_date));
 
-                    // dd($house_last_state_date, $location_echeance_date, $location_payement_date);
                     ####___determinons le jour de la date d'écheance
                     $day_of_this_date = explode("/", $location_echeance_date)[2];
                     ###____
+                    
                     ###___on verifie si la date de paiement se trouve entre *la date d'arrêt* de l'etat et *la date d'échéance*
                     if ($house_last_state_date > $location_payement_date && $location_payement_date <= $location_echeance_date) {
                         ###___on verifie si le jour de la date d'écheance est le 05
@@ -101,7 +100,6 @@ class Recovery05 extends Component
                 };
             }
         };
-        // dd($locators_that_paid_after_state_stoped_day_of_all_houses);
 
         $this->locators = $locators_that_paid_after_state_stoped_day_of_all_houses;
     }

@@ -68,7 +68,7 @@
                         </tr>
                         <tr>
                             <td colspan="2" class="bg-warning p-3"> <strong>Montant total en facture: </strong> </td>
-                            <td class="p-3 bg-red">= {{array_sum($factures_total_amount)}} fcfa </td>
+                            <td class="p-3 bg-red">= {{number_format(array_sum($factures_total_amount),2,"."," ")}} fcfa </td>
                         </tr>
                     </tbody>
 
@@ -79,7 +79,7 @@
 
     <!-- MODAL DES FACTURES -->
     <div class="modal fade" id="ShowFactures" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-body">
                     <h4 class="">Total des factures: <strong class="text-red"> {{count($factures)}} </strong> </h4>
@@ -92,28 +92,28 @@
                                     <th class="text-center">Maison</th>
                                     <th class="text-center">Chambre</th>
                                     <th class="text-center">Locataire</th>
-                                    <th class="text-center">Facture</th>
+                                    <!-- <th class="text-center">Facture</th> -->
                                     <th class="text-center">Montant</th>
                                     <th class="text-center">Commentaire</th>
-                                    <th class="text-center">Type</th>
+                                    <!-- <th class="text-center">Type</th> -->
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($factures as $facture)
                                 <tr class="align-items-center">
                                     <td class="text-center">{{$loop->index+1}}</td>
-                                    <td class="text-center">{{$facture["Owner"]["name"]}}</td>
-                                    <td class="text-center">{{$facture["Location"]["House"]["name"]}}</td>
-                                    <td class="text-center">{{$facture["Location"]["Room"]["number"]}} </td>
-                                    <td class="text-center">{{$facture["Location"]["Locataire"]["name"]}} {{$facture["Location"]["Locataire"]["prenom"]}}</td>
-                                    <td class="text-center">
-                                        <a  href="{{$facture['facture']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i> </a>
-                                    </td>
-                                    <td class="text-center">{{$facture['amount']}}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Owner"]["name"]}} </span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Location"]["House"]["name"]}} </span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Location"]["Room"]["number"]}}  </span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Location"]["Locataire"]["name"]}} {{$facture["Location"]["Locataire"]["prenom"]}} </span></td>
+                                    <!-- <td class="text-center">
+                                        <a href="{{$facture['facture']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i> </a>
+                                    </td> -->
+                                    <td class="text-center"><span class="bg-light badge text-red"> {{number_format($facture['amount'],2,"."," ")}}</span> </td>
                                     <td class="text-center">
                                         <textarea name="" rows="1" class="form-control" placeholder="{{$facture['comments']}}"></textarea>
                                     </td>
-                                    <td class="text-center">{{$facture['Type']['name']}}</td>
+                                    <!-- <td class="text-center">{{$facture['Type']['name']}}</td> -->
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -158,7 +158,7 @@
                             @endforeach
                         </tbody>
                         @else
-                        <p class="text-center text-red">Aucun locataire n'a été ajouté!</p>
+                        <p class="text-center text-red">Aucun locataire n'a été demenagé!</p>
                         @endif
                     </table>
                 </div>

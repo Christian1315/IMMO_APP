@@ -829,7 +829,12 @@ class LocationController extends Controller
             $rules = self::paiement_rules();
             $messages = self::paiement_messages();
 
-            Validator::make($formData, $rules, $messages)->validate();
+            $validator = Validator::make($formData, $rules, $messages);
+
+            if ($validator->failed()) {
+                alert()->error("Erreure", $validator->errors());
+                return back()->withInput();
+            }
 
             ###___TRAITEMENT DES DATAS
             $location = Location::with(["House", "Locataire", "Room"])->find($formData["location"]);
@@ -1002,7 +1007,6 @@ class LocationController extends Controller
             alert()->success("Succès", "Paiement ajouté avec succès!!");
             return back()->withInput();
         } catch (\Throwable $th) {
-            dd($th);
             DB::rollBack();
             alert()->success("Error", "Une erreure est survenue! ");
             return back()->withInput();
@@ -1074,7 +1078,7 @@ class LocationController extends Controller
             // }
 
             ###__ON ARRËTE LES ETATS
-            
+
             $data["owner"] = $formData["owner"];
             $data["house"] = $formData["house"];
             $data["state_stoped_day"] = now();
@@ -1144,22 +1148,21 @@ class LocationController extends Controller
         }
 
         ###__DATE DU DERNIER ARRET DE CETTE MAISON
-        $state_stop_date_of_this_house = date("Y/m/d", strtotime($last_state->stats_stoped_day));
+        $state_stop_date_of_this_house = date("Y/m/d H:m:s", strtotime($last_state->stats_stoped_day));
 
         ###___LES FACTURES DU DERNIER ETAT
         $last_state_factures = $last_state->Factures;
 
         ###__LES PAIEMENTS LIES A LA LOCATION DE CETTE MAISON
-        $locators_that_paid_before_state_stoped_day = [];
         $locators_that_paid_after_state_stoped_day = [];
 
         $amount_total_to_paid_before_array = [];
         $amount_total_to_paid_after_array = [];
 
-        foreach ($last_state_factures as $facture) {
-            $location_payement_date = date("Y/m/d", strtotime($facture->created_at));
+        foreach ($last_state_factures as $key => $facture) {
+            $location_payement_date = date("Y/m/d H:m:s", strtotime($facture->created_at));
 
-            if ($location_payement_date < $state_stop_date_of_this_house) {
+            if ($state_stop_date_of_this_house  < $location_payement_date) {
                 $data["name"] = $facture->Location->Locataire->name;
                 $data["prenom"] = $facture->Location->Locataire->prenom;
                 $data["email"] = $facture->Location->Locataire->email;
@@ -1167,37 +1170,20 @@ class LocationController extends Controller
                 $data["adresse"] = $facture->Location->Locataire->adresse;
                 $data["comments"] = $facture->Location->Locataire->comments;
                 $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->Location->next_loyer_date;
+                $data["month"] = $facture->created_at;//$facture->Location->next_loyer_date;
                 $data["amount_paid"] = $facture->amount;
 
                 ##___
                 array_push($amount_total_to_paid_before_array, $data["amount_paid"]);
-                array_push($locators_that_paid_before_state_stoped_day, $data);
-            } else {
-                $data["name"] = $facture->Location->Locataire->name;
-                $data["prenom"] = $facture->Location->Locataire->prenom;
-                $data["email"] = $facture->Location->Locataire->email;
-                $data["phone"] = $facture->Location->Locataire->phone;
-                $data["adresse"] = $facture->Location->Locataire->adresse;
-                $data["comments"] = $facture->Location->Locataire->comments;
-                $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->Location->next_loyer_date;
-                $data["amount_paid"] = $facture->amount;
-
-                ####_______
-                array_push($amount_total_to_paid_after_array, $data["amount_paid"]);
                 array_push($locators_that_paid_after_state_stoped_day, $data);
             }
         }
 
         ###____
-        $locationsFiltered["beforeStopDate"] = $locators_that_paid_before_state_stoped_day;
         $locationsFiltered["afterStopDate"] = $locators_that_paid_after_state_stoped_day;
 
         $locationsFiltered["afterStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_after_array);
-        $locationsFiltered["beforeStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_before_array);
-
-        $locationsFiltered["total_locators"] = count($locationsFiltered["beforeStopDate"]) + count($locationsFiltered["afterStopDate"]);
+        $locationsFiltered["total_locators"] = count($locationsFiltered["afterStopDate"]);
 
         // dd($locationsFiltered);
         ####____
@@ -1222,20 +1208,18 @@ class LocationController extends Controller
         }
 
         ###__DATE DU DERNIER ARRET DE CETTE MAISON
-        $state_stop_date_of_this_house = date("Y/m/d", strtotime($last_state->stats_stoped_day));
+        $state_stop_date_of_this_house = date("Y/m/d H:m:s", strtotime($last_state->stats_stoped_day));
 
         ###___LES FACTURES DU DERNIER ETAT
         $last_state_factures = $last_state->Factures;
 
         ###__LES PAIEMENTS LIES A LA LOCATION DE CETTE MAISON
         $locators_that_paid_before_state_stoped_day = [];
-        $locators_that_paid_after_state_stoped_day = [];
 
         $amount_total_to_paid_before_array = [];
-        $amount_total_to_paid_after_array = [];
 
         foreach ($last_state_factures as $facture) {
-            $location_payement_date = date("Y/m/d", strtotime($facture->created_at));
+            $location_payement_date = date("Y/m/d H:m:s", strtotime($facture->created_at));
 
             if ($location_payement_date < $state_stop_date_of_this_house) {
                 $data["name"] = $facture->Location->Locataire->name;
@@ -1245,39 +1229,23 @@ class LocationController extends Controller
                 $data["adresse"] = $facture->Location->Locataire->adresse;
                 $data["comments"] = $facture->Location->Locataire->comments;
                 $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->Location->next_loyer_date;
+                $data["month"] = $facture->created_at;//$facture->Location->next_loyer_date;
                 $data["amount_paid"] = $facture->amount;
 
                 ##___
                 array_push($amount_total_to_paid_before_array, $data["amount_paid"]);
                 array_push($locators_that_paid_before_state_stoped_day, $data);
-            } else {
-                $data["name"] = $facture->Location->Locataire->name;
-                $data["prenom"] = $facture->Location->Locataire->prenom;
-                $data["email"] = $facture->Location->Locataire->email;
-                $data["phone"] = $facture->Location->Locataire->phone;
-                $data["adresse"] = $facture->Location->Locataire->adresse;
-                $data["comments"] = $facture->Location->Locataire->comments;
-                $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->Location->next_loyer_date;
-                $data["amount_paid"] = $facture->amount;
-
-                ####_______
-                array_push($amount_total_to_paid_after_array, $data["amount_paid"]);
-                array_push($locators_that_paid_after_state_stoped_day, $data);
-            }
+            } 
         }
 
         ###____
         $locationsFiltered["beforeStopDate"] = $locators_that_paid_before_state_stoped_day;
-        $locationsFiltered["afterStopDate"] = $locators_that_paid_after_state_stoped_day;
 
-        $locationsFiltered["afterStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_after_array);
         $locationsFiltered["beforeStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_before_array);
 
-        $locationsFiltered["total_locators"] = count($locationsFiltered["beforeStopDate"]) + count($locationsFiltered["afterStopDate"]);
+        $locationsFiltered["total_locators"] = count($locationsFiltered["beforeStopDate"])
+        ;
 
-        // dd($locationsFiltered);
         ####____
         return view("locators.locator-before-stop-date", compact("locationsFiltered", "house"));
     }
