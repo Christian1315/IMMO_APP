@@ -46,7 +46,7 @@
             <input class="form-control form-control-dark w-100 bg-light search--bar" type="text" placeholder="Recherche" aria-label="searh">
             <ul class="navbar-nav px-3">
                 <li class="nav-item text-nowrap text-center">
-                    <a class="btn btn-sm btn-light text-center" href="logout">
+                    <a class="btn btn-sm btn-light text-center" href="{{route('logout')}}">
                         SE DECONNECTER
                         &nbsp;
                         @if(auth()->user())

@@ -58,7 +58,7 @@
                             {{ auth()->user()->username }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">
-                            <li><a class="dropdown-item" href="/logout">Se Déconnecter</a></li>
+                            <li><a class="dropdown-item" href="{{route('logout')}}">Se Déconnecter</a></li>
                             <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
                                     data-bs-target="#updatePassword">Mot de passe</a></li>
                             <li>
