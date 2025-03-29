@@ -93,7 +93,7 @@ function Calcul_Perfomance(int $nbr_buzy_rooms, int $nbr_free_rooms)
 
 function Change_date_to_text($date)
 {
-    return Carbon::parse($date)->toFormattedDateString();
+    return  \Carbon\Carbon::parse($date)->locale('fr')->isoFormat('MMMM YYYY');
 }
 
 function userCount()

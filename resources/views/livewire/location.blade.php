@@ -560,7 +560,7 @@
                                         @if ($location->status!=3)
                                         @can("location.collect")
                                         <li>
-                                            <button data-bs-toggle="modal" data-bs-target="#encaisse_{{$location['id']}}" class="w-100 btn btn-sm bg-dark">
+                                            <button data-bs-toggle="modal" data-bs-target="#encaisse" onclick="encaisser({{$location}})" class="w-100 btn btn-sm bg-dark">
                                                 <i class="bi bi-currency-exchange"></i> Encaisser
                                             </button>
                                         </li>
@@ -576,7 +576,7 @@
 
                                         @can("location.edit")
                                         <li>
-                                            <button class="w-100 btn btn-sm bg-warning" data-bs-toggle="modal" data-bs-target="#updateModal_{{$location['id']}}"><i class="bi bi-person-lines-fill"></i> Modifier</button>
+                                            <button class="w-100 btn btn-sm bg-warning" onclick="editLocation({{$location}})" data-bs-toggle="modal" data-bs-target="#updateModal"><i class="bi bi-person-lines-fill"></i> Modifier</button>
                                         </li>
                                         @endcan
                                         @endif
@@ -612,241 +612,6 @@
                                 </div>
                             </td>
                         </tr>
-
-                        @if ($location->status!=3)
-                        
-                        <!-- ###### MODEL D'ENCAISSEMENT ###### -->
-                        @can("location.collect")
-                        <div class="modal fade" id="encaisse_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h6 class="modal-title fs-5" id="exampleModalLabel">Encaissement </h6>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="">
-                                            <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
-                                            <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
-                                            <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
-                                        </div>
-                                    </div>
-                                    <form action="{{route('location._AddPaiement')}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3" enctype="multipart/form-data">
-                                        @csrf
-                                        <input type="hidden" name="location" value="{{$location->id}}">
-
-                                        <div class="row p-3">
-                                            <div class="col-md-12">
-                                                <div class="mb-3">
-                                                    <label>Type de paiement </label>
-                                                    <select name="type" class="form-select form-control" aria-label="Default select example">
-                                                        @foreach($paiements_types as $type)
-                                                        <option value="{{$type['id']}}" name="type" @if($type->id==$location->Type->id) selected @endif>{{$type["name"]}}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('type')
-                                                    <span class="text-red">{{$message}}</span>
-                                                    @enderror
-                                                </div>
-                                                <div class="mb-3">
-                                                    <span>Date ou mois pour lequel vous voulez encaisser pour cette location</span>
-                                                    <input disabled value="{{ \Carbon\Carbon::parse($location['next_loyer_date'])->locale('fr')->isoFormat('MMMM YYYY')}}" class="form-control">
-                                                </div>
-
-                                                @if($location->Locataire->prorata)
-                                                <div class="">
-                                                    <span class="text-primary">Ce locataire est un prorata(veuillez renseigner ses infos)</span>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="" class="d-block">Nbre de jour du prorata</label>
-                                                    <input value="{{old('prorata_days')}}" name="prorata_days" placeholder="Nbre de jour du prorata ..." class="form-control">
-                                                    @error('prorata_days')
-                                                    <span class="text-red">{{$message}}</span>
-                                                    @enderror
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="" class="d-block">Montant du prorata</label>
-                                                    <input value="{{old('prorata_amount')}}" name="prorata_amount" placeholder="Montant du prorata ..." class="form-control">
-                                                    @error('prorata_amount')
-                                                    <span class="text-red">{{$message}}</span>
-                                                    @enderror
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="" class="d-block">Date du prorata</label>
-                                                    <input value="{{$location->Locataire->prorata_date}}" name="prorata_date" type="date" class="form-control" hidden>
-                                                    <input value="{{$location->Locataire->prorata_date}}" disabled type="date" class="form-control">
-                                                </div>
-                                                @endif
-                                                <div class="mb-3">
-                                                    <span>Uploader la facture ici</span> <br>
-                                                    <input type="file" name="facture" class="form-control">
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="" class="d-block">Code de facture</label>
-                                                    <input value="{{old('facture_code')}}" name="facture_code" placeholder="Code facture ...." class="form-control">
-                                                    @error('facture_code')
-                                                    <span class="text-red">{{$message}}</span>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        @endcan
-
-                        <!-- ###### MODEL DE DEMENAGEMENT ###### -->
-                        @can("location.removed")
-                        <div class="modal fade" id="demenage_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h6 class="modal-title fs-5" id="exampleModalLabel">Démenagement </h6>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="">
-                                            <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
-                                            <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
-                                            <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
-                                        </div>
-                                    </div>
-                                    <form action="{{route('location.DemenageLocation',crypId($location['id']))}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
-                                        @csrf
-                                        <div class="p-2">
-                                            <textarea name="move_comments" required class="form-control" placeholder="Donner une raison justifiant ce déménagement"></textarea>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        @endcan
-
-                        <!-- ###### MODEL DE MODIFICATION ###### -->
-                        @can("location.edit")
-                        <div class="modal fade" id="updateModal_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h6 class="modal-title fs-5" id="exampleModalLabel">Modification </h6>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="">
-                                            <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
-                                            <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
-                                            <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
-                                        </div>
-                                        <form action="{{route('location.UpdateLocation',crypId($location->id))}}" method="POST" class="shadow-lg">
-                                            @csrf
-                                            @method("PATCH")
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="mb-3">
-                                                        <label for="" class="d-block">Maison</label>
-                                                        <select class="form-select form-control" name="house" aria-label="Default select example">
-                                                            @foreach($houses as $house)
-                                                            <option value="{{$house['id']}}">{{$house['name']}}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <br>
-
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Chambre</label>
-                                                        <select class="form-select form-control" name="room" aria-label="Default select example">
-                                                            @foreach($rooms as $room)
-                                                            <option value="{{$room['id']}}">{{$room['number']}}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <br>
-
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Locataire</label>
-                                                        <select class="form-select form-control" name="locataire" aria-label="Default select example">
-                                                            @foreach($locators as $locator)
-                                                            <option value="{{$locator['id']}}">{{$locator['name']}} {{$locator['prenom']}}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Type</label>
-                                                        <select class="form-select form-control" name="type">
-                                                            @foreach($location_types as $type)
-                                                            <option value="{{$type['id']}}">{{$type['name']}}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <br>
-                                                    <div class="mb-3">
-                                                        <span>Uploader le bordereau du caution</span><br>
-                                                        <input type="file" name="caution_bordereau" class="form-control">
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Caution d'électricité</label>
-                                                        <input value="{{$location->caution_electric}}" type="text" name="caution_electric" class="form-control" placeholder="Caution d'électricité...">
-
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Numéro du compteur eau ...</label>
-                                                        <input value="{{$location->water_counter}}" type="text" name="water_counter" placeholder="Compteur eau..." class="form-control">
-                                                    </div><br>
-
-                                                </div>
-                                                <!--  -->
-                                                <div class="col-md-6">
-                                                    <div class="mb-3">
-                                                        <span>Uploader le contrat</span><br>
-                                                        <input type="file" name="img_contrat" class="form-control">
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Caution eau</label>
-                                                        <input value="{{$location->caution_water}}" type="text" name="caution_water" class="form-control" placeholder="Caution eau ....">
-
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Numéro du compteur électrique</label>
-                                                        <input value="{{$location->electric_counter}}" type="text" name="electric_counter" class="form-control" placeholder="Compteur électricité ....">
-                                                    </div><br>
-
-                                                    <div class="mb-3">
-                                                        <span>Uploader l'image de la prestation</span><br>
-                                                        <input type="file" name="img_prestation" class="form-control">
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Nbr de caution loyer</label>
-                                                        <input value="{{$location->caution_number}}" type="number" name="caution_number" class="form-control" placeholder="Nombre de caution loyer ....">
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <span>Frais de reprise de peinture</span><br>
-                                                        <input value="{{$location->frais_peiture}}" type="text" name="frais_peiture" class="form-control" placeholder="Frais de reprise de peinture ....">
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block" for="">Prestation</label>
-                                                        <input value="{{$location->prestation}}" type="number" name="prestation" placeholder="La prestation..." class="form-control">
-                                                    </div><br>
-                                                    <div class="mb-3">
-                                                        <label class="d-block">Numéro contrat</label>
-                                                        <input value="{{$location->numero_contrat}}" type="text" name="numero_contrat" placeholder="Numéro du contrat..." class="form-control">
-                                                    </div><br>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="w-100 btn btn-sm bg-red">Modifier</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endcan
-                        @endif
 
                         <!-- ###### MODEL DE SHOW DES FACTURES ###### -->
                         @can("location.generate.invoices")
@@ -893,7 +658,6 @@
                             </div>
                         </div>
                         @endcan
-
                         @endforeach
                     </tbody>
                 </table>
@@ -902,12 +666,278 @@
     </div>
     @endif
 
+    @if($location->status!=3)
+    <!-- ###### MODEL D'ENCAISSEMENT ###### -->
+    @can("location.collect")
+    <div class="modal fade" id="encaisse" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fs-5" id="exampleModalLabel">Encaissement </h6>
+                </div>
+                <div class="modal-body">
+                    <div class="">
+                        <strong>Maison: <em class="text-red location_name"> </em> </strong> <br>
+                        <strong>Chambre: <em class="text-red location_room"> </em> </strong> <br>
+                        <strong>Locataire: <em class="text-red location_locataire"></em> </strong>
+                    </div>
+                </div>
+                <form method="POST" id="encaisserForm" class="shadow-lg p-3 animate__animated animate__bounce p-3" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="location" class="location">
+
+                    <div class="row p-3">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label>Type de paiement </label>
+                                <select name="type" class="form-select form-control" aria-label="Default select example">
+                                    @foreach($paiements_types as $type)
+                                    <option value="{{$type['id']}}" name="type" @if($type->id==$location->Type->id) selected @endif>{{$type["name"]}}</option>
+                                    @endforeach
+                                </select>
+                                @error('type')
+                                <span class="text-red">{{$message}}</span>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <span>Date ou mois pour lequel vous voulez encaisser pour cette location</span>
+                                <input disabled class="form-control next_loyer_date">
+                            </div>
+
+                            <div class="d-none prorata">
+                                <span class="text-primary">Ce locataire est un prorata(veuillez renseigner ses infos)</span>
+                                <br>
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Nbre de jour du prorata</label>
+                                    <input name="prorata_days" placeholder="Nbre de jour du prorata ..." class="form-control prorata_days">
+                                    @error('prorata_days')
+                                    <span class="text-red">{{$message}}</span>
+                                    @enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Montant du prorata</label>
+                                    <input name="prorata_amount" placeholder="Montant du prorata ..." class="form-control prorata_amount">
+                                    @error('prorata_amount')
+                                    <span class="text-red">{{$message}}</span>
+                                    @enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Date du prorata</label>
+                                    <input value="{{$location->Locataire->prorata_date}}" name="prorata_date" type="date" class="form-control prorata_date" hidden>
+                                    <input value="{{$location->Locataire->prorata_date}}" disabled type="date" class="form-control prorata_date">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <span>Uploader la facture ici</span> <br>
+                                <input type="file" name="facture" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="" class="d-block">Code de facture</label>
+                                <input value="{{old('facture_code')}}" name="facture_code" placeholder="Code facture ...." class="form-control facture_code">
+                                @error('facture_code')
+                                <span class="text-red">{{$message}}</span>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
+
+    <!-- ###### MODEL DE DEMENAGEMENT ###### -->
+    @can("location.removed")
+    <div class="modal fade" id="demenage" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fs-5" id="exampleModalLabel">Démenagement </h6>
+                </div>
+                <div class="modal-body">
+                    <div class="">
+                        <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
+                        <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
+                        <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
+                    </div>
+                </div>
+                <form action="{{route('location.DemenageLocation',crypId($location['id']))}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
+                    @csrf
+                    <div class="p-2">
+                        <textarea name="move_comments" required class="form-control" placeholder="Donner une raison justifiant ce déménagement"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
+
+    <!-- ###### MODEL DE MODIFICATION ###### -->
+    @can("location.edit")
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fs-5" id="exampleModalLabel">Modification </h6>
+                </div>
+                <div class="modal-body">
+                    <div class="">
+                        <strong>Maison: <em class="text-red location_name"> </em> </strong> <br>
+                        <strong>Chambre: <em class="text-red location_room"> </em> </strong> <br>
+                        <strong>Locataire: <em class="text-red location_locataire"></em> </strong>
+                    </div>
+                    <form id="updateForm" method="POST" class="shadow-lg p-2">
+                        @csrf
+                        @method("PATCH")
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="" class="d-block">Maison</label>
+                                    <select class="form-select form-control house" name="house" aria-label="Default select example">
+                                        @foreach($houses as $house)
+                                        <option value="{{$house['id']}}">{{$house['name']}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <br>
+
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Chambre</label>
+                                    <select class="form-select form-control room" name="room" aria-label="Default select example">
+                                        @foreach($rooms as $room)
+                                        <option value="{{$room['id']}}">{{$room['number']}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <br>
+
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Locataire</label>
+                                    <select class="form-select form-control locataire" name="locataire" aria-label="Default select example">
+                                        @foreach($locators as $locator)
+                                        <option value="{{$locator['id']}}">{{$locator['name']}} {{$locator['prenom']}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Type</label>
+                                    <select class="form-select form-control type" name="type">
+                                        @foreach($location_types as $type)
+                                        <option value="{{$type['id']}}">{{$type['name']}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <br>
+                                <div class="mb-3">
+                                    <span>Uploader le bordereau du caution</span><br>
+                                    <input type="file" name="caution_bordereau" class="form-control">
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Caution d'électricité</label>
+                                    <input type="text" name="caution_electric" class="form-control caution_electric" placeholder="Caution d'électricité...">
+
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Numéro du compteur eau ...</label>
+                                    <input type="text" name="water_counter" placeholder="Compteur eau..." class="form-control water_counter">
+                                </div><br>
+
+                            </div>
+                            <!--  -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <span>Uploader le contrat</span><br>
+                                    <input type="file" name="img_contrat" class="form-control">
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Caution eau</label>
+                                    <input type="text" name="caution_water" class="form-control caution_water" placeholder="Caution eau ....">
+
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Numéro du compteur électrique</label>
+                                    <input type="text" name="electric_counter" class="form-control electric_counter" placeholder="Compteur électricité ....">
+                                </div><br>
+
+                                <div class="mb-3">
+                                    <span>Uploader l'image de la prestation</span><br>
+                                    <input type="file" name="img_prestation" class="form-control">
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Nbr de caution loyer</label>
+                                    <input type="number" name="caution_number" class="form-control caution_number" placeholder="Nombre de caution loyer ....">
+                                </div><br>
+                                <div class="mb-3">
+                                    <span>Frais de reprise de peinture</span><br>
+                                    <input type="number" name="frais_peiture" class="form-control frais_peiture" placeholder="Frais de reprise de peinture ....">
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block" for="">Prestation</label>
+                                    <input type="number" name="prestation" placeholder="La prestation..." class="form-control prestation">
+                                </div><br>
+                                <div class="mb-3">
+                                    <label class="d-block">Numéro contrat</label>
+                                    <input type="text" name="numero_contrat" placeholder="Numéro du contrat..." class="form-control numero_contrat">
+                                </div><br>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="w-100 btn btn-sm bg-red">Modifier</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endcan
+    @endif
+
 
     <script type="text/javascript">
         $(document).ready(function() {
-            // locationSelection($('#location_selected').val())
             houseSelect($('#houseSelection').val())
         })
+
+        function encaisser(location) {
+            console.log(location)
+            $(".location_name").html(location.house.name)
+            $(".location_room").html(location.room.number)
+            $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)
+
+            $("#encaisserForm").attr("action", `/location/add-paiement`)
+            $(".location").val(location.id)
+            $(".next_loyer_date").val(location.latest_loyer_date)
+
+            if (location.prorata) {
+                $(".prorata").removeClass("d-none")
+                $(".prorata_days").val(location.prorata_days)
+                $(".prorata_amount").val(location.prorata_amount)
+                $(".prorata_date").val(location.prorata_date)
+            }
+        }
+
+        function editLocation(location) {
+            $(".location_name").html(location.house.name)
+            $(".location_room").html(location.room.number)
+            $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)
+            $("#updateForm").attr("action", `/location/${location.id}/update`)
+            $(".caution_electric").val(location.caution_electric)
+            $(".water_counter").val(location.water_counter)
+            $(".caution_water").val(location.caution_water)
+            $(".electric_counter").val(location.electric_counter)
+            $(".caution_number").val(location.caution_number)
+            $(".frais_peiture").val(location.frais_peiture)
+            $(".prestation").val(location.prestation)
+            $(".numero_contrat").val(location.numero_contrat)
+        }
 
         // IMPRESSION
         function searchPaidBySuperviseur() {

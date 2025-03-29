@@ -436,7 +436,8 @@ class LocationController extends Controller
 
         $formData = $request->all();
 
-        $location = Location::where(["visible" => 1])->find(deCrypId($id));
+        // $location = Location::where(["visible" => 1])->find(deCrypId($id));
+        $location = Location::where(["visible" => 1])->find($id);
 
         if (!$location) {
             alert()->error("Echec", "Cette location n'existe pas!");
@@ -548,8 +549,8 @@ class LocationController extends Controller
                 $formData["delete_at"] = now();
             }
         }
-
-        $location->update($formData);
+        $data = array_merge($request->all(), $formData);
+        $location->update($data);
 
         ####____
         alert()->success("Succès", "Location modifiée avec succès!");
@@ -1170,7 +1171,7 @@ class LocationController extends Controller
                 $data["adresse"] = $facture->Location->Locataire->adresse;
                 $data["comments"] = $facture->Location->Locataire->comments;
                 $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->created_at;//$facture->Location->next_loyer_date;
+                $data["month"] = $facture->created_at; //$facture->Location->next_loyer_date;
                 $data["amount_paid"] = $facture->amount;
 
                 ##___
@@ -1229,13 +1230,13 @@ class LocationController extends Controller
                 $data["adresse"] = $facture->Location->Locataire->adresse;
                 $data["comments"] = $facture->Location->Locataire->comments;
                 $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->created_at;//$facture->Location->next_loyer_date;
+                $data["month"] = $facture->created_at; //$facture->Location->next_loyer_date;
                 $data["amount_paid"] = $facture->amount;
 
                 ##___
                 array_push($amount_total_to_paid_before_array, $data["amount_paid"]);
                 array_push($locators_that_paid_before_state_stoped_day, $data);
-            } 
+            }
         }
 
         ###____
@@ -1243,8 +1244,7 @@ class LocationController extends Controller
 
         $locationsFiltered["beforeStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_before_array);
 
-        $locationsFiltered["total_locators"] = count($locationsFiltered["beforeStopDate"])
-        ;
+        $locationsFiltered["total_locators"] = count($locationsFiltered["beforeStopDate"]);
 
         ####____
         return view("locators.locator-before-stop-date", compact("locationsFiltered", "house"));
