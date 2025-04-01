@@ -3,66 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class Filtrage extends Component
 {
     public $agency;
-
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
-    public $proprietors = [];
-    public $locators = [];
-    public $locations = [];
-    public $rooms = [];
-    public $houses = [];
-    public $supervisors = [];
-
-    public $factures = [];
-    public $factures_total_amount = [];
-    public $show_factures = false;
-
-    public $show_moved_locators = false;
-    public $moved_locators = [];
-
-    public $start_date = "";
-    public $end_date = "";
-
-    public $generaleSuccess = "";
-    public $generalError = "";
-
-    public $showTaux = false;
-    public $display_taux_options = false;
-
-    public $generate_caution_by_supervisor = false;
-    public $generate_taux_by_supervisor = false;
-    public $generate_taux_by_house = false;
-
-    public $supervisor = [];
-    public $supervisor_error = '';
-
-    // REFRESH SUPERVISOR
-    function refreshSupervisors()
-    {
-        $users = User::with(["account_agents"])->get();
-        $supervisors = [];
-
-        foreach ($users as $user) {
-            $user_roles = $user->_roles; ##recuperation des roles de ce user
-
-            foreach ($user_roles as $user_role) {
-                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                    array_push($supervisors, $user);
-                }
-            }
-        }
-        $this->supervisors = array_unique($supervisors);
-    }
 
     function mount($agency)
     {
@@ -71,7 +16,6 @@ class Filtrage extends Component
         $this->agency = $agency;
 
         $this->refreshThisAgencyBilan();
-        $this->refreshSupervisors();
     }
 
     ###___HOUSES

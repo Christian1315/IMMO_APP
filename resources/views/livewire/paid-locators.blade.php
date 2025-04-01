@@ -88,19 +88,6 @@
                             <th class="text-center">Loyer</th>
                             <!-- <th class="text-center">Echéance actuelle</th> -->
                             <th class="text-center">Echeance</th>
-                            {{--
-                            <th class="text-center">N°</th>
-                            <th class="text-center">Maison</th>
-                            <th class="text-center">Superviseurs</th>
-                            <th class="text-center">Chambre</th>
-                            <th class="text-center">Nom</th>
-                            <th class="text-center">Prénom</th>
-                            <th class="text-center">Email</th>
-                            <th class="text-center">Numéro de pièce</th>
-                            <th class="text-center">Phone</th>
-                            <th class="text-center">Adresse</th>
-                            <th class="text-center">Dernier mois payé</th>
-                            <th class="text-center">Echeance</th> --}}
                         </tr>
                     </thead>
                     <tbody>

@@ -21,23 +21,22 @@
                     </thead>
                     <tbody>
                         @foreach($Houses as $house)
-                        
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center"> <span class="badge bg-light text-dark"> {{$house["name"]}}</span> </td>
                             <td class="text-center">
-                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["total_amount_paid"],2,"."," ")}} fcfa </strong>
+                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["total_amount_paid"],2,","," ")}} fcfa </strong>
                             </td>
 
                             <td class="text-center">
-                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["commission"],2,"."," ")}} fcfa </strong>
+                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["commission"],2,","," ")}} fcfa </strong>
                             </td>
 
                             <td class="text-center">
-                                <strong class="badge bg-light text-red"><i class="bi bi-currency-exchange"></i> {{$house["last_depenses"]}} fcfa </strong>
+                                <strong class="badge bg-light text-red"><i class="bi bi-currency-exchange"></i> {{number_format($house["last_depenses"],2,","," ")}} fcfa </strong>
                             </td>
                             <td class="text-center">
-                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{$house["net_to_paid"]!=0?$house["net_to_paid"] : ($house->PayementInitiations->last()? number_format($house->PayementInitiations->last()->amount,2,"."," ") :0)}} fcfa </strong>
+                                <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["_amount"],2,","," ")}} fcfa </strong>
                             </td>
 
                             <td class="text-center">
@@ -53,28 +52,27 @@
                             </td>
                             <td class="text-center d-flex">
                                 @if($house['house_last_state'])
-                                    @if($house->house_last_state->proprietor_paid)
-                                        <span aria-disabled="true" class="badge bg-light text-success">Payé</span>
-                                    @else
-                                        <span aria-disabled="" class="badge bg-light text-red"> Non payé</span>
-                                    @endif
+                                @if($house->house_last_state->proprietor_paid)
+                                <span aria-disabled="true" class="badge bg-light text-success">Payé</span>
+                                @else
+                                <span aria-disabled="" class="badge bg-light text-red"> Non payé</span>
+                                @endif
                                 @endif
 
                                 @if($house->PayementInitiations->last())
-                                    @if($house->PayementInitiations->last()->status==3)
-                                        <span aria-disabled="true" class="badge bg-light text-red">mais Rejeté</span>
-                                    @endif
+                                @if($house->PayementInitiations->last()->status==3)
+                                <span aria-disabled="true" class="badge bg-light text-red">mais Rejeté</span>
+                                @endif
                                 @endif
                             </td>
                             <td class="text-center">
                                 @if($house['house_last_state'])
-                                    @if(!$house['house_last_state']["proprietor_paid"])
-                                        @can("proprio.payement")
-                                            <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid_{{$house['id']}}"><i class="bi bi-currency-exchange"></i>Payer</button>
-                                        @endcan
-                                    @endif
+                                @if(!$house['house_last_state']["proprietor_paid"])
+                                @can("proprio.payement")
+                                <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid" onclick="paiement({{$house}})"><i class="bi bi-currency-exchange"></i>Payer</button>
+                                @endcan
                                 @endif
-
+                                @endif
                             </td>
                             <td class="text-center">
                                 @can("proprio.print.state")
@@ -82,42 +80,52 @@
                                 @endcan
                             </td>
                         </tr>
-
-                        <!-- ###### MODEL DE PAIEMENT AU PROPRIETAIRE ###### -->
-                        <div class="modal fade" id="paid_{{$house['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-body">
-                                        <div class="">
-                                            <strong>Maison: <em class="text-red"> {{$house["name"]}}</em> </strong> <br>
-                                        </div>
-                                    </div>
-                                    <form action="{{route('payement_initiation.InitiatePaiementToProprietor')}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
-                                        @csrf
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <input type="hidden" name="house" value="{{$house->id}}">
-                                                <div class="mb-3 p-3">
-                                                    <label for="" class="d-block">Montant à payer <span class="text-red"> (fcfa)</span> </label>
-                                                    <input type="hidden" name="amount" value="{{$house['net_to_paid']!=0?$house['net_to_paid']:($house->PayementInitiations->last()?$house->PayementInitiations->last()->amount:0)}}" class="form-control">
-                                                    <input disabled type="number" value="{{$house['net_to_paid']!=0?$house['net_to_paid']:($house->PayementInitiations->last()?$house->PayementInitiations->last()->amount:0)}}" class="form-control">
-                                                    @error("amount")
-                                                    <span class="text-red">{{$message}}</span>
-                                                    @enderror
-                                                    <div class="text-right mt-2">
-                                                        <button class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Valider</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
                         @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- ###### MODEL DE PAIEMENT AU PROPRIETAIRE ###### -->
+    <div class="modal fade" id="paid" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="">
+                        <strong>Maison: <em class="text-red house_name"></em> </strong> <br>
+                    </div>
+                </div>
+                <form id="paimentForm" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
+                    @csrf
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="hidden" name="house" class="house">
+                            <div class="mb-3 p-3">
+                                <label for="" class="d-block">Montant à payer <span class="text-red"> (fcfa)</span> </label>
+                                <input type="hidden" name="amount" class="form-control amount">
+                                <input disabled type="number" class="form-control amount">
+                                @error("amount")
+                                <span class="text-red">{{$message}}</span>
+                                @enderror
+                                <div class="text-right mt-2">
+                                    <button class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Valider</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function paiement(house) {
+            $(".house_name").html(house.name)
+            $(".house").val(house.id)
+
+            $(".amount").val(house._amount)
+            $("#paimentForm").attr("action", `/payement_initiation/initiateToProprio`)
+        }
+    </script>
 </div>

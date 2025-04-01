@@ -15,8 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use USER_HELPER;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
 {
@@ -141,11 +139,14 @@ class UserController extends Controller
         $formData['pass_default'] = Custom_Timestamp();
         $formData['password'] = $formData['username'];
         $formData['owner'] = $user->id;
-        // $formData['rang_id'] = $formData['rang'];
-        // $formData['profil_id'] = $formData['profil'];
 
         #ENREGISTREMENT
         $create_user = User::create($formData);
+
+        if ($request->role) {
+            $role = Role::findOrFail($request->role);
+            $user->assignRole($role->name);
+        }
 
         try {
             Send_Notification(
@@ -379,16 +380,11 @@ class UserController extends Controller
             "is_super_admin" => $account["is_super_admin"],
             "is_admin" => $account["is_admin"]
         ];
-        $account_duplicated = User::create($datas);
+        
+        User::create($datas);
 
         ###___REAFFECTATION DES DROITS DU COMPTE ARCHIVE AU COMPTE DUPLIQUE
-        $user_rights = UserRight::where(["user_id" => $account->id])->get();
-
-        foreach ($user_rights as $user_right) {
-            $user_right->user_id = $account_duplicated->id;
-            $user_right->save();
-        }
-
+       
         ###__ARCHIVONS ENSUITE LE COMPTE
         $account->is_archive = true;
         $account->save();

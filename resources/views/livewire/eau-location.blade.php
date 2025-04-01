@@ -220,13 +220,13 @@
                             <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["Locataire"]["phone"]}}</span></td>
                             <td class="text-center"> <span class="badge bg-warning text-white"> {{$location["Room"]["water_counter_start_index"]}}</span> </td>
                             <td class="text-center"> <strong class="badge bg-dark text-zhite"> {{$location["end_index"]?$location["end_index"]:0}}</strong> </td>
-                            <td class="text-center"> <strong class=""> <span class="badge bg-light text-dark">{{number_format($location->Room->unit_price,2,'.',' ')}}</span> </strong> </td>
-                            <td class="text-center"> <strong class="badge text-red bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]? number_format($location["total_un_paid_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="badge text-success bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["current_amount"]? number_format($location["current_amount"],2,"."," ") :0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="badge text-success bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["paid_facture_amount"]? number_format($location["paid_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
-                            <td class="text-center text-red"> <span class="badge bg-light text-dark">{{$location["nbr_un_paid_facture_amount"]? number_format($location["nbr_un_paid_facture_amount"],2,"."," ") :0}}</span> </td>
-                            <td class="text-center"> <strong class="badge bg-light text-red"> <i class="bi bi-currency-exchange"></i> {{$location["un_paid_facture_amount"]? number_format($location["un_paid_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
-                            <td class="text-center"> <strong class="badge bg-light text-success"> <i class="bi bi-currency-exchange"></i> {{$location["rest_facture_amount"]? number_format($location["rest_facture_amount"],2,"."," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class=""> <span class="badge bg-light text-dark">{{number_format($location->Room->unit_price,2,',',' ')}}</span> </strong> </td>
+                            <td class="text-center"> <strong class="badge text-red bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]? number_format($location["total_un_paid_facture_amount"],2,","," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge text-success bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["current_amount"]? number_format($location["current_amount"],2,","," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge text-success bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["paid_facture_amount"]? number_format($location["paid_facture_amount"],2,","," ") :0}} fcfa </strong> </td>
+                            <td class="text-center text-red"> <span class="badge bg-light text-dark">{{$location["nbr_un_paid_facture_amount"]? number_format($location["nbr_un_paid_facture_amount"],2,","," ") :0}}</span> </td>
+                            <td class="text-center"> <strong class="badge bg-light text-red"> <i class="bi bi-currency-exchange"></i> {{$location["un_paid_facture_amount"]? number_format($location["un_paid_facture_amount"],2,","," ") :0}} fcfa </strong> </td>
+                            <td class="text-center"> <strong class="badge bg-light text-success"> <i class="bi bi-currency-exchange"></i> {{$location["rest_facture_amount"]? number_format($location["rest_facture_amount"],2,","," ") :0}} fcfa </strong> </td>
 
                             <td class="text-center">
                                 <div class="dropdown">
@@ -236,13 +236,13 @@
 
                                     <ul class="dropdown-menu">
                                         @can("water.invoices.payement")
-                                        <a href="#" class="dropdown-item btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#ShowLocationFactures_{{$location['id']}}">
+                                        <a href="#" class="dropdown-item btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#factures" onclick="showFactures({{$location}})">
                                             <i class="bi bi-currency-exchange"></i>&nbsp; Payer
                                         </a>
                                         @endcan
 
                                         @can("water.invoices.print")
-                                        <a href="#" class="dropdown-item btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#state_impression_{{$location['id']}}"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer les états</a>
+                                        <a href="#" class="dropdown-item btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#state_impression" onclick="stateImpression({{$location}})"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer les états</a>
                                         @endcan
 
                                         @can("water.invoices.change.index")
@@ -356,6 +356,92 @@
 
     <!-- SCRIPT -->
     <script type="text/javascript">
+        // les etts
+        function stateImpression(location) {
+            $(".house_name").html(location.house_name)
+            $(".debut_index").html(location.start_index)
+            $(".end_index").html(location.end_index)
+            $(".locataire").val(location.locataire)
+
+            $(".states-body").empty()
+
+            let content = '';
+
+            if (location.electricity_factures_states.length > 0) {
+                let rows = ''
+
+                location.electricity_factures_states.forEach(state => {
+                    rows += `
+                        <li class="list-group-item mb-3 ">
+                            <strong>Date d'arrêt: </strong> <span class="stop_date"> ${state.state_stoped_day} </span>
+                            <br>
+                            <a href="/electricity_facture/${state.id}/show_electricity_state_html" class="w-100 btn btn-sm bg-red"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer</a>
+                        </li>
+                    `
+                });
+
+                content += `
+                            <ul class="list-group ">
+                                ${rows}
+                            </ul>
+                `
+            } else {
+                content += `<p class="text-center text-red">Aucun état disponible</p>`
+            }
+
+            $(".states-body").append(content)
+
+            // console.log(content)
+        }
+
+        // factures
+        function showFactures(location) {
+            $(".house_name").html(location.house_name)
+            $(".debut_index").html(location.start_index)
+            $(".end_index").html(location.end_index)
+            $(".locataire").val(location.locataire)
+
+            $(".factures-body").empty()
+
+            let content = '';
+
+            console.log(location.electricity_factures)
+
+            if (location.electricity_factures.length > 0) {
+                let rows = ''
+
+                location.electricity_factures.forEach(facture => {
+                    rows += `
+                        <li class="list-group-item mb-3 ">
+                            <strong>Maison: </strong> ${location.house_name} ;
+                            <strong>Index début: </strong> <span class="text-red"> ${facture.start_index}</span> ;
+                            <strong>Index fin: </strong> <span class="text-red"> ${facture.end_index}</span>;
+                            <strong>Consommation :</strong> <span class="text-red">${facture.consomation}</span> ;
+                            <strong>Montant: </strong> <span class="text-red"><i class="bi bi-currency-exchange"></i> ${facture.amount} </span>;
+                            <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="${facture.comments}" id=""></textarea> ;
+                            <strong>Statut :</strong>
+                            ${facture.paid?
+                                '<span class="badge bg-success">Payé </span>':
+                                `<span class="badge bg-red">Impayé </span> <br> <a href="/electricity_facture/${facture.id}/payement" class="btn btn-sm bg-red"> <i class="bi bi-currency-exchange"></i> Payer maintenant</a>`
+                            }
+                        </li>
+                    `
+                });
+
+                content += `
+                            <ul class="list-group factures-list">
+                                ${rows}
+                            </ul>
+                `
+            } else {
+                content += `<p class="text-center text-red">Aucune facture disponible</p>`
+            }
+
+            $(".factures-body").append(content)
+
+            // console.log(content)
+        }
+
         // filtre
         function displayFiltreOptions() {
             if ($("#filtre_options").hasClass('d-none')) {

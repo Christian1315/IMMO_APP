@@ -1,6 +1,6 @@
 <div>
 
-    <form action="{{route('user.login')}}" method="POST" class="shadow-lg p-3 roundered bg-white animate__animated animate__bounce">
+    <form action="{{route('user.login')}}" method="POST" class="shadow-lg p-3 rounded bg-white animate__animated animate__bounce">
         @csrf
         <h3 class="text-center text-dark">Connectez-vous ici! </h3>
         <div class="form-group">

@@ -581,6 +581,8 @@ class HouseController extends Controller
 
         $locations = $house->Locations->where("status", "!=", 3);
 
+        // dd($locations);
+
         ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
         foreach ($locations as $key =>  $location) {
             ###___quand il y a arrêt d'etat
@@ -706,6 +708,8 @@ class HouseController extends Controller
         $house["frees_rooms_at_first_month"] = $frees_rooms_at_first_month;
 
         $state = $house_last_state;
+
+        // dd($house);
 
         return view("house-state", compact(["house", "state"]));
     }

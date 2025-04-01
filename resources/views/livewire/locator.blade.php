@@ -296,7 +296,7 @@
                             <td class="text-center">
                                 @if(count($locator->Locations)>0)
                                 @foreach ($locator->Locations as $location)
-                                {{ $location->House->Supervisor->name }}
+                                <span class="badge bg-dark text-white"> {{ $location->House->Supervisor->name }} </span>;
                                 @endforeach
                                 @else
                                 ---

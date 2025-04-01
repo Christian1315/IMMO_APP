@@ -4,17 +4,10 @@ namespace App\Livewire;
 
 use App\Models\AgencyAccount;
 use App\Models\AgencyAccountSold;
-use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class CaisseMouvements extends Component
 {
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
     public $agency;
     public $agency_account;
     public $agencyAccountsSolds = [];
@@ -22,8 +15,6 @@ class CaisseMouvements extends Component
 
     function refreshAgencyAccountSolds()
     {
-        // $response = Http::withHeaders($this->headers)->get($this->BASE_URL . "immo/account/sold/" . $this->agency_account . "/agency_mouvements")->json();
-
         $agencyAccount = AgencyAccount::with(["_Account"])->find($this->agency_account);
         if (!$agencyAccount) {
             alert()->error("Echec","Désolé! Cette caisse n'existe pas!");

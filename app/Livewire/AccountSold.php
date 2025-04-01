@@ -7,14 +7,6 @@ use Livewire\Component;
 
 class AccountSold extends Component
 {
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $principalAccounts = false;
-
-    public $hearders = [];
-
     public $agency;
     public $allAgenciesAccounts = [];
 

@@ -616,5 +616,7 @@ function GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house)
     $house["busy_rooms_at_first_month"] = $busy_rooms_at_first_month;
     $house["frees_rooms_at_first_month"] = $frees_rooms_at_first_month;
 
+    $house["_amount"] = $house['net_to_paid'] != 0 ? $house['net_to_paid'] : ($house->PayementInitiations->last() ? $house->PayementInitiations->last()->amount : 0);
+
     return $house;
 }

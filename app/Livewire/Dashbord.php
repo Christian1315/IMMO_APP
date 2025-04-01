@@ -29,15 +29,6 @@ class Dashbord extends Component
     function mount()
     {
         set_time_limit(0);
-
-        // $BASE_URL = env("BASE_URL");
-        // $token = session()->get("token");
-
-        // // session()->forget("token");
-        // $hearders = [
-        //     "Authorization" => "Bearer " . $token,
-        // ];
-
         // PROPRETAIRES
         $proprietors = Proprietor::all(); ## Http::withHeaders($hearders)->get($BASE_URL . "immo/proprietor/all")->json();
         $this->proprietors_count = count($proprietors);

@@ -209,12 +209,6 @@
                                 </div>
                                 <br>
 
-                                <!-- SPIN -->
-                                <div class="spinner-border" id="loading" role="status">
-                                    <span class="visually-hidden text-red">Loading...</span>
-                                </div>
-                                <!-- SPIN -->
-
                                 <div class="mb-3" id="roomsShow" hidden>
                                     <label class="d-block" for="">Chambre</label>
                                     <select class="form-select form-control" name="room" id="rooms" aria-label="Default select example">
@@ -259,7 +253,6 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <label class="d-block" for="">Caution d'électricité</label>
-                                    <span class="text-center text-red"> {{$caution_electric_error}} </span>
                                     <input value="{{old('caution_electric')}}" type="number" name="caution_electric" class="form-control" placeholder="Caution d'électricité...">
                                     @error("caution_electric")
                                     <span class="text-red">{{$message}}</span>
@@ -311,11 +304,6 @@
                                     @enderror
                                 </div><br>
 
-                                <!-- <div class="mb-3">
-                                <span>Date du dernier loyer payé</span><br>
-                                <span class="text-center text-red"> {{$latest_loyer_date_error}} </span>
-                                <input wire:model="latest_loyer_date" type="date" name="latest_loyer_date" class="form-control" placeholder="Dernier loyer payé ....">
-                            </div><br> -->
                                 <div class="mb-3">
                                     <span>Uploader l'image de la prestation</span><br>
                                     <input required type="file" name="img_prestation" class="form-control">
@@ -418,11 +406,6 @@
                                 <span class="text-red">{{$message}}</span>
                                 @enderror
                             </div>
-                            <!-- SPIN -->
-                            <div class="spinner-border" id="loading" role="status" hidden>
-                                <span class="visually-hidden text-red">Loading...</span>
-                            </div>
-                            <!-- SPIN -->
                             <div class="mb-3">
                                 <label>Type de paiement </label>
                                 <select name="type" class="form-select form-control" aria-label="Default select example">
@@ -547,7 +530,7 @@
                             <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
                             <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
-                            <td class="text-center"><span class="badge bg-light text-dark"> {{number_format($location["loyer"],0," "," ") }}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{number_format($location["loyer"],2,","," ") }}</span></td>
                             <td class="text-center text-red"><span class="text-uppercase badge bg-light text-dark"><i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small></span> </td>
 
                             <td class="text-center">
@@ -568,7 +551,7 @@
 
                                         @can("location.removed")
                                         <li>
-                                            <button data-bs-toggle="modal" data-bs-target="#demenage_{{$location['id']}}" class="w-100 btn btn-sm bg-red">
+                                            <button data-bs-toggle="modal" data-bs-target="#demenage" onclick="demenage({{$location}})" class="w-100 btn btn-sm bg-red">
                                                 <i class="bi bi-folder-x"></i> Démenager
                                             </button>
                                         </li>
@@ -581,11 +564,9 @@
                                         @endcan
                                         @endif
 
-                                        @can("location.generate.invoices")
                                         <li>
                                             <button class="w-100 btn btn-sm btn-light text-dark" data-bs-toggle="modal" data-bs-target="#shoFactures_{{$location['id']}}"><i class="bi bi-printer"></i> Gérer les factures</button>
                                         </li>
-                                        @endcan
 
                                         @can("location.print.report")
                                         <li>
@@ -614,7 +595,6 @@
                         </tr>
 
                         <!-- ###### MODEL DE SHOW DES FACTURES ###### -->
-                        @can("location.generate.invoices")
                         <div class="modal fade" id="shoFactures_{{$location['id']}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-scrollable">
                                 <div class="modal-content">
@@ -657,7 +637,6 @@
                                 </div>
                             </div>
                         </div>
-                        @endcan
                         @endforeach
                     </tbody>
                 </table>
@@ -666,9 +645,7 @@
     </div>
     @endif
 
-    @if($location->status!=3)
     <!-- ###### MODEL D'ENCAISSEMENT ###### -->
-    @can("location.collect")
     <div class="modal fade" id="encaisse" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -748,10 +725,8 @@
             </div>
         </div>
     </div>
-    @endcan
 
     <!-- ###### MODEL DE DEMENAGEMENT ###### -->
-    @can("location.removed")
     <div class="modal fade" id="demenage" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -760,15 +735,15 @@
                 </div>
                 <div class="modal-body">
                     <div class="">
-                        <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
-                        <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
-                        <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
+                        <strong>Maison: <em class="text-red location_name"> </em> </strong> <br>
+                        <strong>Chambre: <em class="text-red location_room"> </em> </strong> <br>
+                        <strong>Locataire: <em class="text-red location_locataire"></em> </strong>
                     </div>
                 </div>
-                <form action="{{route('location.DemenageLocation',crypId($location['id']))}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
+                <form id="demenageForm" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
                     @csrf
                     <div class="p-2">
-                        <textarea name="move_comments" required class="form-control" placeholder="Donner une raison justifiant ce déménagement"></textarea>
+                        <textarea name="move_comments" id="move_comments" required class="form-control" placeholder="Donner une raison justifiant ce déménagement"></textarea>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
@@ -777,10 +752,8 @@
             </div>
         </div>
     </div>
-    @endcan
 
     <!-- ###### MODEL DE MODIFICATION ###### -->
-    @can("location.edit")
     <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -897,24 +870,37 @@
             </div>
         </div>
     </div>
-    @endcan
-    @endif
-
 
     <script type="text/javascript">
         $(document).ready(function() {
             houseSelect($('#houseSelection').val())
         })
 
+        function demenage(location) {
+            $(".location_name").html(location.house.name)
+            $(".location_room").html(location.room.number)
+            $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)
+
+            $("#demenageForm").attr("action", `/location/${location.id}/demenage`)
+        }
+
         function encaisser(location) {
-            console.log(location)
             $(".location_name").html(location.house.name)
             $(".location_room").html(location.room.number)
             $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)
 
             $("#encaisserForm").attr("action", `/location/add-paiement`)
             $(".location").val(location.id)
-            $(".next_loyer_date").val(location.latest_loyer_date)
+
+            const date = new Date(location.latest_loyer_date);
+            const options = {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            };
+            const formattedDate = date.toLocaleDateString("fr", options);
+
+            $(".next_loyer_date").val(formattedDate)
 
             if (location.prorata) {
                 $(".prorata").removeClass("d-none")

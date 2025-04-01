@@ -11,7 +11,6 @@ use Livewire\Component;
 class Electricity extends Component
 {
     public $current_agency;
-    public $old_locations = [];
     public $locations = [];
 
     public $houses = [];
@@ -20,74 +19,10 @@ class Electricity extends Component
     public $houseId = 0;
     public $state = 0;
 
-    public $houseStates = [];
-    public $currentHouseState = 0;
-
-
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
-    public $current_location = [];
-    public $activeLocationId;
-
-    public $currentLocationFactures = [];
-
-    public $end_index = "";
-    public $end_index_error = "";
-    public $location = "";
-    public $location_error = "";
-
-    public $generalError = "";
-    public $generalSuccess = "";
-
-    public $show_form = false;
-    public $show_factures = false;
-    public $show_house_for_state_imprime_form = false;
-    public $show_state_imprime_form = false;
-    public $show_state_imprime = false;
-
-    public $showHouseFom = false;
-    public $actualized = false;
-
-    public $state_html_url = "";
-    public $supervisors;
-
-    public $locators = [];
-    public $locator = [];
-    public $search = "";
-
-    public $filtre_by_house = false;
-    public $filtre_by_locator = false;
-    public $display_filtre_options = false;
-
-    public $forLocation = false;
-
-    ####____superviseurs
-    // REFRESH SUPERVISOR
-    function refreshSupervisors()
-    {
-        $users = User::with(["account_agents"])->get();
-        $supervisors = [];
-
-        foreach ($users as $user) {
-            $user_roles = $user->_roles; ##recuperation des roles de ce user
-
-            foreach ($user_roles as $user_role) {
-                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                    array_push($supervisors, $user);
-                }
-            }
-        }
-        $this->supervisors = array_unique($supervisors);
-    }
 
     ###__LOCATIONS
     function refreshThisAgencyLocations()
     {
-
         // seuls les locations non démenagées
         $locations = $this->current_agency->_Locations->where("status", "!=", 3)->filter(function ($location) {
             return $location->Room->electricity;
@@ -184,6 +119,16 @@ class Electricity extends Component
                 ###__Montant dû
                 $location["rest_facture_amount"] = 0;
             }
+
+            // 
+            $location["house_name"] = $location->House->name;
+            $location["start_index"] = count($location->ElectricityFactures) != 0 ? $location->ElectricityFactures->first()->end_index : $location->Room->electricity_counter_start_index;
+            // $location["end_index"] = $location->end_index;
+            $location["locataire"] = $location->Locataire->name ." ". $location->Locataire->prenom;
+            $location["electricity_factures"] = $location->ElectricityFactures;
+            $location["electricity_factures_states"] = $location->House->ElectricityFacturesStates;
+            $location["lastFacture"] = $location->ElectricityFactures()?$location->ElectricityFactures()->first():null;
+            // 
             array_push($agency_locations, $location);
         }
 
@@ -210,7 +155,6 @@ class Electricity extends Component
         $this->current_agency = $agency;
         $this->refreshThisAgencyLocations();
         $this->refreshThisAgencyHouses();
-        $this->refreshSupervisors();
     }
 
     public function render()

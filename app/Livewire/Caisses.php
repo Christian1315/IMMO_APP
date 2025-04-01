@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-// use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class Caisses extends Component

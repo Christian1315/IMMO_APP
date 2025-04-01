@@ -20,7 +20,7 @@
                     <form method="POST" action="{{route('AddUser')}}" class="shadow-lg p-3 animate__animated animate__bounce">
                         @csrf
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-12 mb-2">
                                 <select required value="{{old('agency')}}" name="agency" class="select2 form-control mb-1">
                                     <option>Choisir une agence</option>
                                     @foreach($agencies as $agency)
@@ -62,6 +62,17 @@
                                     <span class="text-red"> {{$message}} </span>
                                     @enderror
                                 </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label for="role">Choisissez un rôle</label>
+                                <select name="role" id="role" class="select2 form-control mb-1">
+                                    @foreach($allRoles as $role)
+                                    @continue($role->id==1)
+                                    <option value="{{$role->id}}">{{$role->name}} </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="modal-footer justify-center">

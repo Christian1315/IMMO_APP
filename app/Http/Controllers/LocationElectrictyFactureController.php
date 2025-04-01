@@ -111,7 +111,7 @@ class LocationElectrictyFactureController extends Controller
     function _FacturePayement(Request $request, $id)
     {
         $user = request()->user();
-        $facture = LocationElectrictyFacture::where("visible", 1)->find(deCrypId($id));
+        $facture = LocationElectrictyFacture::where("visible", 1)->find($id);
         if (!$facture) {
             alert()->error("Echec", "Cette facture n'existe pas!");
             return back()->withInput();

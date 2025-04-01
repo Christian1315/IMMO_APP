@@ -1,40 +1,4 @@
 <div>
-    <!-- LISTE DES LOCATAIRES DEMENAGE -->
-    @if($show_moved_locators)
-    <table class="table table-striped table-sm">
-        <h4 class="">Total: <strong class="text-red"> {{count($moved_locators)}} </strong> </h4>
-
-        @if(count($moved_locators)>0)
-        <thead class="bg_dark">
-            <tr>
-                <th class="text-center">N°</th>
-                <th class="text-center">Nom</th>
-                <th class="text-center">Prénom</th>
-                <th class="text-center">Email</th>
-                <th class="text-center">Numéro de pièce</th>
-                <th class="text-center">Phone</th>
-                <th class="text-center">Adresse</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($moved_locators as $locator)
-            <tr class="align-items-center">
-                <td class="text-center">{{$loop->index + 1}}</td>
-                <td class="text-center">{{$locator["name"]}}</td>
-                <td class="text-center">{{$locator["prenom"]}}</td>
-                <td class="text-center">{{$locator["email"]}}</td>
-                <td class="text-center">{{$locator["piece_number"]}}</td>
-                <td class="text-center">{{$locator["phone"]}}</td>
-                <td class="text-center">{{$locator["adresse"]}}</td>
-            </tr>
-            @endforeach
-        </tbody>
-        @else
-        <p class="text-center text-red">Aucun locataire n'a été ajouté!</p>
-        @endif
-    </table>
-    @endif
-
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">

@@ -15,7 +15,7 @@ class StopHouseElectricityStateController extends Controller
 
     function ShowStateImprimeHtml(Request $request, $state)
     {
-        $state = StopHouseElectricityState::find(deCrypId($state));
+        $state = StopHouseElectricityState::find($state);
 
         if (!$state) {
             alert()->error("Echèc", "Cet état n'existe pas");

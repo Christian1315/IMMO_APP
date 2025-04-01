@@ -58,37 +58,6 @@ class EauLocation extends Component
 
     public $state_html_url = "";
 
-    public $locators = [];
-    public $locator = [];
-
-    public $supervisors = [];
-
-    public $filtre_by_house = false;
-    public $filtre_by_locator = false;
-    public $display_filtre_options = false;
-
-    public $forLocation = false;
-    public $search = "";
-
-    ####____superviseurs
-    // REFRESH SUPERVISOR
-    function refreshSupervisors()
-    {
-        $users = User::with(["account_agents"])->get();
-        $supervisors = [];
-
-        foreach ($users as $user) {
-            $user_roles = $user->_roles; ##recuperation des roles de ce user
-
-            foreach ($user_roles as $user_role) {
-                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                    array_push($supervisors, $user);
-                }
-            }
-        }
-        $this->supervisors = array_unique($supervisors);
-    }
-
     ###__LOCATIONS
     function refreshThisAgencyLocations()
     {
@@ -184,7 +153,14 @@ class EauLocation extends Component
                 ###__Montant dû
                 $location["rest_facture_amount"] = 0;
             }
-            // $location["factures"] = $location_factures;
+
+
+            $location["house_name"] = $location->House->name;
+            $location["start_index"] = count($location->ElectricityFactures) != 0 ? $location->ElectricityFactures->first()->end_index : $location->Room->electricity_counter_start_index;
+            // $location["end_index"] = $location->end_index;
+            $location["locataire"] = $location->Locataire->name ." ". $location->Locataire->prenom;
+            $location["electricity_factures"] = $location->ElectricityFactures;
+            $location["electricity_factures_states"] = $location->House->ElectricityFacturesStates;
             array_push($agency_locations, $location);
         }
 
@@ -211,7 +187,6 @@ class EauLocation extends Component
 
         $this->refreshThisAgencyLocations();
         $this->refreshThisAgencyHouses();
-        $this->refreshSupervisors();
     }
 
     public function render()

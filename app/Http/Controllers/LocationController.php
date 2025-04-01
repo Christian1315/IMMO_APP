@@ -752,7 +752,7 @@ class LocationController extends Controller
         Validator::make($formData, ["move_comments" => "required"], ["move_comments.required" => "Le commentaire est réquis!"])->validate();
 
         $user = request()->user();
-        $location = Location::where(["visible" => 1])->find(deCrypId($locationId));
+        $location = Location::where(["visible" => 1])->find($locationId);
 
         if (!$location) {
             alert()->error("Echec", "Cette location n'existe pas!");
@@ -1021,7 +1021,7 @@ class LocationController extends Controller
             return $this->sendError("Veuillez préciser le status de la facture", 505);
         }
 
-        $facture = Facture::find(deCrypId($id));
+        $facture = Facture::find($id);
 
         if (!$facture) {
             alert()->error("Echec", "Désolé! Ctte facture n'existe pas!");
