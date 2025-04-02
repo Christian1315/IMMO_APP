@@ -22,7 +22,7 @@
                             <td class="text-center">{{count($houses)}}</td>
                             <td class="text-center">{{count($locators)}}</td>
                             <td class="text-center">
-                                <button data-bs-toggle="modal" data-bs-target="#ShowMovedLocators" class="btn btn-sm  shadow-lg bg-red"> {{count($moved_locators)}} @if($show_moved_locators)<i class="bi bi-eye-slash"></i> Fermer @else <i class="bi bi-eye-fill"></i> Voir @endif </button>
+                                <button data-bs-toggle="modal" data-bs-target="#ShowMovedLocators" class="btn btn-sm  shadow-lg bg-red"> {{count($moved_locators)}} <i class="bi bi-eye-fill"></i> Voir </button>
                             </td>
                             <td class="text-center">{{count($locations)}}</td>
                             <td class="text-center">{{count($rooms)}}</td>
@@ -32,7 +32,7 @@
                         </tr>
                         <tr>
                             <td colspan="2" class="bg-warning p-3"> <strong>Montant total en facture: </strong> </td>
-                            <td class="p-3 bg-red">= {{number_format(array_sum($factures_total_amount),2,"."," ")}} fcfa </td>
+                            <td class="p-3 bg-red">= {{number_format(array_sum($factures_total_amount),2,","," ")}} fcfa </td>
                         </tr>
                     </tbody>
 
@@ -73,7 +73,7 @@
                                     <!-- <td class="text-center">
                                         <a href="{{$facture['facture']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i> </a>
                                     </td> -->
-                                    <td class="text-center"><span class="bg-light badge text-red"> {{number_format($facture['amount'],2,"."," ")}}</span> </td>
+                                    <td class="text-center"><span class="bg-light badge text-red"> {{number_format($facture['amount'],2,","," ")}}</span> </td>
                                     <td class="text-center">
                                         <textarea name="" rows="1" class="form-control" placeholder="{{$facture['comments']}}"></textarea>
                                     </td>

@@ -21,10 +21,10 @@
                         @foreach(supervisors() as $supervisor)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
-                            <td class="text-center">{{$supervisor["name"]}}</td>
-                            <td class="text-center">{{$supervisor["email"]}}</td>
-                            <td class="text-center">{{$supervisor["phone"]}}</td>
-                            <td class="text-center text-red"> <strong> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($supervisor->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }}  </strong> </th>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$supervisor["name"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$supervisor["email"]}}</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark"> {{$supervisor["phone"]}}</span></td>
+                            <td class="text-center text-red"> <strong class="badge bg-light text-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($supervisor->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </th>
                             <td class="text-center text-red">
                                 <button class="btn btn-sm btn-light" onclick="showAgentModal({{$supervisor->id}})" data-bs-toggle="modal" data-bs-target="#supervisorAgentModal"><i class="bi bi-list-check"></i></button>
                             </td>

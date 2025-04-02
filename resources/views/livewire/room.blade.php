@@ -420,10 +420,10 @@
                             <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{$room["House"]["name"]}}</span></td>
                             <td class="text-center"><span class="badge bg-light text-dark">{{$room["House"]["Supervisor"]["name"]}}</span></td>
-                            <td class="text-center"><span class="badge bg-dark">{{number_format($room["loyer"],2," "," ")}} </span> </td>
-                            <td class="text-center"><span class="badge bg-warning">{{number_format($room->LocativeCharge(),2," "," ")}} </span> </td>
+                            <td class="text-center"><span class="badge bg-dark">{{number_format($room["loyer"],2,","," ")}} </span> </td>
+                            <td class="text-center"><span class="badge bg-warning">{{number_format($room->LocativeCharge(),2,","," ")}} </span> </td>
                             <!-- <td class="text-center"><a href="{{$room['photo']}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a> -->
-                            <td class="text-center"> <button class="btn btn-sm btn-light text-red">{{number_format($room["total_amount"],2," "," ")}} fcfa </button> </td>
+                            <td class="text-center"> <button class="btn btn-sm btn-light text-red">{{number_format($room["total_amount"],2,","," ")}} fcfa </button> </td>
                             <td class="text-center">{{$room["Type"]['name']}}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#showLocators" onclick="showLocators_fun({{$room['id']}})">

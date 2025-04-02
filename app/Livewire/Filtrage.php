@@ -2,12 +2,22 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
 use Livewire\Component;
 
 class Filtrage extends Component
 {
     public $agency;
+
+    public $proprietors = [];
+    public $locators = [];
+    public $locations = [];
+    public $rooms = [];
+    public $houses = [];
+    public $factures = [];
+
+    public $moved_locators = [];
+
+    public $factures_total_amount = 0;
 
     function mount($agency)
     {

@@ -15,48 +15,12 @@ class EauLocation extends Component
 
     public $current_agency;
 
-    public $old_locations = [];
     public $locations = [];
 
     public $houses = [];
     public $current_house = [];
     public $house;
-    public $houseId = 0;
     public $state = 0;
-
-    public $houseStates = [];
-    public $currentHouseState = 0;
-
-
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
-    public $current_location = [];
-    public $activeLocationId;
-
-    public $currentLocationFactures = [];
-
-    public $end_index = "";
-    public $end_index_error = "";
-    public $location = "";
-    public $location_error = "";
-
-    public $generalError = "";
-    public $generalSuccess = "";
-
-    public $show_form = false;
-    public $show_factures = false;
-    public $show_house_for_state_imprime_form = false;
-    public $show_state_imprime_form = false;
-    public $show_state_imprime = false;
-
-    public $showHouseFom = false;
-    public $actualized = false;
-
-    public $state_html_url = "";
 
     ###__LOCATIONS
     function refreshThisAgencyLocations()
@@ -159,8 +123,10 @@ class EauLocation extends Component
             $location["start_index"] = count($location->ElectricityFactures) != 0 ? $location->ElectricityFactures->first()->end_index : $location->Room->electricity_counter_start_index;
             // $location["end_index"] = $location->end_index;
             $location["locataire"] = $location->Locataire->name ." ". $location->Locataire->prenom;
-            $location["electricity_factures"] = $location->ElectricityFactures;
-            $location["electricity_factures_states"] = $location->House->ElectricityFacturesStates;
+            $location["water_factures"] = $location->WaterFactures;
+            $location["water_factures_states"] = $location->House->WaterFacturesStates;
+            $location["lastFacture"] = $location->WaterFactures()?$location->WaterFactures()->first():null;
+
             array_push($agency_locations, $location);
         }
 

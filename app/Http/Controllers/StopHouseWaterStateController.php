@@ -15,7 +15,7 @@ class StopHouseWaterStateController extends Controller
 
     function ShowWaterStateImprimeHtml(Request $request, $state)
     {
-        $state = StopHouseWaterState::find(deCrypId($state));
+        $state = StopHouseWaterState::find($state);
 
         if (!$state) {
             return "Cet état n'existe pas";

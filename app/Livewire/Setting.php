@@ -3,15 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Agency;
-use App\Models\Profil;
-use App\Models\Rang;
-// use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-use RealRashid\SweetAlert\Facades\Alert;
 use Spatie\Permission\Models\Role;
 
 class Setting extends Component
@@ -20,53 +15,7 @@ class Setting extends Component
 
     public $users = [];
 
-    public $rangs = [];
-    public $actions = [];
-    public $profils = [];
     public $agencies = [];
-
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
-    public $current_locationId = [];
-
-    // LES DATAS
-    public $name;
-    public $username;
-    public $phone;
-    public $email;
-    public $agency;
-
-    public $rang;
-    public $profil;
-
-    public $role;
-
-
-    // LES ERREURES
-    public $name_error = "";
-    public $username_error = "";
-    public $phone_error = "";
-    public $email_error = "";
-    public $agency_error = "";
-
-    public $rang_error = "";
-    public $profil_error = "";
-    public $role_error = "";
-
-    // 
-    public $showAddForm = false;
-    public $showUserRoles = false;
-
-    public $showRoleForm = false;
-
-    public $currentActiveUserId;
-    public $currentActiveUser = [];
-
-    public $currentUserRoles = [];
 
     public $allRoles = [];
 

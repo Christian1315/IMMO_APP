@@ -42,7 +42,7 @@
                             Nbre de mois récouvré:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{number_format($house["nbr_month_paid"],0," ","v")}} </strong>
+                            <strong>= {{number_format($house["nbr_month_paid"],0,","," ")}} </strong>
                         </td>
                     </tr>
                     <tr>
@@ -50,7 +50,7 @@
                             Montant total récouvré:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{number_format($house["total_amount_paid"],0," "," ")}} fcfa </strong>
+                            <strong>= {{number_format($house["total_amount_paid"],0,","," ")}} fcfa </strong>
                         </td>
                     </tr>
                     <tr>
@@ -66,7 +66,7 @@
                             Dépense totale:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{number_format($house["actuel_depenses"],0," "," ") }} fcfa </strong>
+                            <strong>= {{number_format($house["actuel_depenses"],0,","," ") }} fcfa </strong>
                         </td>
                     </tr>
                     <tr>
@@ -74,7 +74,7 @@
                             Net à payer au propriétaire:
                         </td>
                         <td class="bg-warning" style="border: solid 2px #000;">
-                            <strong>= {{number_format($house["net_to_paid"],2,"."," ") }} fcfa </strong>
+                            <strong>= {{number_format($house["net_to_paid"],2,","," ") }} fcfa </strong>
                         </td>
                     </tr>
                 </tbody>
@@ -114,8 +114,8 @@
                             <td class="text-center">{{$location["Locataire"]["phone"]}}</td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
                             <td class="text-center">{{$location["Room"]["total_amount"]}}</td>
-                            <td class="text-center">{{$location["_locataire"]["nbr_month_paid_array"]}}</td>
-                            <td class="text-center">{{$location["_locataire"]["nbr_facture_amount_paid_array"]}}</td>
+                            <td class="text-center">{{$location["_locataire"]?$location["_locataire"]["nbr_month_paid_array"]:0}}</td>
+                            <td class="text-center">{{$location["_locataire"]?$location["_locataire"]["nbr_facture_amount_paid_array"]:0}}</td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</strong> </button>
                             </td>

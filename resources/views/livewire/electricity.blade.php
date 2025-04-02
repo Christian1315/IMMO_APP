@@ -245,7 +245,7 @@
                                         <a href="#" class="dropdown-item btn btn-sm btn-light text-uppercase" data-bs-toggle="modal" data-bs-target="#state_impression" onclick="stateImpression({{$location}})"><i class="bi bi-file-earmark-pdf-fill"> </i> Imprimer les états</a>
                                         @endcan
 
-                                        @cannot("electicity.invoices.change.index")
+                                        @can("electicity.invoices.change.index")
                                         <a href="#" class="dropdown-item btn btn-sm bg-warning text-uppercase" data-bs-toggle="modal" data-bs-target="#updateLastFactureEndIndex" onclick="updateLastFactureEndIndex({{$location}})"><i class="bi bi-pencil-square"></i> Changer l'index de fin</a>
                                         @endcan
                                     </ul>
@@ -399,8 +399,6 @@
             $(".factures-body").empty()
 
             let content = '';
-
-            console.log(location.electricity_factures)
 
             if (location.electricity_factures.length > 0) {
                 let rows = ''

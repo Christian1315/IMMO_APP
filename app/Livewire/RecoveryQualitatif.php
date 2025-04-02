@@ -2,8 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class RecoveryQualitatif extends Component
@@ -11,37 +9,9 @@ class RecoveryQualitatif extends Component
 
     public $agency;
 
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
     public $locators = [];
 
-
-    public $generaleSuccess = "";
-    public $generalError = "";
-
-    public $showTaux = false;
-    public $taux_link = "";
-
-    public $display_taux_options = false;
-
-    public $generate_caution_by_supervisor = false;
-    public $generate_taux_by_supervisor = false;
-    public $generate_taux_by_house = false;
-
-    public $supervisors = [];
-    public $supervisor = [];
-    public $supervisor_error = '';
-
     public $houses = [];
-    public $house = [];
-    public $house_error = '';
-
-    public $start_date = "";
-    public $end_date = "";
 
     ###___HOUSES
     function refreshThisAgencyHouses()
@@ -49,33 +19,11 @@ class RecoveryQualitatif extends Component
         $this->houses = $this->agency->_Houses;
     }
 
-    // REFRESH SUPERVISOR
-    function refreshSupervisors()
-    {
-        $users = User::with(["account_agents"])->get();
-        $supervisors = [];
-
-        foreach ($users as $user) {
-            $user_roles = $user->_roles; ##recuperation des roles de ce user
-
-            foreach ($user_roles as $user_role) {
-                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                    array_push($supervisors, $user);
-                }
-            }
-        }
-        $this->supervisors = array_unique($supervisors);
-    }
 
     function refreshLocators()
     {
-
         #####____locataires ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
         $locators_that_paid_after_state_stoped_day_of_all_houses = [];
-
-        #####____location ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locations_that_paid_after_state_stoped_day_of_all_houses = [];
-        $locations_that_do_not__paid_after_state_stoped_day_of_all_houses = [];
 
         ###____PARCOURONS TOUTES LES MAISONS DE CETTE AGENCE, PUIS FILTRONS LES ETATS
         foreach ($this->agency->_Houses as $house) {
@@ -121,7 +69,6 @@ class RecoveryQualitatif extends Component
         $this->agency = $agency;
 
         $this->refreshLocators();
-        $this->refreshSupervisors();
         $this->refreshThisAgencyHouses();
     }
 

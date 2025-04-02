@@ -321,8 +321,6 @@ function GET_HOUSE_DETAIL($house)
 
     $locations = $house->Locations->where("status", "!=", 3);
 
-    // dd($locations->pluck("id"));
-
     ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
     foreach ($locations as $key => $location) {
         if ($house_last_state) {
@@ -349,32 +347,6 @@ function GET_HOUSE_DETAIL($house)
         $nbr_month_paid_array = [];
         $nbr_facture_amount_paid_array = [];
         ####___________
-
-        // $location_states = $location->House->States;
-
-        ####==== les factures du dernier etat =======######
-        // if (count($location_states) != 0) {
-        //     ###___on recupère les factures du dernier état de la maison.
-        //     $location_last_state = $location->House->States->last();
-        //     $location_last_state_factures = $location_last_state->Factures;
-
-        //     ###___recuperons la dernière facture de cet etat dans toute la table
-        //     $last_facture_in_factures_table = $location_last_state->AllFactures->last();
-
-        //     // return $last_facture_in_factures_table;
-        //     if (!$last_facture_in_factures_table->state_facture) {
-        //         ####___ s'il ne s'agit pas de la dernière facture d'arrêt d'etat
-        //         ####_____
-        //         foreach ($location_last_state_factures as $facture) {
-        //             array_push($nbr_month_paid_array, $facture);
-        //             array_push($nbr_facture_amount_paid_array, $facture->amount);
-        //         }
-        //     }
-
-        //     ###______
-        // } else {
-
-        // }
 
         ########===========     ====================####
 
@@ -410,6 +382,7 @@ function GET_HOUSE_DETAIL($house)
     if ($house_last_state) {
         $last_state_depenses = $house_last_state->CdrAccountSolds;
     }
+    
     foreach ($last_state_depenses as $depense) {
         array_push($last_state_depenses_array, $depense->sold_retrieved);
     }

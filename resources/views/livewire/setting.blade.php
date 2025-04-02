@@ -41,7 +41,6 @@
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
-                                    <span class="text-red"> {{$username_error}} </span>
                                     <input type="text" name="username" value="{{old('username')}}" placeholder="Identifiant(username)" class="form-control">
                                     @error("username")
                                     <span class="text-red"> {{$message}} </span>
@@ -255,11 +254,9 @@
     <script type="text/javascript">
         // Edit User
         function editUser(userId) {
-            console.log(userId)
-            let CryptedId = `<?php echo crypId($userId)  ?>`
             axios.get(`/users/${userId}/retrieve`).then((response) => {
                 let data = response.data;
-
+    
                 $('#userName').html(data.name);
                 $('#user_edit').val(data.name);
                 $('#edit_email').val(data.email);

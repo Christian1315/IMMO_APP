@@ -2,8 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Models\House;
-use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class HouseStopState extends Component

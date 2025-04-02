@@ -2,64 +2,15 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class Recovery05 extends Component
 {
-    use WithFileUploads;
 
     public $agency;
 
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $headers = [];
-
     public $locators = [];
-
-    public $generaleSuccess = "";
-    public $generalError = "";
-
-    public $showTaux = false;
-    public $taux_link = "";
-
-    public $display_taux_options = false;
-
-    public $generate_caution_by_supervisor = false;
-    public $generate_taux_by_supervisor = false;
-    public $generate_taux_by_house = false;
-
-    public $supervisors = [];
-    public $supervisor = [];
-    public $supervisor_error = '';
-
     public $houses = [];
-    public $house = [];
-    public $house_error = '';
-
-    public $start_date = "";
-    public $end_date = "";
-
-    // REFRESH SUPERVISOR
-    function refreshSupervisors()
-    {
-        $users = User::with(["account_agents"])->get();
-        $supervisors = [];
-
-        foreach ($users as $user) {
-            $user_roles = $user->_roles; ##recuperation des roles de ce user
-
-            foreach ($user_roles as $user_role) {
-                if ($user_role->id == env("SUPERVISOR_ROLE_ID")) {
-                    array_push($supervisors, $user);
-                }
-            }
-        }
-        $this->supervisors = array_unique($supervisors);
-    }
 
     function refreshLocators()
     {
@@ -116,7 +67,6 @@ class Recovery05 extends Component
 
         $this->agency = $agency;
 
-        $this->refreshSupervisors();
         $this->refreshThisAgencyHouses();
         $this->refreshLocators();
     }

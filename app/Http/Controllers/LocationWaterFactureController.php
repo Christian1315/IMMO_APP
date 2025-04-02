@@ -7,10 +7,8 @@ use App\Models\AgencyAccount;
 use App\Models\AgencyAccountSold;
 use App\Models\House;
 use App\Models\Location;
-use App\Models\LocationElectrictyFacture;
 use App\Models\LocationWaterFacture;
 use App\Models\Room;
-use App\Models\StopHouseElectricityState;
 use App\Models\StopHouseWaterState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -77,7 +75,7 @@ class LocationWaterFactureController extends Controller
     {
         $user = request()->user();
 
-        $facture = LocationWaterFacture::where("visible", 1)->find(deCrypId($id));
+        $facture = LocationWaterFacture::where("visible", 1)->find($id);
         if (!$facture) {
             alert()->error("Echec", "Cette facture n'existe pas!");
             return back()->withInput();
