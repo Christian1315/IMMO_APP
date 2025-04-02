@@ -13,46 +13,6 @@ class Room extends Model
     use HasFactory;
 
     protected $guarded = [];
-    // protected $fillable = [
-    //     "owner",
-    //     "house",
-    //     "nature",
-    //     "type",
-    //     "loyer",
-    //     "number",
-    //     "comments",
-
-    //     "photo",
-
-    //     "gardiennage",
-    //     "forfait_forage",
-
-    //     "rubbish",
-    //     "vidange",
-    //     "cleaning",
-
-    //     ##__EAU
-    //     "water",
-    //     "unit_price",
-
-    //     "water_card_counter",
-    //     "water_conventionnal_counter",
-    //     "water_counter_start_index",
-    //     "forfait_forage",
-    //     "forage",
-
-    //     ##__ELECTRICITY
-    //     "electricity",
-    //     "electricity_card_counter",
-    //     "electricity_conventionnal_counter",
-    //     "electricity_discounter",
-    //     "electricity_counter_start_index",
-    //     "electricity_counter_number",
-
-    //     "total_amount",
-    //     "visible",
-    //     "delete_at"
-    // ];
 
     function LocativeCharge() {
         return ($this->gardiennage + $this->rubbish + $this->vidange + $this->cleaning);
@@ -84,10 +44,6 @@ class Room extends Model
     }
 
     function buzzy() {
-        // $locations = $this->filter(function($room){
-        //     return $room->locations;
-        // });
-
         return count($this->Locations)>0?true:false;
     }
 }

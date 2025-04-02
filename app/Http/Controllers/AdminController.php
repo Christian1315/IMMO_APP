@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Agency;
 use App\Models\Facture;
 use App\Models\Location;
-use App\Models\Payement;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -102,11 +101,6 @@ class AdminController extends Controller
         return view("admin.houses", compact("agency"));
     }
 
-    function Client(Request $request)
-    {
-        return view("admin.clients");
-    }
-
     function Room(Request $request, $agencyId)
     {
         $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
@@ -173,11 +167,6 @@ class AdminController extends Controller
     function AccountSold(Request $request)
     {
         return view("admin.count_solds");
-    }
-
-    function Initiation(Request $request)
-    {
-        return view("admin.initiations");
     }
 
     function AgencyInitiation(Request $request, $agencyId)
@@ -332,23 +321,6 @@ class AdminController extends Controller
         return back()->withInput()->with(["locators" => $locators]);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     function PaiementAll(Request $request)
     {
         $agency = [];
@@ -423,31 +395,7 @@ class AdminController extends Controller
 
         return view("admin.decaisser", compact("agency"));
     }
-
-
-    function StopState(Request $request, $id)
-    {
-        $BASE_URL = env("BASE_URL");
-        $token = session()->get("token");
-        $userId = session()->get("userId");
-
-        $headers = [
-            "Authorization" => "Bearer " . $token,
-        ];
-
-        $data = [
-            "house" => $id,
-        ];
-
-        // les locations de cette maison
-        $response = Http::withHeaders($headers)->post($BASE_URL . "immo/house_state/stop", $data)->json();
-        if (!$response["status"]) {
-            return redirect()->back()->with("error", $response["erros"]);
-        } else {
-            return redirect()->back()->with("success", $response["message"]);
-        }
-    }
-
+    
     function LocationFactures(Request $request, $agencyId)
     {
         $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));

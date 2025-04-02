@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
 use App\Models\AgentAccountSupervisor;
-use App\Models\Right;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\UserRight;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,10 +51,7 @@ class UserController extends Controller
             'username' => 'required',
             'phone' => ['required', 'numeric'],
             'agency' => ['required', 'integer'],
-            // 'email' => ['required', 'email', Rule::unique('users')],
             'email' => ['required', 'email'],
-            // 'profil' => ['required', 'integer'],
-            // 'rang' => ['required', 'integer'],
         ];
     }
 
@@ -70,19 +64,12 @@ class UserController extends Controller
             'username.required' => 'L\'identifiant(uersname) est réquis!',
             'email.required' => 'Le champ Email est réquis!',
             'email.email' => 'Ce champ est un mail!',
-            // 'email.unique' => 'Un compte existe déjà au nom de ce mail!',
-            // 'phone.unique' => 'Un compte existe déjà au nom de ce phone',
             'phone.required' => 'Le phone est réquis!',
             'phone.numeric' => 'Le phone doit être de type numéric!',
 
             'agency.required' => "Veillez préciser l'agence",
             'agency.integer' => "L'agence doit être de type entier!",
 
-            // 'profil.required' => "Veillez préciser le profil",
-            // 'profil.integer' => "Le profil doit être de type entier!",
-
-            // 'rang.required' => "Veillez préciser le rang",
-            // 'rang.integer' => "Le rang doit être de type entier!",
         ];
     }
 
@@ -302,9 +289,6 @@ class UserController extends Controller
                     "required",
                     "confirmed",
                     Password::min(6),
-                    // ->letters()
-                    // ->mixedCase()
-                    // ->numbers(),
                     Rule::unique("users", "id")
                 ]
             ],
@@ -532,7 +516,6 @@ class UserController extends Controller
         }
 
         $user->load("_roles");
-        // dd($user->_roles);
         return view("users.roles", compact("user"));
     }
 

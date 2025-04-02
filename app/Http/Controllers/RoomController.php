@@ -40,20 +40,6 @@ class RoomController extends Controller
             "type" => ["required", "integer"],
             "loyer" => ["required", "numeric"],
             "number" => ["required"],
-            // "comments" => ["required"],
-
-            // "gardiennage" => ["required", "numeric"],
-            // "rubbish" => ["required", "numeric"],
-            // "vidange" => ["required", "numeric"],
-            // "cleaning" => ["required", "numeric"],
-
-            ##__EAU
-            // "water" => ["required", "boolean"],
-            // "water_discounter" => ["boolean"],
-            // "unit_price" => ["numeric"],
-
-            ##__ELECTRICITY
-            // "electricity" => ["required", "boolean"],
         ];
     }
 
@@ -75,31 +61,7 @@ class RoomController extends Controller
 
             "gardiennage.required" => "Ce Champ est réquis!",
 
-            // "rubbish.required" => "Ce Champ est réquis!",
-            // "vidange.required" => "Ce Champ est réquis!",
-            // "cleaning.required" => "Ce Champ est réquis!",
-
-            // "gardiennage.numeric" => "Ce Champ doit être de type numérique!",
-
-            // "rubbish.numeric" => "Ce Champ doit être de type numérique!",
-            // "vidange.numeric" => "Ce Champ doit être de type numérique!",
-            // "cleaning.numeric" => "Ce Champ doit être de type numérique!",
-
-            // "publish.required" => "Ce Champ est réquis!",
             "home_banner.boolean" => "Ce Champ est un booléen!",
-
-            // "photo.required" => "La photo de la chambre est réquise!",
-            // "photo.file" => "La photo doit être un fichier",
-
-            ##__EAU
-            // "water.required" => "Ce Champ est réquis!",
-            // "water.boolean" => "Ce Champ est un booléen!",
-            // "unit_price.boolean" => "Ce Champ doit être de type numérique!",
-
-
-            ###___ELECTRICITY
-            // "electricity.required" => "Ce Champ est réquis",
-            // "electricity.boolean" => "Ce Champ est un booléen",
         ];
     }
 
@@ -134,7 +96,6 @@ class RoomController extends Controller
             "water_counter_number.required" => "Le numéro du compteur est réquis!",
             "water_counter_start_index.required" => "L'index de début du compteur est réquis!",
 
-            // "water_counter_number.numeric" => "Ce Champ est doit être de type numérique!",
             "water_counter_start_index.numeric" => "Ce Champ est doit être de type numérique!",
         ];
     }
@@ -159,7 +120,6 @@ class RoomController extends Controller
     static function electricity_discounter_rules(): array
     {
         return [
-            // "electricity" => ["required", "boolean"],
             "electricity_unit_price" => ["required", "numeric"],
             "electricity_counter_number" => ["required"],
             "electricity_counter_start_index" => ["required", "numeric"],
@@ -174,7 +134,6 @@ class RoomController extends Controller
             "electricity_counter_number.required" => "Le numéro du compteur d'electricité est réquis",
             "electricity_counter_start_index.required" => "L'index de debut du compteur électrique est réquis",
 
-            // "electricity.boolean" => "Ce Champ est un booléen",
             "electricity_unit_price.numeric" => "Le prix unitaire d'electricité doit être de type numérique",
             "electricity_counter_start_index.numeric" => "L'index de debut du compteur électrique doit être de type numérique!",
         ];
@@ -324,7 +283,6 @@ class RoomController extends Controller
             alert()->success("Succès", "Chambre ajoutée avec succès!!");
             return back()->withInput();
         } catch (\Throwable $th) {
-            dd($th);
             DB::rollBack();
             alert()->error("Error", "Une erreure est survenue");
             return back()->withInput();
@@ -358,7 +316,6 @@ class RoomController extends Controller
             }
         }
 
-        // dd($rooms);
         if (count($rooms) == 0) {
             alert()->error("Echèc", "Aucun résultat trouvé");
             // Session::forget("filteredHouses");
@@ -415,7 +372,6 @@ class RoomController extends Controller
 
     function UpdateRoom(Request $request, $id)
     {
-        // dd($request->all());
         try {
             DB::beginTransaction();
             $user = request()->user();
@@ -470,7 +426,6 @@ class RoomController extends Controller
             return back()->withInput();
         } catch (\Throwable $th) {
             DB::rollBack();
-            dd($th);
             alert()->error("Error", "Une erreure est survenue");
             return back()->withInput();
         }

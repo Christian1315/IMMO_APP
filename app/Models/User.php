@@ -82,20 +82,6 @@ class User extends Authenticatable
         return $this->belongsTo(Profil::class, 'profil_id');
     }
 
-    function my_admins(): HasMany
-    {
-        return $this->hasMany(Admin::class, "owner");
-    }
-
-    function as_admin(): HasOne
-    {
-        return $this->hasOne(Admin::class, "as_user");
-    }
-
-    function belong_to_organisation(): BelongsTo
-    {
-        return $this->belongsTo(Organisation::class, "organisation");
-    }
 
     ####_____NEW FUNCTIONS
     function _roles(): BelongsToMany

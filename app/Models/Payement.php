@@ -46,11 +46,6 @@ class Payement extends Model
         return $this->belongsTo(PaiementType::class, "type");
     }
 
-    function Client(): BelongsTo
-    {
-        return $this->belongsTo(Client::class, "client");
-    }
-
     function Status(): BelongsTo
     {
         return $this->belongsTo(PaiementStatus::class, "status");

@@ -15,6 +15,4 @@ class ProprietorController extends Controller
        $proprietor = Proprietor::with(["Houses"])->find($id);
        return response()->json($proprietor);
     }
-
-
 }

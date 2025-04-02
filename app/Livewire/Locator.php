@@ -119,4 +119,5 @@ class Locator extends Component
     {
         return view('livewire.locator');
     }
+    
 }

@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-md-4"></div>
         <div class="col-md-4">
-            <form action="{{route('demandeReinitialisation')}}" method="POST" class="shadow-lg p-3 roundered bg-white animate__animated animate__bounce">
+            <form action="{{route('demandeReinitialisation')}}" method="POST" class="shadow-lg p-3 rounded bg-white animate__animated animate__bounce">
                 @csrf
                 <h5 class="text-center text-dark">Demande de réinitialisation de compte</h5>
                 <p class="">

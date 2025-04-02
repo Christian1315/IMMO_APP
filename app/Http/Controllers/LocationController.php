@@ -8,7 +8,6 @@ use App\Models\AgencyAccountSold;
 use App\Models\Facture;
 use App\Models\HomeStopState;
 use App\Models\House;
-use App\Models\ImmoAccount;
 use App\Models\Locataire;
 use App\Models\Location;
 use App\Models\LocationElectrictyFacture;
@@ -61,12 +60,6 @@ class LocationController extends Controller
             'locataire' => ['required', "integer"],
             'type' => ['required', "integer"],
 
-            // 'pre_paid' => ['required', "boolean"],
-            // 'post_paid' => ['required', "boolean"],
-            // 'discounter' => ['required', "boolean"],
-
-            // 'caution_bordereau' => ["file"],
-            // 'loyer' => ['required', "numeric"],
             'water_counter' => ['required'],
             'electric_counter' => ['required'],
 
@@ -75,15 +68,8 @@ class LocationController extends Controller
             'prestation' => ['required', "numeric"],
             'numero_contrat' => ['required'],
 
-            // 'comments' => ['required'],
-            // 'img_contrat' => ["file"],
-            // 'caution_water' => ['required', "numeric"],
-            // 'echeance_date' => ['required', "date"],
-            // 'latest_loyer_date' => ['required', "date"],
-            // 'img_prestation' => ["file"],
             'caution_electric' => ['required', "numeric"],
             'effet_date' => ['required', "date"],
-            // 'frais_peiture' => ['required', "numeric"],
         ];
     }
 
@@ -105,11 +91,8 @@ class LocationController extends Controller
             'type.required' => "Le type de location est réquis!",
             'type.integer' => 'Ce champ doit être de type integer',
 
-            // 'caution_bordereau.required' => "Le bordereau de la caution est réquise!",
             'caution_bordereau.file' => "Le bordereau de la caution doit être un fichier!",
 
-            // 'loyer.required' => "Le loyer de la location est réquise!",
-            // 'loyer.numeric' => "Ce champ doit être de type numeric!",
 
             'caution_number.required' => "Le nombre de caution est réquise!",
             'caution_number.integer' => "Le nombre de caution doit être de type integer!",
@@ -119,7 +102,6 @@ class LocationController extends Controller
 
             'water_counter.required' => "Le numéro du compteur d'eau est réquis",
             'electric_counter.required' => "Le numéro du compteur électrique est réquis",
-            // 'water_counter.numeric' => "Le champ compteur d'eau doit être de caractère numérique",
 
             'prestation.required' => "La prestation est réquise",
             'prestation.file' => "La prestation doit être un fichier",
@@ -129,15 +111,6 @@ class LocationController extends Controller
 
             'img_contrat.required' => "L'image du contrat est réquise",
             'img_contrat.file' => "L'image du contrat doit être un fichier",
-
-            // 'caution_water.required' => "La caution d'eau est réquise",
-            // 'caution_water.numeric' => "La caution d'eau doit être de caractère numérique",
-
-            // 'echeance_date.required' => "La date d'écheance est réquise!",
-            // 'echeance_date.date' => "Ce champ doit être de type date",
-
-            // 'latest_loyer_date.required' => "La date du dernier loyer est réquis!",
-            // 'latest_loyer_date.date' => "Ce champ doit être de type date",
 
             'pre_paid.boolean' => "Le champ doit être un booléen!",
             'post_paid.boolean' => "Le champ doit être un booléen",
@@ -161,7 +134,6 @@ class LocationController extends Controller
         return [
             'location' => ['required', "integer"],
             'type' => ['required', "integer"],
-            // 'month' => ['required', "date"],
             'facture_code' => ['required', "unique:factures,facture_code"],
         ];
     }
@@ -173,8 +145,6 @@ class LocationController extends Controller
             'type.required' => "Le type de paiement est réquis!",
             'location.integer' => "Ce champ doit être de type entier!",
             'type.integer' => "Ce champ doit être de type entier!",
-            // 'month.required' => "Ce champ est réquis!",
-            // 'month.date' => "Ce champ doit être de type date!",
 
             'facture_code.required' => "Veillez préciser le code de la facture!",
             'facture_code.unique' => "Ce code de facture existe déjà!",
@@ -186,7 +156,7 @@ class LocationController extends Controller
     ########################===================== DEBUT DES METHODES ======================###############
 
     ####____AJOUT D'UN TYPE DE LOCATION
-    static function _AaddType(Request $request)
+    static function _AddType(Request $request)
     {
         // validation
         $formData = $request->all();
@@ -246,10 +216,6 @@ class LocationController extends Controller
             alert()->error("Echec", "Cette location n'existe pas!");
             return back();
         }
-
-        // $cautions_eau = $location->caution_electric;
-        // $cautions_electricity = $location->caution_water;
-        // $cautions_loyer = $location->caution_number * $location->loyer;
 
         alert()->success('Succès', "Caution générées avec succès!");
         return view("etat_prorata", compact(["location"]));
@@ -706,15 +672,13 @@ class LocationController extends Controller
             return back()->withInput();
         }
         $superviseur = User::find($request->supervisor);
-        // $superviseur = User::find(2);
-        // $location = Location::where("visible", 1)->find(deCrypId($locationId));
+        
         $locations = Location::where("visible", 1)->get()->filter(function ($location) use ($request) {
             if ($location->House->Supervisor->id == $request->supervisor) {
                 return $location;
             }
         });
 
-        // dd($locations);
         return view("imprimer_locations", compact("locations", "superviseur"));
     }
 
@@ -740,7 +704,6 @@ class LocationController extends Controller
         });
 
         Session::put("imprimUnPaidLocations", true);
-        // dd($locations);
         return view("imprimer_locations", compact("locations", "superviseur"));
     }
 
@@ -1250,123 +1213,6 @@ class LocationController extends Controller
         return view("locators.locator-before-stop-date", compact("locationsFiltered", "house"));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    #GET ALL LocationS
-    function Locations(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE 
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #RECUPERATION DE TOUT LES LocationS
-        return $this->getLocations();
-    }
-
-    #TOUTES LES LOCATIONS AYANT D'ELECTRICITE
-    function ElectricityLocations(Request $request, $agencyId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE 
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->getAllElectricityLocations($request, $agencyId);
-    }
-
-    #TOUTES LES LOCATIONS AYANT D'EAU
-    function WaterLocations(Request $request, $agencyId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE 
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->getAllWaterLocations($request, $agencyId);
-    }
-
-    #GET AN Location
-    function RetrieveLocation(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE 
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #RECUPERATION DE LA Location
-        return $this->_retrieveLocation($id);
-    }
-
-    function DeleteLocation(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "DELETE") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        return $this->locationDelete($id);
-    }
-
-    function _ImprimeStates(Request $request, $agencyId, $houseId, $action)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->imprimeStates($request, $agencyId, $houseId, $action);
-    }
-
-    function _ImprimeStatesForAllSystem(Request $request, $houseId, $action)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->imprimeStatesForAllSystem($request, $houseId, $action);
-    }
-
-    function _ShowLocatorStateStoped(Request $request, $agencyId, $houseId, $action)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->locatorsStateStoped($request,  $agencyId, $houseId, $action);
-    }
-
-    function _ManagePrestationStatistique(Request $request, $agencyId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->managePrestationStatistique($request, $agencyId);
-    }
-
-
-
     function _ShowPrestationStatistique(Request $request, $agencyId)
     {
         $prestations = [];
@@ -1385,19 +1231,6 @@ class LocationController extends Controller
 
         return view("prestation-statistique", compact(["locations", "prestations", "agency"]));
     }
-
-    function _ShowPrestationStatistiqueForAgencyByPeriod(Request $request, $agencyId, $first_date, $last_date)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        ###___
-        return $this->showPrestationStatistiqueForAgencyByPeriod($request, $agencyId, $first_date, $last_date);
-    }
-
 
     function _ShowCautionsByAgency(Request $request, $agencyId)
     {
@@ -1419,17 +1252,6 @@ class LocationController extends Controller
         return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
-    // PERIOD CAUTIONS MANAGEMENT
-    function _ManageCautionsByPeriod(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->manageCautionsByPeriode($request);
-    }
 
     function _ShowCautionsByPeriod(Request $request, $first_date, $last_date)
     {
@@ -1449,23 +1271,6 @@ class LocationController extends Controller
         ###_______
 
         return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-    }
-
-    // HOUSE CAUTIONS MANAGEMENT
-    function _ManageCautionsByHouse(Request $request, $houseId)
-    {
-        return $this->manageCautionsByHouse($request, $houseId);
-    }
-
-    function _ManageCautionsForHouseByPeriod(Request $request, $houseId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->manageCautionsForHouseByPeriod($request, $houseId);
     }
 
 
@@ -1494,7 +1299,6 @@ class LocationController extends Controller
 
     function _ShowCautionsForHouseByPeriod(Request $request, $houseId, $first_date, $last_date)
     {
-        // dd($houseId);
         ###___
         $locations = Location::where(["house" => $houseId])->where('created_at', ">=", $first_date)->where('created_at', ">=", $last_date)->get();
 
@@ -1511,16 +1315,5 @@ class LocationController extends Controller
         ###_______
 
         return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-    }
-
-    function SearchLocation(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->search($request);
     }
 }

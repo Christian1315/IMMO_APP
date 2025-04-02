@@ -52,14 +52,14 @@ Route::controller(HomeController::class)->group(function () {
 });
 
 // ROLES
-Route::controller(RoleController::class)->group(function (){
-    Route::get("/roles/index","index")->name("roles.index");
-    Route::post("/roles/store","store")->name("roles.store");
-    Route::get("/roles/{id}/retrieve","retrieve")->name("roles.retrieve");
-    Route::patch("/roles/{id}/update","update")->name("roles.update");
-    Route::any("/roles/{id}/destroy","_destroy")->name("roles._destroy");
-    Route::post("/roles/{id}/affect","affectToUser")->name("roles.affectToUser");
-    Route::post("/roles/{id}/remove","removeFromUser")->name("roles.removeFromUser");
+Route::controller(RoleController::class)->group(function () {
+    Route::get("/roles/index", "index")->name("roles.index");
+    Route::post("/roles/store", "store")->name("roles.store");
+    Route::get("/roles/{id}/retrieve", "retrieve")->name("roles.retrieve");
+    Route::patch("/roles/{id}/update", "update")->name("roles.update");
+    Route::any("/roles/{id}/destroy", "_destroy")->name("roles._destroy");
+    Route::post("/roles/{id}/affect", "affectToUser")->name("roles.affectToUser");
+    Route::post("/roles/{id}/remove", "removeFromUser")->name("roles.removeFromUser");
 });
 
 ######============ USERS ROUTE ============#########################
@@ -93,19 +93,6 @@ Route::controller(UserController::class)->group(function () {
 
     Route::any('attach-user', 'AttachRightToUser'); #Attacher un droit au user 
 
-
-    ###========== RIGHTS ROUTINGS ========###
-    Route::controller(RightController::class)->group(function () {
-        Route::prefix('right')->group(function () {
-            Route::post('add', 'CreateRight')->name("user.CreateRight"); #AJOUT D'UN DROIT'
-
-            Route::any('attach-user/{right}', 'AttachRightToUser')->name("user.AttachRightToUser"); #Attacher un droit au user 
-            Route::any('desattach-user/{right}', 'DesAttachRightToUser')->name("user.DesAttachRightToUser"); #Dettacher un droit au user 
-
-            Route::any('{id}/retrieve', 'RetrieveRight')->name("user.RetrieveRight"); #RECUPERATION D'UN DROIT
-            Route::any('{id}/delete', 'DeleteRight')->name("user.DeleteRight"); #SUPPRESSION D'UN DROIT
-        });
-    });
 });
 
 ###========== PROPRIETAIRE ========###
@@ -113,10 +100,6 @@ Route::prefix("proprietor")->group(function () {
     Route::controller(ProprietorController::class)->group(function () {
         Route::post('add', '_AddProprietor')->name("proprietor._AddProprietor"); #AJOUT D'UN PROPRIETAIRE
         Route::any('{id}/update', 'UpdateProprietor')->name("proprietor.UpdateProprietor"); # MODIFICATION D'UN PROPRIETAIRE 
-
-        Route::any('all', 'Proprietors'); #RECUPERATION DE TOUT LES PROPRIETAIRES
-        Route::any('{id}/retrieve', 'RetrieveProprietor'); #RECUPERATION D'UN PROPRIETAIRE
-        Route::any('{id}/delete', 'DeleteProprietor'); # SUPPRESSION D'UN PROPRIETAIRE  
     });
 });
 ##___
@@ -142,31 +125,6 @@ Route::prefix("house")->group(function () {
         Route::post('filtrebysupervisor/{houseId}', 'FiltreHouseBySupervisor')->name("house.FiltreHouseBySupervisor"); ####___FILTRE DES MAISONS PAR SUPERVISEUR;
         Route::post('filtrebyperiode/{houseId}', 'FiltreHouseByPeriod')->name("house.FiltreHouseByPeriode"); ####___FILTRE DES MAISONS PAR PERIODE;
 
-
-
-
-
-
-
-
-        ####____
-        Route::any('all', 'Houses')->name("house.Houses"); #RECUPERATION DES MAISONS
-        Route::any('{agencyId}/all', 'AgenciesHouses')->name("house.AgenciesHouses"); #RECUPERATION DES MAISONS D'UNE AGENCE
-        Route::any('{agencyId}/last_state/all', 'AgenciesHousesForTheLastState')->name("house.AgenciesHousesForTheLastState"); #RECUPERATION DES MAISONS D'UNE AGENCE en considerant son dernier arre^t d'etat
-        Route::any('{id}/retrieve', 'RetrieveHouse')->name("house.RetrieveHouse"); #RECUPERATION D'UNE MAISON
-
-        Route::any('{agencyId}/{supervisor}/{house}/{action}/performance', "HousePerformance"); # La performance dans une maison 
-    });
-});
-
-
-###========== AGENCY ROUTINGS ========###
-Route::controller(AgencyController::class)->group(function () {
-    Route::prefix('agency')->group(function () {
-        Route::any('add', 'AddAgency')->name("AddAgency"); #AJOUT D'UN AGENCY
-        Route::any('all', 'Agencys'); #GET ALL AGENCYS
-        Route::any('{id}/delete', 'DeleteAgency'); #SUPPRESSION D'UN AGENCY
-        Route::any('{id}/update', 'UpdateAgency'); #MODIFICATION D'UN AGENCY
     });
 });
 
@@ -192,11 +150,9 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('/{agency}/initiation', "AgencyInitiation")->name("agency-initiation");
 
     Route::match(["GET", "POST"], '/{agency}/factures', "LocationFactures")->name("locationFacture");
-    Route::get('/{agency}/flitrefactures', "LocationFiltreFactures")->name("facture.LocationFiltreFactures");
 
     Route::get('/{agency}/caisses', "Caisses")->name("caisses");
     Route::get('/{agency}/{agency_account}/caisse-mouvements', "CaisseMouvements")->name("caisse-mouvements");
-    Route::any('{agencyAccount}/agency_mouvements', '_RetrieveAgencyAccountMouvements'); ## RECUPERATION DES MOUVEMENTS D'UN COMPTE
 
     Route::get('/{agency}/encaisser', "Encaisser")->name("encaisser");
     Route::get('/{agency}/decaisser', "Decaisser")->name("decaisser");
@@ -232,11 +188,8 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('dashbord', "Admin")->name("dashbord");
     Route::get('agency', "Agencies")->name("agency");
     Route::get('/paiement', "PaiementAll")->name("paiementAll");
-    Route::get('client', "Client")->name("client");
-    Route::get('initiation', "Initiation")->name("initiation");
     Route::get('supervisor', "Supervisors")->name("supervisor");
     Route::get('statistique', "Statistique")->name("statistique");
-    Route::get('{house}/stopState', "StopState")->name("locationFacture");
 });
 
 ###========== ROOM ========###
@@ -282,28 +235,10 @@ Route::prefix("locataire")->group(function () {
         Route::post('{agency}/removed/filtre_by_supervisor', 'RemovedFiltreBySupervisor')->name("locator.RemovedFiltreBySupervisor"); #LOCATAIRE DEMENAGES FILTRER PAR SUPERVISEUR
         Route::post('{agency}/removed/filtre_by_house', 'RemovedFiltreByHouse')->name("locator.RemovedFiltreByHouse"); #LOCATAIRE DEMENAGES FILTRER PAR MAISON
 
-
-
-
-
+        ###___
         Route::any('{agencyId}/recovery_05_to_echeance_date', 'Recovery05ToEcheanceDate'); ###_______
         Route::any('{agencyId}/recovery_10_to_echeance_date', 'Recovery10ToEcheanceDate'); ###_______
         Route::any('{agencyId}/recovery_qualitatif', 'RecoveryQualitatif'); ###_______
-
-        // imprimer les taux de recouvrement 05
-        Route::any("{agencyId}/imprime_taux_05_agency", "_ImprimeAgencyTaux05");
-        Route::any("{agencyId}/{supervisor}/imprime_taux_05_supervisor", "_ImprimeAgencyTaux05_Supervisor");
-        Route::any("{agencyId}/{house}/imprime_taux_05_house", "_ImprimeAgencyTaux05_House");
-
-        // imprimer les taux de recouvrement 10
-        Route::any("{agencyId}/imprime_taux_10_agency", "_ImprimeAgencyTaux10");
-        Route::any("{agencyId}/{supervisor}/imprime_taux_10_supervisor", "_ImprimeAgencyTaux10_Supervisor");
-        Route::any("{agencyId}/{house}/imprime_taux_10_house", "_ImprimeAgencyTaux10_House");
-
-        // imprimer les taux de recouvrement qualitatif
-        Route::any("{agencyId}/imprime_taux_qualitatif_agency", "_ImprimeAgencyTauxQualitatif");
-        Route::any("{agencyId}/{supervisor}/imprime_taux_qualitatif_supervisor", "_ImprimeAgencyTauxQualitatif_Supervisor");
-        Route::any("{agencyId}/{house}/imprime_taux_qualitatif_house", "_ImprimeAgencyTauxQualitatif_House");
     });
 });
 ##___
@@ -313,7 +248,7 @@ Route::prefix("locataire")->group(function () {
 Route::prefix("location")->group(function () {
     Route::controller(LocationController::class)->group(function () {
         Route::prefix("type")->group(function () {
-            Route::post('add', '_AaddType')->name("location.AddType"); ##__AJOUT DE TYPE DE LOCATION
+            Route::post('add', '_AddType')->name("location.AddType"); ##__AJOUT DE TYPE DE LOCATION
         });
         Route::get("{agencyId}/generate_cautions", "_ManageCautions")->name("location._ManageCautions"); #GENERATE CAUTION POUR TOUTE L4AGENCE
         Route::get("location/{locationId}/generate_cautions", "_ManageLocationCautions")->name("location._ManageLocationCautions"); #GENERATE CAUTION UNE LOCATION
@@ -339,40 +274,20 @@ Route::prefix("location")->group(function () {
 
 
         ###___GESTION DES FACTURES D'ELECTRICITE DANS UNE LOCATION
-        
+
         #UPDATE END_INDEX 
-        Route::patch('electricity/{factureId}/update_end_index', 'ElectricityUpdateEndIndex')->name("location.ElectricityUpdateEndIndex"); 
-        Route::patch('water/{factureId}/update_end_index', 'WaterUpdateEndIndex')->name("location.WaterUpdateEndIndex"); 
+        Route::patch('electricity/{factureId}/update_end_index', 'ElectricityUpdateEndIndex')->name("location.ElectricityUpdateEndIndex");
+        Route::patch('water/{factureId}/update_end_index', 'WaterUpdateEndIndex')->name("location.WaterUpdateEndIndex");
 
         ##=========__ ARRETER LES ETATS D'ELECTRICITE DES MAISON ======
         Route::any('stop', '_StopStatsOfHouse')->name("location._StopStatsOfHouse");
 
-        ###___electricite
-        Route::any('agency/{agencyId}/electricity', 'ElectricityLocations'); ##__RECUPERATION DES LOCATIONS AYANT D'ELECTRICITE
-        ###___eau
-        Route::any('agency/{agencyId}/water', 'WaterLocations'); ##__RECUPERATION DES LOCATIONS AYANT D'EAU
-
-
         ####__STATISTIQUE DES AGENCES (payement avant & apres arret des etats)
         ###___FILTRE
-        Route::any('filtre_by_date', '_FiltreByDate'); #FILTRER PAR DATE
         Route::any('{houseId}/filtre_before_stateDate_stoped', 'FiltreBeforeStateDateStoped')->name("location.FiltreBeforeStateDateStoped"); #FILTRER LES PAIEMENTS AVANT ARRET DES ETATS
         Route::any('{houseId}/filtre_after_stateDate_stoped', 'FiltreAfterStateDateStoped')->name("location.FiltreAfterStateDateStoped"); #FILTRER LES PAIEMENTS APRES ARRET DES ETATS
 
         Route::post('{agency}/filtre_by_supervisor', 'FiltreBySupervisor')->name("locator.FiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
-
-        Route::any('{agency}/filtre_after_echeanceDate', 'FiltreAfterEcheanceDate');
-        Route::any('{agency}/filtre_at_any_date', 'FiltreAtAnyDate');
-
-
-
-        Route::any("generate_cautions_by_period", "_ManageCautionsByPeriod");
-        Route::any("{houseId}/generate_cautions_by_house", "_ManageCautionsByHouse");
-        Route::any("{houseId}/generate_cautions_for_house_by_period", "_ManageCautionsForHouseByPeriod");
-        Route::any("{houseId}/generate_cautions_for_house_by_period", "_ManageCautionsForHouseByPeriod");
-        Route::get("{agencyId}/prestation_statistique", "_ManagePrestationStatistique");
-        Route::any("{agencyId}/{houseId}/{action}/imprime_states", "_ImprimeStates");
-        Route::any("{houseId}/{action}/imprime_states_all_system", "_ImprimeStatesForAllSystem");
     });
 });
 ##___
@@ -444,17 +359,4 @@ Route::get("{agencyId}/{supervisor}/show_taux_qualitatif_by_supervisor", [Locata
 Route::get("{agencyId}/{house}/show_taux_qualitatif_by_house", [LocataireController::class, "_ShowAgencyTauxQualitatif_By_House"])->name("taux._ShowAgencyTauxQualitatif_By_House");
 
 
-
-
-
-
-
-// Route::get("{houseId}/caution_html_by_house", [LocationController::class, "_ShowCautionsByHouse"]);
-// Route::get("{agencyId}/show_prestation_statistique", [LocationController::class, "_ShowPrestationStatistique"]);
-// Route::get("{agencyId}/{first_date}/{last_date}/show_prestation_statistique_for_agency_by_period", [LocationController::class, "_ShowPrestationStatistique"]);
-
 Route::get("{agencyId}/{houseId}/{action}/locators_state_stoped", [LocationController::class, "_ShowLocatorStateStoped"]);
-
-
-###___impression du dernier etat d'une maison
-// Route::get("{house}/show_house_state_html", [HouseController::class, "ShowHouseStateImprimeHtml"]);

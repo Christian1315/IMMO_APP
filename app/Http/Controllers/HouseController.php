@@ -16,7 +16,6 @@ use App\Models\Quarter;
 use App\Models\User;
 use App\Models\Zone;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 class HouseController extends Controller
@@ -35,7 +34,6 @@ class HouseController extends Controller
             'agency' => ['required'],
             'name' => ['required'],
             'proprio_payement_echeance_date' => ['required', "date"],
-            // 'image' => ['required'],
 
             'proprietor' => ['required', "integer"],
             'type' => ['required', "integer"],
@@ -52,12 +50,9 @@ class HouseController extends Controller
     {
         return [
             'agency.required' => "L'agence est réquise",
-            // 'name.required' => 'Le nom de la maison est réquis!',
             'proprio_payement_echeance_date.required' => "La date d'écheance du payement du propriétaire est réquise!",
             'proprio_payement_echeance_date.date' => "Ce champ doit être de type date",
 
-            // 'image.required' => "L'image' est réquise!",
-            // 'image.file' => "Ce champ doit être un fichier",
 
             'proprietor.required' => "Le propriétaire est réquis",
             'type.required' => "Le type de la chambre est réquis",
@@ -165,7 +160,6 @@ class HouseController extends Controller
 
     ###___FILTRE BY SUPERVISOR
     function FiltreHouseBySupervisor(Request $request,$agency) {
-        $user = request()->user();
         $agency = Agency::find($agency);
 
         if (!$agency) {
@@ -385,31 +379,6 @@ class HouseController extends Controller
         #####_____
         alert()->success("Succès", "Arrêt d'état effectué avec succès!");
         return back()->withInput();
-    }
-
-    #GET ALL AGENCIES HOUSES CONSIDERING THE LAST STATE
-    function AgenciesHousesForTheLastState(Request $request, $agencyId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->getAgencyHousesForLastState($agencyId);
-    }
-
-    #GET AN HOUSE
-    function RetrieveHouse(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #RECUPERATION DE LA MAISON
-        return $this->_retrieveHouse($id);
     }
 
     function UpdateHouse(Request $request, $id)
@@ -712,25 +681,5 @@ class HouseController extends Controller
         // dd($house);
 
         return view("house-state", compact(["house", "state"]));
-    }
-
-    function HousePerformance(Request $request, $agencyId, $supervisorId, $houseId, $action)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->_housePerformance($request, $agencyId, $supervisorId, $houseId, $action);
-    }
-
-    function ImprimeHouseLastState(Request $request, $houseId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->_imprimeHouseLastState($request, $houseId);
     }
 }

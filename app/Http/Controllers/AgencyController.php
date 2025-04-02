@@ -5,15 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Agency;
 use App\Models\AgencyAccount;
 use App\Models\AgencyAccountSold;
-use App\Models\City;
 use App\Models\Country;
 use App\Models\House;
 use App\Models\ImmoAccount;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class AgencyController extends Controller
 {
@@ -29,11 +25,8 @@ class AgencyController extends Controller
     {
         return [
             'name' => ['required'],
-            // 'ifu' => ['required'],
-            // 'rccm' => ['required'],
             'phone' => ['required', "numeric"],
 
-            // 'email' => ['required', 'email', Rule::unique('users')],
             'country' => ['required', "integer"],
             'city' => ['required'],
         ];
@@ -44,16 +37,8 @@ class AgencyController extends Controller
         return [
             'name.required' => "Le nom de l'agence est réquis!",
 
-            // 'ifu.required' => "L'ifu nom de l'agence est réquis!",
-
-            // 'rccm.required' => "Le rccm de l'agence est réquis!",
-
             'phone.required' => "Le phone de l'agence est réquis!",
             'phone.numeric' => "Le phone de l'agence doit être de type numérique!",
-
-            // 'email.required' => "Le mail de l'agence est réquis!",
-            // 'email.email' => "Le mail de l'agence doit être de type mail!",
-            // 'email.unique' => 'Un compte existe déjà au nom de ce mail!',
 
             'country.required' => "Le pays de l'agence est réquis!",
             'country.integer' => "Le champ *country* de l'agence doit être de type entier!",
@@ -279,98 +264,5 @@ class AgencyController extends Controller
         ###___
         alert()->success('Succès', "Le compte (" . $account->name . " (" . $account->description . ") " . ") a été décrédité  avec succès!!");
         return redirect()->back()->withInput();
-    }
-
-
-
-
-
-
-    function DeleteAgency(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "DELETE") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS AGENCY_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->AgencyDelete($id);
-    }
-
-    function SearchAgency(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        return $this->search($request);
-    }
-
-    function _AddAgencyPaiement(Request $request, $agencyId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR 
-        $validator = $this->Paiement_Validator($request->all());
-
-        if ($validator->fails()) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR 
-            return $this->sendError($validator->errors(), 404);
-        }
-
-        #ENREGISTREMENT DANS LA DB VIA **addPaiement** DE LA CLASS 
-        return $this->addPaiement($request, $agencyId);
-    }
-
-    ###____RECUPERATION DE TOUT LES MOUVEMENTS D'UN COMPTE AGENCE
-    function _RetrieveAgencyAccountMouvements(Request $request, $agencyAccount)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->retrieveAgenCyAccountMouvements($agencyAccount);
-    }
-
-    ###___BILAN DE L'AGENCE
-    function AgencyBilan(Request $request, $agencyId, $supervisor, $action)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->_agencyBilan($agencyId, $supervisor, $action);
-    }
-
-    ###___FACTURES DE L'AGENCE
-    function _AgencyFactures(Request $request, $agencyId, $supervisor, $action)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->agencyFactures($agencyId, $supervisor, $action);
-    }
-
-    ###___SUPERVISEURS DE L'AGENCE
-    function GetAgencySupervisors(Request $request, $agencyId)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        return $this->_getAllSupervisors($agencyId);
     }
 }

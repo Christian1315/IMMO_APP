@@ -28,7 +28,6 @@ class LocationElectrictyFactureController extends Controller
     {
         return [
             'location' => ['required', "integer"],
-            // 'start_index' => ['required', "numeric"],
             'end_index' => ['required', "numeric"],
         ];
     }
@@ -38,9 +37,6 @@ class LocationElectrictyFactureController extends Controller
         return [
             'location.required' => "Veillez préciser la location!",
             'location.integer' => "La location doit être un entier",
-
-            // 'start_index.required' => "L'index de début est réquis!",
-            // 'start_index.numeric' => "L'index de début doit être de type numérique!",
 
             'end_index.required' => "L'index de fin est réquis!",
             'end_index.numeric' => "L'index de fin doit être de type numérique!",

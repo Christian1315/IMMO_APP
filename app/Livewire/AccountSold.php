@@ -7,6 +7,8 @@ use Livewire\Component;
 
 class AccountSold extends Component
 {
+    public $principalAccounts = false;
+
     public $agency;
     public $allAgenciesAccounts = [];
 

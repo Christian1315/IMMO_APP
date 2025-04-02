@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
 use App\Models\AgencyAccount;
 use App\Models\AgencyAccountSold;
 use App\Models\HomeStopState;
 use App\Models\House;
 use App\Models\PaiementInitiation;
-use App\Models\Proprietor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -25,10 +23,6 @@ class PaiementInitiationController extends Controller
     static function paiement_initiation_rules(): array
     {
         return [
-            // 'agency' => ['required', "integer"],
-            // 'house' => ['required', "integer"],
-            // 'state' => ['required', "integer"],
-            // 'proprietor' => ['required', "integer"],
             'amount' => ['required', "numeric"],
         ];
     }
@@ -36,18 +30,6 @@ class PaiementInitiationController extends Controller
     static function paiement_initiation_messages(): array
     {
         return [
-            // 'agency.required' => "L'agence est réquise!",
-            // 'agency.integer' => "Ce Champ doit être de type entier!",
-
-            // 'house.required' => "Veuillez préciser la maison!",
-            // 'house.integer' => "Ce Champ doit être de type entier!",
-
-            // 'state.required' => "Veuillez préciser l'arrêt d'état pour lequel ce paiement doit être éffectué!",
-            // 'state.integer' => "Ce Champ doit être de type entier!",
-
-            // 'proprietor.required' => 'Le proprietaire est réquis!',
-            // 'proprietor.integer' => "Ce Champ doit être de type entier!",
-
             'amount.required' => "Le montant à initier est réquis!",
             'amount.numeric' => "Le montant doit être de type numérique",
         ];

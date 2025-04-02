@@ -29,13 +29,11 @@ class ProprietorController extends Controller
             'firstname' => ['required'],
             'lastname' => ['required'],
             'phone' => ['required', "numeric"],
-            // 'email' => ['required', "email"],
 
             'sexe' => ['required'],
-            'piece_number' => ['required'],
-            'piece_file' => ['required', "file"],
-            'mandate_contrat' => ['required', "file"],
-            // 'comments' => ['required'],
+            // 'piece_number' => ['required'],
+            // 'piece_file' => ['required', "file"],
+            // 'mandate_contrat' => ['required', "file"],
             'adresse' => ['required'],
 
             'city' => ['required', 'integer'],
@@ -51,17 +49,16 @@ class ProprietorController extends Controller
             'firstname.required' => 'Veuillez précisez le prénom!',
             'lastname.required' => 'Veuillez précisez le nom!',
             'phone.required' => 'Veuillez précisez le phone!',
-            // 'email.required' => 'Veuillez précisez le mail!',
             'sexe.required' => 'Veuillez précisez le sexe!',
 
-            'piece_number.required' => 'Veuillez précisez le numéro de la pièce!',
+            // 'piece_number.required' => 'Veuillez précisez le numéro de la pièce!',
 
-            'piece_file.required' => "La pièce d'identité est réquise",
-            'piece_file.file' => 'Ce champ est un fichier',
+            // 'piece_file.required' => "La pièce d'identité est réquise",
+            // 'piece_file.file' => 'Ce champ est un fichier',
 
-            'mandate_contrat.required' => 'Veuillez précisez le contrat de location!',
-            'mandate_contrat.file' => 'Ce champ doit doit être un fichier!',
-            // 'comments.required' => 'Veuillez précisez un commantaire!',
+            // 'mandate_contrat.required' => 'Veuillez précisez le contrat de location!',
+            // 'mandate_contrat.file' => 'Ce champ doit doit être un fichier!',
+
             'adresse.required' => 'Veuillez précisez l\'adresse!',
             'city.required' => 'Veuillez précisez la ville!',
             'country.required' => 'Veuillez précisez le pays!',
@@ -75,7 +72,6 @@ class ProprietorController extends Controller
             'agency.integer' => "L'agence doit être de type entier!",
 
             'phone.numeric' => 'Ce champ doit doit être de type numeric!',
-            // 'email.email' => 'Ce champ doit doit être de type mail!',
         ];
     }
 
@@ -127,18 +123,24 @@ class ProprietorController extends Controller
         }
 
         ###__TRAITEMENT DU CONTRAT
-        $mandate_contrat = $request->file("mandate_contrat");
-        $file_name = $mandate_contrat->getClientOriginalName();
-        $mandate_contrat->move("contrats", $file_name);
+        if ($request->hasFile("mandate_contrat")) {
+            $mandate_contrat = $request->file("mandate_contrat");
+            $file_name = $mandate_contrat->getClientOriginalName();
+            $mandate_contrat->move("contrats", $file_name);
+            #ENREGISTREMENT DES FICHIERS DANS LA DB
+            $formData["mandate_contrat"] = asset("contrats/" . $file_name);
+        }
 
         ###__TRAITEMENT DE LA CARTE D'IDENTITE
-        $piece_file = $request->file("piece_file");
-        $piece_file_name = $piece_file->getClientOriginalName();
-        $piece_file->move("contrats", $piece_file_name);
+        if ($request->hasFile("piece_file")) {
+            # code...
+            $piece_file = $request->file("piece_file");
+            $piece_file_name = $piece_file->getClientOriginalName();
+            $piece_file->move("contrats", $piece_file_name);
+            #ENREGISTREMENT DES FICHIERS DANS LA DB
+            $formData["piece_file"] = asset("contrats/" . $piece_file_name);
+        }
 
-        #ENREGISTREMENT DES FICHIERS DANS LA DB
-        $formData["mandate_contrat"] = asset("contrats/" . $file_name);
-        $formData["piece_file"] = asset("contrats/" . $piece_file_name);
 
         $formData["owner"] = $user->id;
 
@@ -149,19 +151,6 @@ class ProprietorController extends Controller
             alert()->error("Echec", "Une erreure est survenue, veuillez réessayer à nouveau!");
             return redirect()->back()->withInput();
         }
-
-        ###___CREATION DU CLIENT___###
-        $client = new Client();
-        $client->type = 1;
-        $client->city = $formData["city"];
-        $client->phone = $formData["phone"];
-        $client->email = $formData["email"];
-        $client->name = $formData["firstname"] . " " . $formData["lastname"];
-        $client->sexe = $formData["sexe"];
-        $client->is_proprietor = true;
-        $client->comments = $formData["comments"];
-        $client->save();
-        ###___FIN CREATION DU CLIENT___###
 
         alert()->success("Succès", "Propriétaire ajouter avec succès!");
         return redirect()->back();
@@ -223,61 +212,4 @@ class ProprietorController extends Controller
         return redirect()->back()->withInput();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    #GET ALL PROPRIETOR
-    function Proprietors(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-
-        #RECUPERATION DE TOUT LES PROPRIETAIRES
-        return $this->getProprietor();
-    }
-
-    #GET A Proprietor
-    function RetrieveProprietor(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "GET") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
-            return $this->sendError("La methode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        #RECUPERATION D'UN PROPRIETAIRE
-        return $this->_retrieveProprietor($id);
-    }
-
-
-
-    function DeleteProprietor(Request $request, $id)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "DELETE") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        return $this->proprietorDelete($id);
-    }
-
-    function SearchProprietor(Request $request)
-    {
-        #VERIFICATION DE LA METHOD
-        if ($this->methodValidation($request->method(), "POST") == False) {
-            #RENVOIE D'ERREURE VIA **sendError** DE LA CLASS Card_HELPER
-            return $this->sendError("La méthode " . $request->method() . " n'est pas supportée pour cette requete!!", 404);
-        };
-        return $this->search($request);
-    }
 }

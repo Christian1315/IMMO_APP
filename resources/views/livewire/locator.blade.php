@@ -294,13 +294,17 @@
                                 </button>
                             </td>
                             <td class="text-center">
-                                @if(count($locator->Locations)>0)
-                                @foreach ($locator->Locations as $location)
-                                <span class="badge bg-dark text-white"> {{ $location->House->Supervisor->name }} </span>;
-                                @endforeach
-                                @else
-                                ---
-                                @endif
+                                <div class="form-control w-100" style="height: auto;overflow-y: scroll;height:50px " name="" rows="1" class="form-control" id="">
+                                    @if(count($locator->Locations)>0)
+                                    <ul class="list-group">
+                                        @foreach ($locator->Locations as $location)
+                                        <li class=""> <span class="badge bg-dark text-white"> {{ $location->House->Supervisor->name }} </span></li>;
+                                        @endforeach
+                                    </ul>
+                                    @else
+                                    ---
+                                    @endif
+                                </div>
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-sm bg-light" data-bs-toggle="modal" data-bs-target="#showRooms" onclick="showRooms_fun({{$locator['id']}})">
@@ -462,7 +466,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Modifier</button>
+                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Modifier</button>
                         </div>
                     </form>
                 </div>

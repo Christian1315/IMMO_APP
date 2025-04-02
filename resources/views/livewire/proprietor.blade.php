@@ -72,7 +72,7 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Télécharger la pièce d'identité</label>
-                                    <input type="file" required value="{{old('piece_file')}}" name="piece_file" class="form-control">
+                                    <input type="file" value="{{old('piece_file')}}" name="piece_file" class="form-control">
                                     @error('piece_file')
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -82,7 +82,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="" class="d-block">Télécharger le contrat de mandat</label>
-                                    <input type="file" required value="{{old('mandate_contrat')}}" name="mandate_contrat" class="form-control">
+                                    <input type="file" value="{{old('mandate_contrat')}}" name="mandate_contrat" class="form-control">
                                     @error('mandate_contrat')
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
