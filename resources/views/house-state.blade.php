@@ -65,25 +65,27 @@
                 </div>
                 <br>
                 <div class="d-flex" style="justify-content: space-between;">
-                    <div class="text-center">
+                    <div class="text-left">
                         <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="img-fluid">
+                        <div class="mt-3">
+                            <h6 class="">Mois de recouvrement: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->house_last_state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                            <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->house_last_state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                        </div>
                     </div>
                     <div class="">
                         <h6 class="">Maison : <strong> <em class="text-red"> {{$house["name"]}} </em> </strong> </h6>
                         <h6 class="">Superviseur : <strong> <em class="text-red"> {{$house->Supervisor->name}} </em> </strong> </h6>
                         <h6 class="">Propriétaire : <strong> <em class="text-red"> {{$house->Proprietor->lastname}} {{$house->Proprietor->firstname}}</em> </strong> </h6>
-                        <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </h5>
+                        <h6 class="">Date d'arrêt: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                     </div>
                 </div>
 
-                {{-- <br>
-                <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </h5> --}}
                 <br>
 
                 <!-- les totaux -->
                 <div class="row">
                     <div class="col-12">
-                        <div class="table-responsive table-responsive-list shadow-lg">
+                        <div class="table-responsive table-responsive-list">
                             <table class="table table-striped table-sm">
                                 <thead class="bg_dark">
                                     <tr>
@@ -100,23 +102,23 @@
                                     <tr class="align-items-center">
                                         <td class="text-center"> {{$house["name"]}}</td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["total_amount_paid"]}} fcfa </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($house["total_amount_paid"],2,","," ") }} fcfa </strong> </button>
                                         </td>
 
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["commission"]}} fcfa </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["commission"],2,","," ")}} fcfa </strong> </button>
                                         </td>
 
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{$house["last_depenses"]}} fcfa </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["last_depenses"],2,","," ")}} fcfa </strong> </button>
                                         </td>
 
                                         <td class="text-center">
-                                            <strong class="text-red">{{$house->LocativeCharge()}} fcfa</strong>
+                                            <strong class="text-red">{{number_format($house->LocativeCharge(),2,","," ")}} fcfa</strong>
                                         </td>
 
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{$house["net_to_paid"]}} fcfa </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["net_to_paid"],2,","," ")}} fcfa </strong> </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -129,7 +131,7 @@
                 <!-- les locataires -->
                 <div class="row">
                     <div class="col-12">
-                        <div class="table-responsive shadow-lg p-3">
+                        <div class="table-responsive p-3">
                             <table class="table table-striped table-sm">
                                 @if(count($house['locations'])!=0)
                                 <thead>
@@ -161,18 +163,21 @@
                                         <td class="text-center">
                                             <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </button>
                                         </td>
-                                        {{-- <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow text-red"> <i class="bi bi-calendar-check-fill"></i> <strong>{{$location->Locataire->prorata?$location->Locataire->prorata_date:"---" }}  </strong> </button>
-                                        </td> --}}
                                     </tr>
                                     @endforeach
 
 
                                     <tr>
-                                        <td colspan="3" class="bg-warning"><strong> Chambre libre (s): </strong></td>
-                                        <td colspan="5" class="text-right"> <strong class="bg-dark text-white p-1 roundered shadow">= {{count($house["frees_rooms"])}} </strong> </td>
+                                        <td colspan="3" class="bg-warning text-center"><strong> Détails des dépenses: </strong></td>
+                                        <td colspan="5" class="text-left">
+                                            <ul class="list-group">
+                                                @foreach($house->house_depenses as $depense)
+                                                <li class="list-group-item">{{$depense->description}}</li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
                                     </tr>
-                                    <tr>
+                                    <!-- <tr>
                                         <td colspan="3" class="bg-warning"><strong> Chambre occupée (s): </strong></td>
                                         <td colspan="5" class="text-right"> <strong class="bg-dark text-white p-1 roundered shadow">= {{count($house["busy_rooms"])}} </strong> </td>
                                     </tr>
@@ -183,7 +188,7 @@
                                     <tr>
                                         <td colspan="3" class="bg-warning"><strong> Chambre occupée (s) au début du mois: </strong></td>
                                         <td colspan="5" class="text-right"> <strong class="bg-dark text-white p-1 roundered shadow">= {{count($house["busy_rooms_at_first_month"])}} </strong> </td>
-                                    </tr>
+                                    </tr> -->
                                 </tbody>
                                 @else
                                 <p class="text-center text-red">Aucune location!</p>
@@ -199,7 +204,7 @@
                     <div class="col-md-3"></div>
                     <div class="col-md-6">
                         <h4 class="text-center" style="text-decoration: underline;">Rapport de récouvrement</h4>
-                        <div class="p-3 shadow text-justify" style="border: #000 2px solid;border-radius:0px 10px ">
+                        <div class="p-3 shadow text-justify" style="border: #000 2px solid;border-radius:5px ">
                             {{$state?$state->recovery_rapport:($house->PayementInitiations->last()?$house->PayementInitiations->last()->recovery_rapport:"---")}}
                         </div>
                     </div>
@@ -209,7 +214,7 @@
                 <br>
                 <!-- SIGNATURE SESSION -->
                 <div class="text-right">
-                    <h5 class="" style="text-decoration: underline;">Signature du Gestionnaire de compte</h5>
+                    <h5 class="" style="text-decoration: underline;">Le Chef d'Agence</h5>
                     <br>
                     <hr class="">
                     <br>

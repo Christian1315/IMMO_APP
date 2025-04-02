@@ -301,6 +301,16 @@ Route::prefix("payement_initiation")->group(function () {
     });
 });
 
+###========== AGENCY ROUTINGS ========###
+Route::controller(AgencyController::class)->group(function () {
+    Route::prefix('agency')->group(function () {
+        Route::any('add', 'AddAgency')->name("AddAgency"); #AJOUT D'UN AGENCY
+        Route::any('all', 'Agencys'); #GET ALL AGENCYS
+        Route::any('{id}/delete', 'DeleteAgency'); #SUPPRESSION D'UN AGENCY
+        Route::any('{id}/update', 'UpdateAgency'); #MODIFICATION D'UN AGENCY
+    });
+});
+
 ##__ACCOUNT_SOLD MANAGEMENT
 Route::prefix("sold")->group(function () {
     Route::controller(AgencyController::class)->group(function () {

@@ -612,6 +612,7 @@ class HouseController extends Controller
             array_push($last_state_depenses_array, $depense->sold_retrieved);
         }
 
+        // dd($last_state_depenses);
         ###___current depenses
         $current_state_depenses_array = [];
         $current_state_depenses = $house->CurrentDepenses;
@@ -620,6 +621,7 @@ class HouseController extends Controller
         }
 
         ###__
+        $house["house_depenses"] = collect($last_state_depenses);
         $house["last_depenses"] = array_sum($last_state_depenses_array);
         $house["actuel_depenses"] = array_sum($current_state_depenses_array);
         $house["total_amount_paid"] = $total_amount_paid;
@@ -677,8 +679,6 @@ class HouseController extends Controller
         $house["frees_rooms_at_first_month"] = $frees_rooms_at_first_month;
 
         $state = $house_last_state;
-
-        // dd($house);
 
         return view("house-state", compact(["house", "state"]));
     }
