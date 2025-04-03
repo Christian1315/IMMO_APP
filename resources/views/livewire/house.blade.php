@@ -158,6 +158,17 @@
                                     <span class="text-red">{{ $message }}</span>
                                     @enderror
                                 </div><br>
+
+                                <div class="mb-3 d-flex">
+                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                        <input type="checkbox" name="pre_paid" class="btn-check" id="pre_paid" autocomplete="off">
+                                        <label class="btn bg-dark text-white" for="pre_paid">Prépayé</label>
+                                    </div>
+                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                        <input type="checkbox" name="post_paid" class="btn-check" id="post_paid" autocomplete="off">
+                                        <label class="btn bg-dark text-white" for="post_paid">Post-Payé</label>
+                                    </div>
+                                </div>
                             </div>
                             <!--  -->
                             <div class="col-md-6">
@@ -348,7 +359,7 @@
                         @foreach (session('filteredHouses')?session('filteredHouses'):$houses as $house)
                         <tr class="align-items-center">
                             <td class="text-center">{{ $loop->index + 1 }}</td>
-                            <td class="text-center"> {{ $house['name'] }}</td>
+                            <td class="text-center"> <span class="badge bg-light text-dark"> {{ $house['name'] }} (<span class="text-red"> {{$house->pre_paid == 1 ? 'prépayé' :''}} {{$house->post_paid == 1 ? 'postpayé':''}} ) </span></span></td>
                             <td class="text-center">
                                 @if ($house['latitude'])
                                 {{ $house['latitude'] }}
@@ -518,7 +529,18 @@
                                     </div>
                                     <div class="">
                                         <label for="locative_commission">Commision charge locatives en (%) </label>
-                                        <input type="number" name="locative_commission" class="form-control" />
+                                        <input type="number" id="locative_commission" name="locative_commission" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 d-flex paid_blocked d-none">
+                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                        <input type="checkbox" name="pre_paid" class="btn-check" id="update_pre_paid" autocomplete="off">
+                                        <label class="btn bg-dark text-white" for="update_pre_paid">Prépayé</label>
+                                    </div>
+                                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                        <input type="checkbox" name="post_paid" class="btn-check" id="update_post_paid" autocomplete="off">
+                                        <label class="btn bg-dark text-white" for="update_post_paid">Post-Payé</label>
                                     </div>
                                 </div>
                             </div>
@@ -614,6 +636,25 @@
 
                 $("#proprio_payement_echeance_date").val(house["proprio_payement_echeance_date"])
                 $("#update_form").attr("action", "/house/" + house.id + "/update")
+
+
+                // les pre_paid & post_paid
+                $(".paid_blocked").removeClass("d-none")
+
+                let pre_paid = document.getElementById("update_pre_paid")
+                let post_paid = document.getElementById("update_post_paid")
+
+                pre_paid.checked = false
+                post_paid.checked = false
+
+                if (house.pre_paid) {
+                    pre_paid.checked = true
+                }
+
+                if (house.post_paid) {
+                    post_paid.checked = true
+                }
+
 
             }).catch((error) => {
                 alert("une erreure s'est produite")

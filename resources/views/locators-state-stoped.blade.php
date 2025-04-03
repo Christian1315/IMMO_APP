@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <title>Etats des locataires</title>
-
     <style>
         * {
             font-family: "Poppins";
@@ -20,12 +19,12 @@
         }
 
         .rapport-title {
-            color: #fff;
-            border: solid 2px #cc3301;
+            color: #000;
+            /* border: solid 2px #cc3301; */
             text-align: center !important;
-            padding: 20px;
-            background-color: #000;
-            --bs-bg-opacity: 0.5
+            padding: 10px;
+            background-color: rgb(159, 160, 161) !important;
+            /* --bs-bg-opacity: 0.5 */
         }
 
         .text-red {
@@ -40,6 +39,15 @@
             background-color: #cc3301;
             color: #fff;
         }
+
+        tr,
+        td {
+            align-items: center !important;
+        }
+
+        .header {
+            margin-top: 100px;
+        }
     </style>
 </head>
 
@@ -49,21 +57,16 @@
             <div class="col-1"></div>
             <div class="col-10 shadow-lg bg-light">
                 <!-- HEADER -->
-                <div class="row">
-                    <div class="col-12 px-0 mx-0">
-                        <div>
-                            <div class="col-12">
-                                <h3 class="rapport-title text-uppercase">états des locataires</h3>
-                                @if($action=="before")
-                                <h5 class="text-red"> <em> Avant arrêt des états </em></h5>
-                                @elseif($action=="after")
-                                <h5 class="text-red"> <em> Après arrêt des états </em></h5>
-                                @endif
-                            </div>
-                        </div>
+                <div class="row header">
+                    <div class="col-3">
+                        <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="rounded img-fluid">
+                    </div>
+                    <div class="col-9 px-0 mx-0 d-flex align-items-center ">
+                        <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
                     </div>
                 </div>
                 <br>
+
                 <div class="d-flex" style="justify-content: space-between!important;">
                     <div class="">
                         <h6 class="">Agence: <em class="text-red"> {{$agency["name"]}} </em> </h6>
@@ -73,10 +76,6 @@
                     <div class="p-3" style="border: 2px solid #000;">
                         <div class=""><strong class="">Ratio = </strong> [ Nbre de locataires ayant payés ( <em class="text-red"> {{$locators_count}} </em> )] / [ Nbre de locataires total ( <em class="text-red"> {{$total_locators_count}} </em> )] = <em class="bg-warning">{{NumersDivider($locators_count,$total_locators_count)}} % </em> </div>
                     </div>
-                </div>
-                <br>
-                <div class="text-center">
-                    <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="img-fluid">
                 </div>
 
                 @if(count($locataires))

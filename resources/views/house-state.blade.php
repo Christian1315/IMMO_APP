@@ -20,12 +20,12 @@
         }
 
         .rapport-title {
-            color: #fff;
-            border: solid 2px #cc3301;
+            color: #000;
+            /* border: solid 2px #cc3301; */
             text-align: center !important;
-            padding: 20px;
-            background-color: #000;
-            --bs-bg-opacity: 0.5
+            padding: 10px;
+            background-color: rgb(159, 160, 161) !important;
+            /* --bs-bg-opacity: 0.5 */
         }
 
         .text-red {
@@ -45,6 +45,10 @@
         td {
             align-items: center !important;
         }
+
+        .header {
+            margin-top: 100px;
+        }
     </style>
 </head>
 
@@ -52,30 +56,38 @@
     <div class="container">
         <div class="row">
             <div class="col-1"></div>
-            <div class="col-10 shadow-lg bg-light">
+            <div class="col-10 px-5 shadow-lg bg-light">
                 <!-- HEADER -->
-                <div class="row">
-                    <div class="col-12 px-0 mx-0">
-                        <div>
-                            <div class="col-12">
-                                <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
-                            </div>
-                        </div>
+                <div class="row header">
+                    <div class="col-3">
+                        <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="rounded img-fluid">
+                    </div>
+                    <div class="col-9 px-0 mx-0 d-flex align-items-center ">
+                        <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
                     </div>
                 </div>
                 <br>
+
+                @php
+                $recovery_date = $house->post_paid?
+                date("Y/m/d", strtotime("-1 month", strtotime($house->house_last_state->created_at))):
+                $house->house_last_state->created_at;
+                @endphp
+
                 <div class="d-flex" style="justify-content: space-between;">
                     <div class="text-left">
-                        <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="img-fluid">
                         <div class="mt-3">
                             <h6 class="">Mois de recouvrement: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->house_last_state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
-                            <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->house_last_state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                            <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($recovery_date)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                            <div class="mr-5 p-3" style="border: 2px solid #000;">
+                                <div class=""><strong class="">Taux = </strong> [ Nbre de locataires ayant payés ( <em class="text-red"> {{count($paid_locataires)}} </em> )] / [ Nbre de locataires total ( <em class="text-red"> {{count($un_paid_locataires)}} </em> )] = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div>
+                            </div>
                         </div>
                     </div>
                     <div class="">
                         <h6 class="">Maison : <strong> <em class="text-red"> {{$house["name"]}} </em> </strong> </h6>
                         <h6 class="">Superviseur : <strong> <em class="text-red"> {{$house->Supervisor->name}} </em> </strong> </h6>
-                        <h6 class="">Propriétaire : <strong> <em class="text-red"> {{$house->Proprietor->lastname}} {{$house->Proprietor->firstname}}</em> </strong> </h6>
+                        <h6 class="">Propriétaire : <strong> <em class="text-red"> {{$house->Proprietor->lastname}} {{$house->Proprietor->firstname}} ({{$house->Proprietor->phone}})</em> </strong> </h6>
                         <h6 class="">Date d'arrêt: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                     </div>
                 </div>
@@ -141,27 +153,33 @@
                                         <th class="text-center">Téléphone</th>
                                         <th class="text-center">Chambre</th>
                                         <th class="text-center">Loyer Mensuel</th>
+                                        <th class="text-center">Prorata</th>
                                         <th class="text-center">Nbre de mois payé(s)</th>
                                         <th class="text-center">Montant payé</th>
-                                        <th class="text-center">Dernier loyé</th>
-                                        <th class="text-center">Mois d'effet</th>
+                                        <th class="text-center">Dernier mois payé</th>
+                                        <th class="text-center">Date de début du contrat</th>
                                         {{-- <th class="text-center text-red">Prorata</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($house->Locations as $location)
+                                    @foreach($locations as $location)
                                     <tr class="align-items-center">
                                         <td class="text-center"> <button class="btn btn-sm btn-light"> <strong> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</strong> </button> </td>
                                         <td class="text-center">{{$location->Locataire->phone}}</td>
                                         <td class="text-center">{{$location->Room->number}}</td>
-                                        <td class="text-center">{{$location->Room->total_amount}}</td>
-                                        <td class="text-center">{{$location["_locataire"]?$location["_locataire"]["nbr_month_paid"]:'--'}}</td>
-                                        <td class="text-center">{{$location["_locataire"]?$location["_locataire"]["nbr_facture_amount_paid"]:'--'}}</td>
+                                        <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location->Room->total_amount,2,","," ")}} </span></td>
+                                        <td class="text-center"><span class="badge bg-light text-red">{{$location->prorata_amount>0?number_format($location->prorata_amount,2,","," "):'--'}} </span></td>
+                                        <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'--':$location["_locataire"]["nbr_month_paid"]):00}}</td>
+                                        <td class="text-center"><span class="badge bg-light text-red">{{number_format($location["_locataire"]?
+                                            ($location->prorata_amount>0?
+                                                $location->prorata_amount:
+                                                $location["_locataire"]["nbr_facture_amount_paid"]
+                                            ):00,2,","," ")}}</span></td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                                         </td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </button>
+                                            <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </button>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -170,25 +188,15 @@
                                     <tr>
                                         <td colspan="3" class="bg-warning text-center"><strong> Détails des dépenses: </strong></td>
                                         <td colspan="5" class="text-left">
-                                            <ul class="list-group">
-                                                @foreach($house->house_depenses as $depense)
-                                                <li class="list-group-item">{{$depense->description}}</li>
-                                                @endforeach
+                                            <ul class="">
+                                                @forelse($house->house_depenses as $depense)
+                                                <li class=""><strong class="text-red">{{number_format($depense->sold_retrieved,2,","," ")}} fcfa</strong> - {{$depense->description}}</li>
+                                                @empty
+                                                <li>Aucune dépense éffectuée dans la maison!</li>
+                                                @endforelse
                                             </ul>
                                         </td>
                                     </tr>
-                                    <!-- <tr>
-                                        <td colspan="3" class="bg-warning"><strong> Chambre occupée (s): </strong></td>
-                                        <td colspan="5" class="text-right"> <strong class="bg-dark text-white p-1 roundered shadow">= {{count($house["busy_rooms"])}} </strong> </td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="bg-warning"><strong> Chambre libre (s) au début du mois: </strong></td>
-                                        <td colspan="5" class="text-right"> <strong class="bg-dark text-white p-1 roundered shadow">= {{count($house["frees_rooms_at_first_month"])}} </strong> </td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="bg-warning"><strong> Chambre occupée (s) au début du mois: </strong></td>
-                                        <td colspan="5" class="text-right"> <strong class="bg-dark text-white p-1 roundered shadow">= {{count($house["busy_rooms_at_first_month"])}} </strong> </td>
-                                    </tr> -->
                                 </tbody>
                                 @else
                                 <p class="text-center text-red">Aucune location!</p>

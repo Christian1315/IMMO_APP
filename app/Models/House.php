@@ -30,18 +30,23 @@ class House extends Model
         "geolocalisation",
         "commission_percent",
         "image",
-        "locative_commission"
+        "locative_commission",
+        "pre_paid",
+        "post_paid",
+        "recovery_date",
     ];
 
-    function LocativeCharge() {
-        $locatives =  $this->Locations->where("status","!=",3)->sum(function ($location) {
+    function LocativeCharge()
+    {
+        $locatives =  $this->Locations->where("status", "!=", 3)->sum(function ($location) {
             return $location->Room->LocativeCharge();
         });
 
         return $locatives;
     }
 
-    function _Agency() : BelongsTo {
+    function _Agency(): BelongsTo
+    {
         return $this->belongsTo(Agency::class, "agency");
     }
 
@@ -122,7 +127,7 @@ class House extends Model
 
     function ElectricityFacturesStates(): HasMany
     {
-        return $this->hasMany(StopHouseElectricityState::class, "house")->orderBy("id","desc");
+        return $this->hasMany(StopHouseElectricityState::class, "house")->orderBy("id", "desc");
     }
 
     function WaterFacturesStates(): HasMany

@@ -686,22 +686,22 @@
                                 <br>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Nbre de jour du prorata</label>
-                                    <input name="prorata_days" placeholder="Nbre de jour du prorata ..." class="form-control prorata_days">
+                                    <input type="number" name="prorata_days" placeholder="Nbre de jour du prorata ..." class="form-control prorata_days">
                                     @error('prorata_days')
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Montant du prorata</label>
-                                    <input name="prorata_amount" placeholder="Montant du prorata ..." class="form-control prorata_amount">
+                                    <input type="number" name="prorata_amount" placeholder="Montant du prorata ..." class="form-control prorata_amount">
                                     @error('prorata_amount')
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Date du prorata</label>
-                                    <input value="{{$location->Locataire->prorata_date}}" name="prorata_date" type="date" class="form-control prorata_date" hidden>
-                                    <input value="{{$location->Locataire->prorata_date}}" disabled type="date" class="form-control prorata_date">
+                                    <input  name="prorata_date" type="date" class="form-control prorata_date" hidden>
+                                    <input  disabled type="date" class="form-control prorata_date">
                                 </div>
                             </div>
 
@@ -885,6 +885,7 @@
         }
 
         function encaisser(location) {
+
             $(".location_name").html(location.house.name)
             $(".location_room").html(location.room.number)
             $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)
@@ -902,11 +903,11 @@
 
             $(".next_loyer_date").val(formattedDate)
 
-            if (location.prorata) {
+            if (location.locataire.prorata) {
                 $(".prorata").removeClass("d-none")
                 $(".prorata_days").val(location.prorata_days)
                 $(".prorata_amount").val(location.prorata_amount)
-                $(".prorata_date").val(location.prorata_date)
+                $(".prorata_date").val(location.locataire.prorata_date)
             }
         }
 

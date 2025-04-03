@@ -9,8 +9,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <title>Imprimer</title>
-
     <style>
+        * {
+            font-family: "Poppins";
+        }
+
         .title {
             text-decoration: underline;
             font-size: 25px;
@@ -19,27 +22,34 @@
         }
 
         .rapport-title {
-            color: #fff;
-            border: solid 2px #cc3301;
+            color: #000;
+            /* border: solid 2px #cc3301; */
             text-align: center !important;
-            padding: 20px;
-            background-color: #000;
-            --bs-bg-opacity: 0.5
+            padding: 10px;
+            background-color: rgb(159, 160, 161) !important;
+            /* --bs-bg-opacity: 0.5 */
         }
 
         .text-red {
             color: #cc3301;
         }
 
-        .bg-red {
-          background-color: #cc3301;
+        td {
+            border: 2px solid #000;
         }
 
-        .signature {
-            text-align: center;
-            font-style: italic;
-            text-decoration: underline;
-            color: #000;
+        .bg-red {
+            background-color: #cc3301;
+            color: #fff;
+        }
+
+        tr,
+        td {
+            align-items: center !important;
+        }
+
+        .header {
+            margin-top: 100px;
         }
     </style>
 </head>
@@ -50,18 +60,16 @@
             <!-- <div class="col-1"></div> -->
             <div class="col-12 shadow-lg" style="background-color: #f6f6f6!important">
                 <!-- HEADER -->
-                <div class="row">
-                    <div class="col-12  px-0 mx-0">
-                        <div>
-                            <!-- <div class="col-3"></div> -->
-                            <div class="col-12">
-                                <h3 class="rapport-title">RAPPORT DE TOUTES LES LOCATIONS @if(session('imprimUnPaidLocations')) IMPAYES @endif PAR SUPERVISEUR</h3>
-                            </div>
-                            <!-- <div class="col-3"></div> -->
-                        </div>
+                <div class="row header">
+                    <div class="col-3">
+                        <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="rounded img-fluid">
+                    </div>
+                    <div class="col-9 px-0 mx-0 d-flex align-items-center ">
+                        <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
                     </div>
                 </div>
                 <br>
+
                 <!-- MAISON -->
                 <div class="row">
                     <div class="col-md-12">
@@ -100,7 +108,7 @@
                                         <td class="text-center"><span class="badge bg-red">{{$location["Room"]["number"]}} </span> </td>
                                         <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
-                                        <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <span class="badge bg-red">  <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </span></small> </td>
+                                        <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <span class="badge bg-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </span></small> </td>
                                         <td class="text-center">{{$location["loyer"]}}</td>
                                         <td class="text-center text-red"><span class="text-uppercase badge bg-warning text-dark"><i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small></span> </td>
                                     </tr>
@@ -143,4 +151,5 @@
         </div>
     </div>
 </body>
+
 </html>

@@ -12,7 +12,7 @@ class Location extends Model
     use HasFactory;
 
     protected $table = "locationsnew";
-    // protected $guarded = [];
+
     protected $fillable = [
         "agency",
         'house',
@@ -121,6 +121,11 @@ class Location extends Model
     function Factures(): HasMany
     {
         return $this->hasMany(Facture::class, "location")->whereNull("state")->with(["Owner", "Location", "Type", "Status", "State"])->orderBy("id", "desc");
+    }
+
+    function StateFactures(): HasMany
+    {
+        return $this->hasMany(Facture::class, "location")->whereNotNull("state")->whereNull("state_facture")->with(["Owner", "Location", "Type", "Status", "State"])->orderBy("id", "desc");
     }
 
     function AllFactures(): HasMany

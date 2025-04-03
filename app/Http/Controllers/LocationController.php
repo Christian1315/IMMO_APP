@@ -672,7 +672,7 @@ class LocationController extends Controller
             return back()->withInput();
         }
         $superviseur = User::find($request->supervisor);
-        
+
         $locations = Location::where("visible", 1)->get()->filter(function ($location) use ($request) {
             if ($location->House->Supervisor->id == $request->supervisor) {
                 return $location;
@@ -787,6 +787,7 @@ class LocationController extends Controller
         try {
             DB::beginTransaction();
             $formData = $request->all();
+
             $user = request()->user();
 
             #####______VALIDATION DES DATAS 
@@ -844,13 +845,6 @@ class LocationController extends Controller
                         "prorata_date.date" => "Ce champ doit être de format date",
                     ]
                 )->validate();
-
-
-                ###___CHANGEMENT D'ETAT DU LOCATAIRE(NOTIFIONS Q'IL N'EST PLUS UN PRORATA)
-                $locataire = Locataire::find($location->locataire);
-
-                $locataire->prorata = false;
-                $locataire->save();
             }
 
             ###__ENREGISTREMENT DE LA FACTURE DE PAIEMENT DANS LA DB
@@ -881,21 +875,6 @@ class LocationController extends Controller
 
             $facture = Facture::create($factureDatas);
             ###_____
-
-            ####__ACTUALISATION DE LA LOCATION
-            // AJOUT D'UN MOIS DE PLUS SUR LA DERNIERE DATE DE LOYER
-            $location_next_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->next_loyer_date));
-            $location_echeance_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->echeance_date));
-
-            $location_next_loyer_date = date("Y/m/d", $location_next_loyer_timestamp_plus_one_month);
-            $location_echeance_date = date("Y/m/d", $location_echeance_date_timestamp_plus_one_month);
-
-            $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
-            $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
-            $location->echeance_date = $location_echeance_date;
-            $location->prorata_amount = $request->prorata_amount ? $request->prorata_amount : 0;
-            $location->prorata_days = $request->prorata_days;
-            ###__
 
             ###___INCREMENTATION DU COMPTE LOYER
 
@@ -961,6 +940,26 @@ class LocationController extends Controller
                 $accountSold = AgencyAccountSold::create($formData);
             }
 
+            ####__ACTUALISATION DE LA LOCATION
+            // AJOUT D'UN MOIS DE PLUS SUR LA DERNIERE DATE DE LOYER
+            $location_next_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->next_loyer_date));
+            $location_echeance_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->echeance_date));
+
+            $location_next_loyer_date = date("Y/m/d", $location_next_loyer_timestamp_plus_one_month);
+            $location_echeance_date = date("Y/m/d", $location_echeance_date_timestamp_plus_one_month);
+
+            $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
+            $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
+            $location->echeance_date = $location_echeance_date;
+            $location->prorata_amount = $request->prorata_amount ? $request->prorata_amount : 0;
+            $location->prorata_days = $request->prorata_days;
+            ###__
+
+            ###___CHANGEMENT D'ETAT DU LOCATAIRE(NOTIFIONS Q'IL N'EST PLUS UN PRORATA)
+            $locataire = Locataire::find($location->locataire);
+
+            $locataire->prorata = false;
+            $locataire->save();
 
             ####___ACTUALISATION MAINTENANT LA LOCATION
             $location->save();

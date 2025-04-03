@@ -11,6 +11,7 @@ use App\Models\Facture;
 use App\Models\HomeStopState;
 use App\Models\House;
 use App\Models\HouseType;
+use App\Models\Locataire;
 use App\Models\Proprietor;
 use App\Models\Quarter;
 use App\Models\User;
@@ -150,6 +151,14 @@ class HouseController extends Controller
             $formData["image"] = asset("houses_images/" . $image_name);
         }
 
+        if ($request->pre_paid == $request->post_paid) {
+            alert()->error("Echec", "Veuillez choisir soit l'option *prepayée* ou *postpayée*");
+            return back()->withInput();
+        }
+
+        $formData["pre_paid"] = $request->pre_paid ? true : false;
+        $formData["post_paid"] = $request->post_paid ? true : false;
+
         $formData["locative_commission"] = $request->locative_commission ? $request->locative_commission : 10;
 
         House::create($formData);
@@ -159,7 +168,8 @@ class HouseController extends Controller
     }
 
     ###___FILTRE BY SUPERVISOR
-    function FiltreHouseBySupervisor(Request $request,$agency) {
+    function FiltreHouseBySupervisor(Request $request, $agency)
+    {
         $agency = Agency::find($agency);
 
         if (!$agency) {
@@ -177,7 +187,7 @@ class HouseController extends Controller
         $houses = [];
         ###____
 
-        $houses = $agency->_Houses->where("supervisor",$request->supervisor);
+        $houses = $agency->_Houses->where("supervisor", $request->supervisor);
 
         if (count($houses) == 0) {
             alert()->error("Echèc", "Aucun résultat trouvé");
@@ -186,14 +196,15 @@ class HouseController extends Controller
         }
 
         // Session::forget("filteredHouses");
-        session()->flash("filteredHouses",$houses);
+        session()->flash("filteredHouses", $houses);
 
         alert()->success("Succès", "Maisons filtrées par superviseur avec succès!");
         return back()->withInput();
     }
 
     ###___FILTRE BY PERIOD
-    function FiltreHouseByPeriod(Request $request,$agency) {
+    function FiltreHouseByPeriod(Request $request, $agency)
+    {
         $user = request()->user();
         $agency = Agency::find($agency);
 
@@ -202,7 +213,7 @@ class HouseController extends Controller
             return back()->withInput();
         }
 
-        $houses = $agency->_Houses->whereBetween("created_at",[$request->debut,$request->fin]);
+        $houses = $agency->_Houses->whereBetween("created_at", [$request->debut, $request->fin]);
 
         if (count($houses) == 0) {
             alert()->error("Echèc", "Aucun résultat trouvé");
@@ -211,7 +222,7 @@ class HouseController extends Controller
         }
 
         // Session::forget("filteredHouses");
-        session()->flash("filteredHouses",$houses);
+        session()->flash("filteredHouses", $houses);
 
         $debut = \Carbon\Carbon::parse($request->debut)->locale('fr')->isoFormat('MMMM YYYY');
         $fin = \Carbon\Carbon::parse($request->fin)->locale('fr')->isoFormat('MMMM YYYY');
@@ -477,6 +488,14 @@ class HouseController extends Controller
             }
         }
 
+        if ($request->pre_paid == $request->post_paid) {
+            alert()->error("Echec", "Veuillez choisir soit l'option *prepayée* ou *postpayée*");
+            return back()->withInput();
+        }
+
+        $formData["pre_paid"] = $request->pre_paid ? true : false;
+        $formData["post_paid"] = $request->post_paid ? true : false;
+
         $house->update($formData);
 
         alert()->success("Succès", "Maison modifiée avec succès!");
@@ -535,7 +554,6 @@ class HouseController extends Controller
         $house_factures_nbr_array = [];
         $house_amount_nbr_array = [];
 
-        $house_last_state = null;
         ####_____DERNIER ETAT DE CETTE MAISON
         $house_last_state = $house->States->last();
         if (!$house_last_state) {
@@ -549,8 +567,6 @@ class HouseController extends Controller
         }
 
         $locations = $house->Locations->where("status", "!=", 3);
-
-        // dd($locations);
 
         ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
         foreach ($locations as $key =>  $location) {
@@ -612,7 +628,6 @@ class HouseController extends Controller
             array_push($last_state_depenses_array, $depense->sold_retrieved);
         }
 
-        // dd($last_state_depenses);
         ###___current depenses
         $current_state_depenses_array = [];
         $current_state_depenses = $house->CurrentDepenses;
@@ -633,53 +648,45 @@ class HouseController extends Controller
 
         $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"] + $house["locative_commission"]);
 
-        ####____RAJOUTONS LES INFOS DE TAUX DE PERFORMANCE DE LA MAISON
-        $creation_date = date("Y/m/d", strtotime($house["created_at"]));
-        $creation_time = strtotime($creation_date);
-        $first_month_period = strtotime("+1 month", strtotime($creation_date));
+        // 
+        $state = $house_last_state;
 
-        $frees_rooms = [];
-        $busy_rooms = [];
-        $frees_rooms_at_first_month = [];
-        $busy_rooms_at_first_month = [];
+        // gestion des locataires
+        ###___
+        // dd($locations);
 
-        foreach ($house->Rooms as $room) {
+        $paid_locataires = $locations->map(function ($location) use ($state) {
+            $stop_date = date("Y/m/d", strtotime($state->state_stoped_day));
+            $last_facture_date = date("Y/m/d", $location->StateFactures->last()?->created_at);
 
-            $is_this_room_buzy = false; #cette variable determine si cette chambre est occupée ou pas(elle est occupée lorqu'elle se retrouve dans une location de cette maison)
-            ##__parcourons les locations pour voir si cette chambre s'y trouve
-
-            foreach ($house->Locations as $location) {
-                if ($location->Room->id == $room->id) {
-                    $is_this_room_buzy = true;
-
-                    ###___verifions la période d'entrée de cette chambre en location
-                    ###__pour determiner les chambres vide dans le premier mois
-                    $location_create_date = strtotime(date("Y/m/d", strtotime($location["created_at"])));
-                    ##on verifie si la date de creation de la location est comprise entre le *$creation_time* et le *$first_month_period* de la maison 
-                    if ($creation_time < $location_create_date && $location_create_date < $first_month_period) {
-                        array_push($busy_rooms_at_first_month, $room);
-                    } else {
-                        array_push($frees_rooms_at_first_month, $room);
-                    }
-                }
+            // il a payé avant la date d'arrêt des états
+            if ($last_facture_date < $stop_date) {
+                return $location->Locataire;
             }
+        });
 
+        $un_paid_locataires = $locations->map(function ($location) use ($state) {
+            $stop_date = date("Y/m/d", strtotime($state->state_stoped_day));
+            $last_facture_date = date("Y/m/d", $location->StateFactures->last()?->created_at);
 
-            ###__
-            if ($is_this_room_buzy) { ##__quand la chambre est occupée
-                array_push($busy_rooms, $room);
-            } else {
-                array_push($frees_rooms, $room); ##__quand la chambre est libre
+            // il n'a pas payé avant la date d'arrêt des états
+            if ($stop_date < $last_facture_date) {
+                return $location->Locataire;
+            }
+        });
+
+        ###____
+        $now = strtotime(date("Y/m/d", strtotime(now())));
+
+        foreach ($locations as $location) {
+            ###__la location
+            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+
+            if ($location_echeance_date < $now) {
+                array_push($locataires, $location);
             }
         }
 
-        $house["busy_rooms"] = $busy_rooms;
-        $house["frees_rooms"] = $frees_rooms;
-        $house["busy_rooms_at_first_month"] = $busy_rooms_at_first_month;
-        $house["frees_rooms_at_first_month"] = $frees_rooms_at_first_month;
-
-        $state = $house_last_state;
-
-        return view("house-state", compact(["house", "state"]));
+        return view("house-state", compact(["house","locations", "state","paid_locataires","un_paid_locataires"]));
     }
 }

@@ -125,17 +125,6 @@ function Get_Username($user, $type)
     return $username;
 }
 
-##======== CE HELPER PERMET D'ENVOYER DES SMS VIA PHONE ==========## 
-function Login_To_Frik_SMS()
-{
-    $response = Http::post(env("SEND_SMS_API_URL") . "/api/v1/login", [
-        "username" => "admin",
-        "password" => "admin",
-    ]);
-
-    return $response;
-}
-
 function Add_Number($user, $type)
 {
     $created_date = $user->created_at;
@@ -145,17 +134,6 @@ function Add_Number($user, $type)
 
     $number = "DGT" . $type . $an . userCount();
     return $number;
-}
-
-function Send_SMS($phone, $message, $token = null)
-{
-    $response = Http::post(env("SEND_SMS_API_URL") . "/api/v1/sms/send_sms_from_other_plateforme", [
-        "phone" => $phone,
-        "message" => $message,
-        "expediteur" => env("EXPEDITEUR"),
-    ]);
-
-    $response->getBody()->rewind();
 }
 
 function Send_Notification($receiver, $subject, $message)
@@ -281,15 +259,6 @@ function Is_User_Has_A_Supervisor_Role($userId)
     return $result;
 }
 
-function Get_Product_Name($id)
-{
-    $product = Product::find($id);
-    if ($product) {
-        return $product->name;
-    }
-
-    return null;
-}
 
 
 ##======== CE HELPER PERMET DE RECUPERER LES DROITS D'UN UTILISATEUR ==========## 
@@ -403,7 +372,8 @@ function GET_HOUSE_DETAIL($house)
     $house["commission"] = ($house["total_amount_paid"] * $house->commission_percent) / 100;
     ####________
 
-    $house["net_to_paid"] = $house["total_amount_paid"] - ($house["last_depenses"] + $house["commission"]);
+    $house["net_to_paid"] = $house["total_amount_paid"] - ($house["actuel_depenses"] + $house["commission"]);
+    // dd($house["actuel_depenses"]);
 
     ####____RAJOUTONS LES INFOS DE TAUX DE PERFORMANCE DE LA MAISON
     $creation_date = date("Y/m/d", strtotime($house["created_at"]));

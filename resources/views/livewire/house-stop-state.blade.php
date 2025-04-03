@@ -6,7 +6,7 @@
 
         @can("house.stop.state")
         <button class="btn btn-md bg-red" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        <i class="bi bi-sign-stop"></i> Arrêter les états de cette maison
+            <i class="bi bi-sign-stop"></i> Arrêter les états de cette maison
         </button>
         @endcan
     </div>
@@ -83,7 +83,7 @@
         <div class="col-6"></div>
     </div><br>
     <p class="">Liste des locations de la maison</p>
-    
+
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
@@ -107,22 +107,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($house['Locations'] as $location)
+                        @foreach($house->Locations->where("status", "!=", 3) as $location)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index + 1}}</td>
                             <td class="text-center"> <button class="btn btn-sm btn-light"> <strong> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</strong> </button> </td>
                             <td class="text-center">{{$location["Locataire"]["phone"]}}</td>
                             <td class="text-center">{{$location["Room"]["number"]}}</td>
-                            <td class="text-center">{{$location["Room"]["total_amount"]}}</td>
-                            <td class="text-center">{{$location["_locataire"]?$location["_locataire"]["nbr_month_paid_array"]:0}}</td>
-                            <td class="text-center">{{$location["_locataire"]?$location["_locataire"]["nbr_facture_amount_paid_array"]:0}}</td>
+                            <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location["Room"]["total_amount"],2,","," ")}} </span></td>
+                            <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'Prorata':$location["_locataire"]["nbr_month_paid_array"]):0}}</td>
+                            <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location["_locataire"]?($location->prorata_amount>0?$location->prorata_amount:$location["_locataire"]["nbr_facture_amount_paid_array"]):0,2,","," ")}} </span></td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</strong> </button>
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong>{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
                             </td>
-                            <td class="text-center"> <button class="btn btn-sm btn-light"> <i class="bi bi-calendar-check-fill"></i> <strong> {{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('MMMM YYYY') }}  </strong> </button></td>
+                            <td class="text-center"> <button class="btn btn-sm btn-light"> <i class="bi bi-calendar-check-fill"></i> <strong> {{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button></td>
                             {{-- <td class="text-center"> <button class="btn btn-sm btn-light text-red"></i> <strong> {{$location->Locataire->prorata?$location->Locataire->prorata_date:"---"}} </strong> </button></td> --}}
                         </tr>
                         @endforeach
