@@ -11,7 +11,6 @@ use App\Models\Facture;
 use App\Models\HomeStopState;
 use App\Models\House;
 use App\Models\HouseType;
-use App\Models\Locataire;
 use App\Models\Proprietor;
 use App\Models\Quarter;
 use App\Models\User;
@@ -19,16 +18,21 @@ use App\Models\Zone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
+use function Spatie\LaravelPdf\Support\pdf;
+
 class HouseController extends Controller
 {
     #VERIFIONS SI LE USER EST AUTHENTIFIE
     public function __construct()
     {
         $this->middleware(['auth']);
+
+        set_time_limit(0);
     }
 
     ######============== VALIDATION DES DATAS ===============######
     ##======== HOUSE VALIDATION =======##
+
     static function house_rules(): array
     {
         return [
@@ -653,7 +657,6 @@ class HouseController extends Controller
 
         // gestion des locataires
         ###___
-        // dd($locations);
 
         $paid_locataires = $locations->map(function ($location) use ($state) {
             $stop_date = date("Y/m/d", strtotime($state->state_stoped_day));
@@ -688,5 +691,10 @@ class HouseController extends Controller
         }
 
         return view("house-state", compact(["house","locations", "state","paid_locataires","un_paid_locataires"]));
+
+        // return pdf()
+        //     ->view('house-state', compact(["house","locations", "state","paid_locataires","un_paid_locataires"]))
+        //     ->name("{{state.stats_stoped_day}}.pdf")
+        //     ;
     }
 }

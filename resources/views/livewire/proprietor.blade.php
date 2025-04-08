@@ -184,8 +184,8 @@
                         @foreach($proprietors as $proprietor)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index+1}}</td>
-                            <td class="text-center">{{$proprietor["lastname"]}}</td>
                             <td class="text-center">{{$proprietor["firstname"]}}</td>
+                            <td class="text-center">{{$proprietor["lastname"]}}</td>
                             <td class="text-center">{{$proprietor["phone"]}}</td>
                             <td class="text-center">{{$proprietor["email"]}}</td>
                             <td class="text-center"> <a title="Voir pièce d'identité" href="{{$proprietor['piece_file']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i></a>

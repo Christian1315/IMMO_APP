@@ -32,6 +32,7 @@
         <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css"> -->
         <script src="https://cdn.datatables.net/1.13.10/css/jquery.dataTables.css"></script>
 
+        
         @livewireStyles
     </head>
 
