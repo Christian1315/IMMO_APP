@@ -26,14 +26,14 @@
                             <div class="col-md-6">
 
                                 <div class="mb-3">
-                                    <label for="" class="d-block">Nom</label>
+                                    <label for="" class="d-block">Prénom</label>
                                     <input type="text" name="firstname" placeholder="Nom" value="{{old('firstname')}}" class="form-control">
                                     @error('firstname')
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
                                 </div><br>
                                 <div class="mb-3">
-                                    <label for="" class="d-block">Prénom</label>
+                                    <label for="" class="d-block">Nom</label>
                                     <input type="text" name="lastname" value="{{old('lastname')}}" placeholder="Prénom" class="form-control">
                                     @error('lastname')
                                     <span class="text-red">{{$message}}</span>
@@ -184,8 +184,8 @@
                         @foreach($proprietors as $proprietor)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->index+1}}</td>
-                            <td class="text-center">{{$proprietor["firstname"]}}</td>
                             <td class="text-center">{{$proprietor["lastname"]}}</td>
+                            <td class="text-center">{{$proprietor["firstname"]}}</td>
                             <td class="text-center">{{$proprietor["phone"]}}</td>
                             <td class="text-center">{{$proprietor["email"]}}</td>
                             <td class="text-center"> <a title="Voir pièce d'identité" href="{{$proprietor['piece_file']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i></a>
