@@ -15,10 +15,16 @@ use App\Models\Proprietor;
 use App\Models\Quarter;
 use App\Models\User;
 use App\Models\Zone;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
+use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 use function Spatie\LaravelPdf\Support\pdf;
+
+// use Spatie\LaravelPdf\Facades\Pdf;
+
+// use function Spatie\LaravelPdf\Support\pdf;
 
 class HouseController extends Controller
 {
@@ -545,12 +551,12 @@ class HouseController extends Controller
     ####_____IMPRIME HOUSE STATE
     function ShowHouseStateImprimeHtml(Request $request, $houseId)
     {
+        set_time_limit(3600);
         $house = House::with("Locations")->where("visible", 1)->find(deCrypId($houseId));
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back();
         }
-
 
         $nbr_month_paid = 0;
         $total_amount_paid = 0;
@@ -568,6 +574,10 @@ class HouseController extends Controller
                     return back();
                 }
             }
+
+            ####____
+            alert()->error("Echec", "Cette maison ne dispose d'aucun arrêt d'état");
+            return back();
         }
 
         $locations = $house->Locations->where("status", "!=", 3);
@@ -681,20 +691,20 @@ class HouseController extends Controller
         ###____
         $now = strtotime(date("Y/m/d", strtotime(now())));
 
-        foreach ($locations as $location) {
-            ###__la location
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+        // foreach ($locations as $location) {
+        //     ###__la location
+        //     $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
 
-            if ($location_echeance_date < $now) {
-                array_push($locataires, $location);
-            }
-        }
+        //     if ($location_echeance_date < $now) {
+        //         array_push($locataires, $location);
+        //     }
+        // }
 
         return view("house-state", compact(["house","locations", "state","paid_locataires","un_paid_locataires"]));
 
         // return pdf()
-        //     ->view('house-state', compact(["house","locations", "state","paid_locataires","un_paid_locataires"]))
-        //     ->name("{{state.stats_stoped_day}}.pdf")
-        //     ;
+        //     ->view('house-state', compact(["house", "locations", "state", "paid_locataires", "un_paid_locataires"]))
+        //     ->name("text.pdf")
+        // ;
     }
 }
