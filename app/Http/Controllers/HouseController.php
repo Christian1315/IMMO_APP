@@ -15,12 +15,10 @@ use App\Models\Proprietor;
 use App\Models\Quarter;
 use App\Models\User;
 use App\Models\Zone;
-use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
-use Barryvdh\DomPDF\PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
-use function Spatie\LaravelPdf\Support\pdf;
+// use function Spatie\LaravelPdf\Support\pdf;
 
 // use Spatie\LaravelPdf\Facades\Pdf;
 
@@ -691,20 +689,11 @@ class HouseController extends Controller
         ###____
         $now = strtotime(date("Y/m/d", strtotime(now())));
 
-        // foreach ($locations as $location) {
-        //     ###__la location
-        //     $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
+        // return view("house-state", compact(["house","locations", "state","paid_locataires","un_paid_locataires"]));
 
-        //     if ($location_echeance_date < $now) {
-        //         array_push($locataires, $location);
-        //     }
-        // }
+        $pdf = Pdf::loadView('house-state', compact(["house", "locations", "state", "paid_locataires", "un_paid_locataires"]));
 
-        return view("house-state", compact(["house","locations", "state","paid_locataires","un_paid_locataires"]));
-
-        // return pdf()
-        //     ->view('house-state', compact(["house", "locations", "state", "paid_locataires", "un_paid_locataires"]))
-        //     ->name("text.pdf")
-        // ;
+        return $pdf->stream();
+        // return $pdf->download("etat-$house->name.pdf");
     }
 }

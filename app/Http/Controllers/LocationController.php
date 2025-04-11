@@ -20,6 +20,7 @@ use App\Models\Proprietor;
 use App\Models\Room;
 use App\Models\StopHouseElectricityState;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -187,8 +188,10 @@ class LocationController extends Controller
             array_push($cautions_eau, $location->caution_water);
             array_push($cautions_loyer, ($location->caution_number * $location->loyer));
         }
+
         alert()->success('Succès', "Caution générées avec succès!");
         return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+       
     }
 
     // LOCATIONS CAUTION MANAGEMENT
@@ -206,6 +209,9 @@ class LocationController extends Controller
 
         alert()->success('Succès', "Caution générées avec succès!");
         return view("location_cautions", compact(["location", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+
+        // $pdf = Pdf::loadView('location_cautions', compact(["location", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+        // return $pdf->stream();
     }
 
     // LOCATIONS ETATS PRORATA
@@ -658,7 +664,11 @@ class LocationController extends Controller
     function Imprimer(Request $request, $locationId)
     {
         $location = Location::where("visible", 1)->find(deCrypId($locationId));
-        return view("imprimer_location", compact("location"));
+        // return view("imprimer_location", compact("location"));
+        // dd($location);
+        $pdf = Pdf::loadView('imprimer_location', compact("location"));
+
+        return $pdf->stream();
     }
 
     // IMPRESSION DE TOUTES LES LOCATIONS PAR SUPERVISUER
@@ -1313,6 +1323,10 @@ class LocationController extends Controller
         }
         ###_______
 
-        return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+        // return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+
+        $pdf = Pdf::loadView('cautions', compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
+
+        return $pdf->stream();
     }
 }
