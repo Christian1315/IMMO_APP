@@ -141,7 +141,6 @@ class ProprietorController extends Controller
             $formData["piece_file"] = asset("contrats/" . $piece_file_name);
         }
 
-
         $formData["owner"] = $user->id;
 
         ####____CREATION D'UN PROPRIETAIRE
@@ -211,5 +210,4 @@ class ProprietorController extends Controller
         alert()->success("Succès", "Propriétaire modifié avec succès");
         return redirect()->back()->withInput();
     }
-
 }

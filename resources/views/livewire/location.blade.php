@@ -246,7 +246,7 @@
                                 <br>
                                 <div class="mb-3">
                                     <span>Uploader le bordereau du caution</span><br>
-                                    <input required type="file" name="caution_bordereau" class="form-control">
+                                    <input type="file" name="caution_bordereau" class="form-control">
                                     @error("caution_bordereau")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -284,7 +284,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <span>Uploader le contrat</span><br>
-                                    <input required type="file" name="img_contrat" class="form-control">
+                                    <input type="file" name="img_contrat" class="form-control">
                                     @error("img_contrat")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -306,7 +306,7 @@
 
                                 <div class="mb-3">
                                     <span>Uploader l'image de la prestation</span><br>
-                                    <input required type="file" name="img_prestation" class="form-control">
+                                    <input  type="file" name="img_prestation" class="form-control">
                                     @error("img_prestation")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror

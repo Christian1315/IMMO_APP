@@ -348,7 +348,6 @@
                 <h6 class="mx-3">Prénom : <strong> <em class="text-red" id="avar_prenom"></em> </strong> </h6>
                 <h6 class="mx-3">Phone : <strong> <em class="text-red" id="avar_phone"></em> </strong> </h6>
                 <h6 class="mx-3">Lien parental : <strong> <em class="text-red" id="avar_link"></em> </strong> </h6>
-
             </div>
         </div>
     </div>

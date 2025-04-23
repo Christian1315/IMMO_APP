@@ -61,8 +61,8 @@ class LocationController extends Controller
             'locataire' => ['required', "integer"],
             'type' => ['required', "integer"],
 
-            'water_counter' => ['required'],
-            'electric_counter' => ['required'],
+            // 'water_counter' => ['required'],
+            // 'electric_counter' => ['required'],
 
             'caution_number' => ['required', 'integer'],
 
@@ -101,8 +101,8 @@ class LocationController extends Controller
             'frais_peiture.required' => "Les frais de reprise de peinture sont réquis!",
             'frais_peiture.numeric' => "Ce champ  doit être de caractère numérique!",
 
-            'water_counter.required' => "Le numéro du compteur d'eau est réquis",
-            'electric_counter.required' => "Le numéro du compteur électrique est réquis",
+            // 'water_counter.required' => "Le numéro du compteur d'eau est réquis",
+            // 'electric_counter.required' => "Le numéro du compteur électrique est réquis",
 
             'prestation.required' => "La prestation est réquise",
             'prestation.file' => "La prestation doit être un fichier",
@@ -110,8 +110,8 @@ class LocationController extends Controller
             'numero_contrat.required' => "Le numéro du contrat est réquis!",
             'comments.required' => "Le commentaire est réquis",
 
-            'img_contrat.required' => "L'image du contrat est réquise",
-            'img_contrat.file' => "L'image du contrat doit être un fichier",
+            // 'img_contrat.required' => "L'image du contrat est réquise",
+            // 'img_contrat.file' => "L'image du contrat doit être un fichier",
 
             'pre_paid.boolean' => "Le champ doit être un booléen!",
             'post_paid.boolean' => "Le champ doit être un booléen",
