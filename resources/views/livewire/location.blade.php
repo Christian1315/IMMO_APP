@@ -306,7 +306,7 @@
 
                                 <div class="mb-3">
                                     <span>Uploader l'image de la prestation</span><br>
-                                    <input  type="file" name="img_prestation" class="form-control">
+                                    <input type="file" name="img_prestation" class="form-control">
                                     @error("img_prestation")
                                     <span class="text-red">{{$message}}</span>
                                     @enderror
@@ -363,7 +363,6 @@
         </div>
     </div>
     @endcan
-
 
     <!-- ENCAISSEMENT POUR UN SUPERVISEUR -->
     @if(auth()->user()->hasRole("Supervisor"))
@@ -522,7 +521,7 @@
                         $now = strtotime(date("Y/m/d", strtotime(now())));
                         $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                         @endphp
-                        <tr class="align-items-center @if ($location_echeance_date < $now) bg-warning @elseif($location->status==3) bg-secondary text-white @endif ">
+                        <tr class="align-items-center @if($location->status==3) bg-secondary text-white @elseif($location_echeance_date < $now) bg-warning @endif ">
                             <td class="text-center">{{$loop->index+1}} </td>
                             <td class="text-center"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
                             <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span> </td>
@@ -700,8 +699,8 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="" class="d-block">Date du prorata</label>
-                                    <input  name="prorata_date" type="date" class="form-control prorata_date" hidden>
-                                    <input  disabled type="date" class="form-control prorata_date">
+                                    <input name="prorata_date" type="date" class="form-control prorata_date" hidden>
+                                    <input disabled type="date" class="form-control prorata_date">
                                 </div>
                             </div>
 
