@@ -78,7 +78,7 @@ class Location extends Model
         $location_echeance_date = strtotime(date("Y/m/d", strtotime($this->echeance_date)));
         if ($location_echeance_date < $now) {
             return 1;
-        }else{
+        } else {
             return 0;
         };
     }
@@ -151,5 +151,10 @@ class Location extends Model
     function Agency(): BelongsTo
     {
         return $this->belongsTo(Agency::class, "agency")->where(["visible" => 1])->orderBy("id", "desc");
+    }
+
+    function MovedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, "moved_by");
     }
 }

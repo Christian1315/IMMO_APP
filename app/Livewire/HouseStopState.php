@@ -12,6 +12,7 @@ class HouseStopState extends Component
     function mount($agency, $house)
     {
         $this->house = GET_HOUSE_DETAIL($house);
+
     }
 
     public function render()

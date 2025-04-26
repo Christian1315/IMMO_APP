@@ -593,7 +593,12 @@ class HouseController extends Controller
 
             foreach ($location_factures as $facture) {
                 array_push($house_factures_nbr_array, $facture);
-                array_push($house_amount_nbr_array, $facture->amount);
+                if ($location->prorata_amount) {
+                    array_push($house_amount_nbr_array, $location->prorata_amount);
+                } else {
+                    array_push($house_amount_nbr_array, $facture->amount);
+                };
+                // array_push($house_amount_nbr_array, $facture->amount);
             }
 
             ####_____REFORMATION DU LOCATAIRE DE CETTE LOCATION

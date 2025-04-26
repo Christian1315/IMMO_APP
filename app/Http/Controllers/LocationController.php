@@ -191,7 +191,6 @@ class LocationController extends Controller
 
         alert()->success('Succès', "Caution générées avec succès!");
         return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-       
     }
 
     // LOCATIONS CAUTION MANAGEMENT
@@ -674,7 +673,6 @@ class LocationController extends Controller
     // IMPRESSION DE TOUTES LES LOCATIONS PAR SUPERVISUER
     function PrintAllLocationBySupervisor(Request $request, $agencyId)
     {
-
         Session::forget("imprimUnPaidLocations");
         $agency =  Agency::find(deCrypId($agencyId));
         if (!$agency) {
@@ -782,6 +780,7 @@ class LocationController extends Controller
 
         $formData["move_date"] = now();
         $formData["status"] = 3;
+        $formData["moved_by"] = auth()->user()->id;
         // $formData["visible"] = 1;
 
         $location->update($formData);
@@ -868,6 +867,8 @@ class LocationController extends Controller
             }
             ##___
 
+            $montant = $location->Locataire->prorata ? $request->prorata_amount : $request->amount;
+
             $factureDatas = [
                 "owner" => $user->id,
                 "echeance_date" => $location['next_loyer_date'],
@@ -878,7 +879,7 @@ class LocationController extends Controller
                 "begin_date" => null,
                 "end_date" => null,
                 "comments" => $formData["comments"],
-                "amount" => $formData["amount"],
+                "amount" => $montant,
                 "facture_code" => $formData["facture_code"],
                 "is_penality" => $request->get("is_penality") ? true : false ##__Préciser si cette facture est liée à une pénalité ou pas
             ];

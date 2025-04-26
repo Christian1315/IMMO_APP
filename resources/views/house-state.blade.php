@@ -82,7 +82,7 @@
                             <td class="text"></td>
                             <td class="text"></td>
                             <td class="text">
-                                <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
+                                <h3 class="rapport-title text-uppercase">etat de recouvrement</h3>
                             </td>
                         </tr>
                     </tbody>
@@ -114,7 +114,8 @@
                                     <h6 class="">Mois de recouvrement: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->house_last_state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                                     <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($recovery_date)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                                     <div class="mr-5 p-1" style="border: 2px solid #000;">
-                                        <div class=""><strong class="">Taux = </strong> [ Nbre de locataires ayant payés ( <em class="text-red"> {{count($paid_locataires)}} </em> )] / [ Nbre de locataires total ( <em class="text-red"> {{count($un_paid_locataires)}} </em> )] = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div>
+                                        <div class=""><strong class="">Taux = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div>
+                                        <!-- <div class=""><strong class="">Taux = </strong> [ Nbre de locataires ayant payés ( <em class="text-red"> {{count($paid_locataires)}} </em> )] / [ Nbre de locataires total ( <em class="text-red"> {{count($un_paid_locataires)}} </em> )] = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div> -->
                                     </div>
                                 </div>
                             </td>

@@ -305,7 +305,12 @@ function GET_HOUSE_DETAIL($house)
 
         foreach ($location_factures as $facture) {
             array_push($house_factures_nbr_array, $facture);
-            array_push($house_amount_nbr_array, $facture->amount);
+
+            if ($location->prorata_amount) {
+                array_push($house_amount_nbr_array, $location->prorata_amount);
+            } else {
+                array_push($house_amount_nbr_array, $facture->amount);
+            };
         }
 
         ####_____REFORMATION DU LOCATAIRE DE CETTE LOCATION
@@ -351,7 +356,7 @@ function GET_HOUSE_DETAIL($house)
     if ($house_last_state) {
         $last_state_depenses = $house_last_state->CdrAccountSolds;
     }
-    
+
     foreach ($last_state_depenses as $depense) {
         array_push($last_state_depenses_array, $depense->sold_retrieved);
     }

@@ -530,7 +530,15 @@
 
                             <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{number_format($location["loyer"],2,","," ") }}</span></td>
-                            <td class="text-center text-red"><span class="text-uppercase badge bg-light text-dark"><i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small></span> </td>
+                            <td class="text-center">
+                                @if($location->status!=3)
+                                <span class="text-red text-uppercase badge bg-light text-dark">
+                                    <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>
+                                </span>
+                                @else
+                                <textarea name="" rows="1" class="form-control" placeholder="Démenagé le {{ \Carbon\Carbon::parse($location['move_date'])->locale('fr')->isoFormat('D MMMM YYYY') }} par {{$location->MovedBy->name}}"></textarea>
+                                @endif
+                            </td>
 
                             <td class="text-center">
                                 <div class="btn-group dropstart">
@@ -831,7 +839,7 @@
                                 </div><br>
                                 <div class="mb-3">
                                     <label class="d-block" for="">Caution eau</label>
-                                    <input type="text" name="caution_water" class="form-control caution_water" placeholder="Caution eau ....">
+                                    <input type="text" required name="caution_water" class="form-control caution_water" placeholder="Caution eau ....">
 
                                 </div><br>
                                 <div class="mb-3">
@@ -884,7 +892,6 @@
         }
 
         function encaisser(location) {
-
             $(".location_name").html(location.house.name)
             $(".location_room").html(location.room.number)
             $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)
@@ -892,7 +899,7 @@
             $("#encaisserForm").attr("action", `/location/add-paiement`)
             $(".location").val(location.id)
 
-            const date = new Date(location.latest_loyer_date);
+            const date = new Date(location.echeance_date);
             const options = {
                 year: "numeric",
                 month: "long",
@@ -901,7 +908,7 @@
             const formattedDate = date.toLocaleDateString("fr", options);
 
             $(".next_loyer_date").val(formattedDate)
-
+            console.log(location.locataire)
             if (location.locataire.prorata) {
                 $(".prorata").removeClass("d-none")
                 $(".prorata_days").val(location.prorata_days)
