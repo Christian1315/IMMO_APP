@@ -536,7 +536,7 @@
                                     <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["echeance_date"])->locale('fr')->isoFormat('D MMMM YYYY') }}<small class="text-dark">({{ $location->pre_paid?"PRE_PAYE":"" }} {{ $location->post_paid ? "POST_PAYE":'' }})</small>
                                 </span>
                                 @else
-                                <textarea name="" rows="1" class="form-control" placeholder="Démenagé le {{ \Carbon\Carbon::parse($location['move_date'])->locale('fr')->isoFormat('D MMMM YYYY') }} par {{$location->MovedBy->name}}"></textarea>
+                                <textarea name="" rows="1" class="form-control" placeholder="Démenagé le {{ \Carbon\Carbon::parse($location['move_date'])->locale('fr')->isoFormat('D MMMM YYYY') }} par {{$location->MovedBy?->name}}"></textarea>
                                 @endif
                             </td>
 
