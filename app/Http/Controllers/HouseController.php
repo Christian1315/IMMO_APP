@@ -512,12 +512,22 @@ class HouseController extends Controller
 
     function DeleteHouse(Request $request, $id)
     {
-        $user = request()->user();
+        // $user = request()->user();
         $house = House::where(["visible" => 1])->find(deCrypId($id));
         if (!$house) {
             alert()->error("error", "Cette maison n'existe pas!");
             return back();
         };
+
+        if (count($house->Rooms) > 0) {
+            alert()->error("error", "Cette maison dispose de chambre(s)! Veuillez bien les supprimer d'abord");
+            return back();
+        }
+
+        if (count($house->Locations) > 0) {
+            alert()->error("error", "Cette maison dispose de location(s)! Veuillez bien les supprimer d'abord");
+            return back();
+        }
 
         $house->visible = 0;
         $house->delete_at = now();

@@ -102,7 +102,7 @@ class House extends Model
 
     function Locations(): HasMany
     {
-        return $this->hasMany(Location::class, "house")->with(["Locataire", "Type", "Status", "Room", "Factures", "AllFactures", "WaterFactures", "ElectricityFactures"]);
+        return $this->hasMany(Location::class, "house")->where(["visible" => 1])->with(["Locataire", "Type", "Status", "Room", "Factures", "AllFactures", "WaterFactures", "ElectricityFactures"]);
     }
 
     function States(): HasMany

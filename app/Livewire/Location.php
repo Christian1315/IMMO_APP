@@ -80,6 +80,7 @@ class Location extends Component
     {
 
         $locations = $this->current_agency->_Locations;
+        // dd($locations[0]);
         ##___
         $this->locations = $locations;
         $this->locations_count = count($locations);

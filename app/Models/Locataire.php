@@ -67,6 +67,6 @@ class Locataire extends Model
 
     function Locations(): HasMany
     {
-        return $this->hasMany(Location::class, "locataire")->with(["Owner", "House", "Locataire", "Type", "Room", "Factures"]);
+        return $this->hasMany(Location::class, "locataire")->where(["visible" => 1])->with(["Owner", "House", "Locataire", "Type", "Room", "Factures"]);
     }
 }

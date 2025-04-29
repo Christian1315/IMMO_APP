@@ -429,6 +429,11 @@ class LocataireController extends Controller
             return back()->withInput();
         };
 
+        if (count($locataire->Locations) > 0) {
+            alert()->error("error", "Ce locataire dispose de locations(s)! Veuillez bien les supprimer d'abord");
+            return back();
+        }
+
         if (!auth()->user()->is_master && !auth()->user()->is_admin) {
             if ($locataire->owner != $user->id) {
                 alert()->error("Echec", "Ce locataire ne vous appartient pas!");
