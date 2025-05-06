@@ -282,9 +282,9 @@ class RoomController extends Controller
             DB::commit();
             alert()->success("Succès", "Chambre ajoutée avec succès!!");
             return back()->withInput();
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue");
+            alert()->error("Error", "Une erreure est survenue ".$e->getMessage());
             return back()->withInput();
         }
     }
