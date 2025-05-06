@@ -395,7 +395,7 @@ function GET_HOUSE_DETAIL($house)
         $is_this_room_buzy = false; #cette variable determine si cette chambre est occupée ou pas(elle est occupée lorqu'elle se retrouve dans une location de cette maison)
         ##__parcourons les locations pour voir si cette chambre s'y trouve
 
-        foreach ($house->Locations as $location) {
+        foreach ($house->Locations->where("status","!=",3) as $location) {
             if ($location->Room->id == $room->id) {
                 $is_this_room_buzy = true;
 
@@ -440,7 +440,7 @@ function GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house)
     $house_amount_nbr_array = [];
     ####_____DERNIER ETAT DE CETTE MAISON
     $house_last_state = $house->States->last();
-    $locations = $house->Locations;
+    $locations = $house->Locations->where("status","!=",3);
 
     // $house = GET_HOUSE_DETAIL($house);
     ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
@@ -534,7 +534,7 @@ function GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house)
         $is_this_room_buzy = false; #cette variable determine si cette chambre est occupée ou pas(elle est occupée lorqu'elle se retrouve dans une location de cette maison)
         ##__parcourons les locations pour voir si cette chambre s'y trouve
 
-        foreach ($house->Locations as $location) {
+        foreach ($house->Locations->where("status","!=",3) as $location) {
             if ($location->Room->id == $room->id) {
                 $is_this_room_buzy = true;
 
