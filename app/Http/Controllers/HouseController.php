@@ -88,7 +88,11 @@ class HouseController extends Controller
     {
         #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
         $formData = $request->all();
-        Validator::make($formData, self::house_rules(), self::house_messages())->validate();
+        Validator::make(
+            $formData,
+            self::house_rules(),
+            self::house_messages()
+        )->validate();
 
         $user = request()->user();
 

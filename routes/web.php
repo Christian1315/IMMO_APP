@@ -13,9 +13,9 @@ use App\Http\Controllers\LocationElectrictyFactureController;
 use App\Http\Controllers\LocationWaterFactureController;
 use App\Http\Controllers\PaiementInitiationController;
 use App\Http\Controllers\ProprietorController;
-use App\Http\Controllers\RightController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoleController;
+use App\Models\Location;
 use App\Models\User;
 use App\Notifications\SendNotification;
 use Illuminate\Support\Facades\Notification;
@@ -33,17 +33,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get("/mail", function () {
-    $data = [
-        "subject" => "Test de mail",
-        "message" => "Salut Christ! ça va j'espère!",
-    ];
-
-    $receiver  = User::findOrFail(1);
-
-    Notification::send($receiver, new SendNotification($data));
-
-    return "Mail Sended....";
+Route::get("/debug", function () {
+    Location::where("status", 3)->update(["room" => null]);
+    return "Opération éffectuée avec succès....";
 });
 
 ######============ HOME ROUTE ============#########################

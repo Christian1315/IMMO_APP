@@ -39,7 +39,7 @@ class RoomController extends Controller
             "nature" => ["required", "integer"],
             "type" => ["required", "integer"],
             "loyer" => ["required", "numeric"],
-            "number" => ["required"],
+            "number" => "required|unique:rooms",
         ];
     }
 
@@ -58,6 +58,7 @@ class RoomController extends Controller
             "loyer.numeric" => "Le loyer doit être de type numérique!",
 
             "number.required" => "Le numéro de la chambre est réquis",
+            "number.unique" => "Le numéro de la chambre existe déjà",
 
             "gardiennage.required" => "Ce Champ est réquis!",
 
@@ -168,7 +169,6 @@ class RoomController extends Controller
 
     function _AddRoom(Request $request)
     {
-
         try {
             DB::beginTransaction();
             $formData = $request->all();

@@ -1,5 +1,4 @@
 <div>
-
     @can("location.add.type")
     <!-- AJOUT D'UN TYPE DE CHAMBRE -->
     <div class="text-left">
@@ -364,114 +363,7 @@
     </div>
     @endcan
 
-    <!-- ENCAISSEMENT POUR UN SUPERVISEUR -->
-    @if(auth()->user()->hasRole("Supervisor"))
-    @can("location.collect")
-    <div class="d-flex header-bar">
-        <small>
-            <button type="button" class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#encaisse_for_supervisor">
-                <i class="bi bi-currency-exchange"></i> Encaisser un loyer
-            </button>
-        </small>
-    </div>
-
-    <!-- ENCAISSEMENT LORSQUE LE USER EST UN SUPERVISEUR -->
-    <div class="modal fade" id="encaisse_for_supervisor" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="modal-title fs-5" id="exampleModalLabel">Encaissement </h6>
-                </div>
-                <form action="{{route('location._AddPaiement')}}" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3" enctype="multipart/form-data">
-                    @csrf
-                    <div class="row p-3">
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <label>Selectionnez la location concernée </label>
-                                <select name="location" onchange="locationSelection()" id="location_selected" class="form-select form-control" aria-label="Default select example">
-                                    <option value="">** **</option>
-                                    @foreach($locations as $location)
-                                    <!-- les locations dont le user est superviseur de la maison -->
-                                    @if ($location->House->supervisor==auth()->user()->id)
-                                    <option value="{{$location['id']}}" @if($location->id==old('location') ) selected @endif>
-                                        <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong>;
-                                        <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong>;
-                                        <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
-                                    </option>
-                                    @endif
-                                    @endforeach
-                                </select>
-                                @error('location')
-                                <span class="text-red">{{$message}}</span>
-                                @enderror
-                            </div>
-                            <div class="mb-3">
-                                <label>Type de paiement </label>
-                                <select name="type" class="form-select form-control" aria-label="Default select example">
-                                    @foreach($paiements_types as $type)
-                                    <option value="{{$type['id']}}" name="type">{{$type["name"]}}</option>
-                                    @endforeach
-                                </select>
-                                @error('type')
-                                <span class="text-red">{{$message}}</span>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3" id="encaisse_date_info" hidden>
-                                <span>Date ou mois pour lequel vous voulez encaisser pour cette location</span>
-                                <input id="encaisse_date" disabled value="" class="form-control">
-                            </div>
-                            <div id="prorata_infos" hidden>
-                                <div class="">
-                                    <span class="text-primary">Ce locataire est un prorata(veuillez renseigner ses infos)</span>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="" class="d-block">Nbre de jour du prorata</label>
-                                    <input value="{{old('prorata_days')}}" id="prorata_days" name="prorata_days" placeholder="Nbre de jour du prorata ..." class="form-control">
-                                    @error('prorata_days')
-                                    <span class="text-red">{{$message}}</span>
-                                    @enderror
-                                </div>
-                                <div class="mb-3">
-                                    <label for="" class="d-block">Montant du prorata</label>
-                                    <input value="{{old('prorata_amount')}}" id="prorata_amount" name="prorata_amount" placeholder="Montant du prorata ..." class="form-control">
-                                    @error('prorata_amount')
-                                    <span class="text-red">{{$message}}</span>
-                                    @enderror
-                                </div>
-                                <div class="mb-3">
-                                    <label for="" class="d-block">Date du prorata</label>
-                                    <input type="hidden" name="prorata_date" id="prorata_date" type="date" class="form-control">
-                                    <input disabled id="prorata_date" type="date" class="form-control" hidden>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <span>Uploader la facture ici</span> <br>
-                                <input type="file" name="facture" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="" class="d-block">Code de facture</label>
-                                <input value="{{old('facture_code')}}" required name="facture_code" placeholder="Code facture ...." class="form-control">
-                                @error('facture_code')
-                                <span class="text-red">{{$message}}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-all"></i> Valider</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <br>
-    @endcan
-    @endif
-
     <!-- TABLEAU DE LISTE -->
-    @if(!auth()->user()->hasRole("Supervisor"))
     <div class="row">
         <div class="col-12">
             <?php
@@ -502,7 +394,7 @@
                     <div id="buttons"></div>
                     <thead class="bg_dark">
                         <tr>
-                            <th class="text-center">N°</th>
+                            <!-- <th class="text-center">N°</th> -->
                             <th class="text-center">Maison / Propriétaire</th>
                             <th class="text-center">Superviseur</th>
                             <th class="text-center">Chambre</th>
@@ -522,10 +414,10 @@
                         $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                         @endphp
                         <tr class="align-items-center @if($location->status==3) bg-secondary text-white @elseif($location_echeance_date < $now) bg-warning @endif ">
-                            <td class="text-center">{{$loop->index+1}} </td>
-                            <td class="text-center"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
+                            <!-- <td class="text-center">{{$loop->index+1}} </td> -->
+                            <td class="text-left"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
                             <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span> </td>
-                            <td class="text-center">{{$location["Room"]["number"]}}</td>
+                            <td class="text-center">{{$location["Room"]?$location["Room"]["number"]:"---"}}</td>
                             <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
                             <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
@@ -611,7 +503,7 @@
                                     <div class="modal-body">
                                         <div class="">
                                             <strong>Maison: <em class="text-red"> {{$location['House']["name"]}}</em> </strong> <br>
-                                            <strong>Chambre: <em class="text-red"> {{$location['Room']['number']}} </em> </strong> <br>
+                                            <strong>Chambre: <em class="text-red"> {{$location['Room']?$location['Room']['number']:"---"}} </em> </strong> <br>
                                             <strong>Locataire: <em class="text-red"> {{$location['Locataire']['name']}} {{$location['Locataire']['prenom']}}</em> </strong>
                                         </div>
                                         <div>
@@ -650,7 +542,6 @@
             </div>
         </div>
     </div>
-    @endif
 
     <!-- ###### MODEL D'ENCAISSEMENT ###### -->
     <div class="modal fade" id="encaisse" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -676,7 +567,7 @@
                                 <label>Type de paiement </label>
                                 <select name="type" class="form-select form-control" aria-label="Default select example">
                                     @foreach($paiements_types as $type)
-                                    <option value="{{$type['id']}}" name="type" @if($type->id==$location->Type->id) selected @endif>{{$type["name"]}}</option>
+                                    <option value="{{$type['id']}}" name="type">{{$type["name"]}}</option>
                                     @endforeach
                                 </select>
                                 @error('type')
@@ -972,7 +863,6 @@
                 //alert("une erreure s'est produite")
             })
         }
-
 
         function houseSelect(_val = null) {
             var houseSelected = _val ? _val : $('#houseSelection').val()

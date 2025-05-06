@@ -287,6 +287,10 @@ class LocationController extends Controller
                 alert()->error("Echec", "Cette chambre n'appartient pas à la maison " . House::find($request->house)->name);
                 return back()->withInput();
             }
+
+            if (Location::where(["house" => $house->id, "room" => $room->id])->first()) {
+                alert()->error("Echec", "La chambre $room->number existe déjà dans la maison $house->name");
+            }
         }
 
         if (!$locataire) {
@@ -781,6 +785,7 @@ class LocationController extends Controller
         $formData["move_date"] = now();
         $formData["status"] = 3;
         $formData["moved_by"] = auth()->user()->id;
+        $formData["room"] = null;
         // $formData["visible"] = 1;
 
         $location->update($formData);

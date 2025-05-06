@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\FactureStatus;
+use App\Models\Location as ModelsLocation;
 use App\Models\LocationType;
 use App\Models\PaiementType;
 use Livewire\Component;
@@ -83,6 +84,7 @@ class Location extends Component
         // dd($locations[0]);
         ##___
         $this->locations = $locations;
+        // dd(ModelsLocation::find(206)->Room);
         $this->locations_count = count($locations);
     }
 
