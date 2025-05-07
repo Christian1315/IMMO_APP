@@ -564,11 +564,15 @@ class HouseController extends Controller
     function ShowHouseStateImprimeHtml(Request $request, $houseId)
     {
         set_time_limit(3600);
-        $house = House::with("Locations")->where("visible", 1)->find(deCrypId($houseId));
+        $house = House::with(["Locations", "Rooms"])->where("visible", 1)->find(deCrypId($houseId));
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back();
         }
+
+        // Chambres non occupées
+        $buszy_rooms = $house->Rooms->filter(fn($room) => count($room->Locations) == 0);
+        // dd($buszy_rooms);
 
         $nbr_month_paid = 0;
         $total_amount_paid = 0;
@@ -710,7 +714,14 @@ class HouseController extends Controller
 
         // return view("house-state", compact(["house","locations", "state","paid_locataires","un_paid_locataires"]));
 
-        $pdf = Pdf::loadView('house-state', compact(["house", "locations", "state", "paid_locataires", "un_paid_locataires"]));
+        $pdf = Pdf::loadView('house-state', compact([
+            "house",
+            "locations",
+            "state",
+            "paid_locataires",
+            "un_paid_locataires",
+            "buszy_rooms"
+        ]));
 
         return $pdf->stream();
         // return $pdf->download("etat-$house->name.pdf");

@@ -56,7 +56,6 @@
         .header {
             margin-top: 100px;
         }
-
     </style>
 </head>
 
@@ -136,147 +135,167 @@
             <br>
             <br>
 
-            <!-- les totaux -->
-            <div class="row">
-                <table class="table table-striped table-sm">
-                    <thead class="bg_dark">
-                        <tr>
-                            <th class="text-center">Maison</th>
-                            <th class="text-center">Montant total récouvré</th>
-                            <th class="text-center">Commission</th>
-                            <th class="text-center">Dépense totale</th>
-                            <th class="text-center">Charge locatives</th>
-                            <th class="text-center">Net à payer</th>
-                            {{-- <th class="text-center">Date d'arrêt d'état</th> --}}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="align-items-center">
-                            <td class="text-center"> {{$house["name"]}}</td>
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($house["total_amount_paid"],2,","," ") }} fcfa </strong> </button>
-                            </td>
-
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["commission"],2,","," ")}} fcfa </strong> </button>
-                            </td>
-
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["last_depenses"],2,","," ")}} fcfa </strong> </button>
-                            </td>
-
-                            <td class="text-center">
-                                <strong class="text-red">{{number_format($house->LocativeCharge(),2,","," ")}} fcfa</strong>
-                            </td>
-
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["net_to_paid"],2,","," ")}} fcfa </strong> </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <br><br><br>
         </div>
-    </div>
+        <!-- les totaux -->
+        <div class="row">
+            <table class="table table-striped table-sm">
+                <thead class="bg_dark">
+                    <tr>
+                        <th class="text-center">Maison</th>
+                        <th class="text-center">Montant total récouvré</th>
+                        <th class="text-center">Commission</th>
+                        <th class="text-center">Dépense totale</th>
+                        <th class="text-center">Charge locatives</th>
+                        <th class="text-center">Net à payer</th>
+                        {{-- <th class="text-center">Date d'arrêt d'état</th> --}}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="align-items-center">
+                        <td class="text-center"> {{$house["name"]}}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($house["total_amount_paid"],2,","," ") }} fcfa </strong> </button>
+                        </td>
 
-    <!-- les locataires -->
-    <div class="row">
-        <table class="table table-striped table-sm" style="margin-inline-end: 50px!important;">
-            @if(count($locations)>0)
-            <thead>
-                <tr>
-                    <!-- <th class="text-center">N°</th> -->
-                    <th class="text-center">Locataire</th>
-                    <th class="text-center">Téléphone</th>
-                    <th class="text-center">Chambre</th>
-                    <th class="text-center">Loyer Mensuel</th>
-                    <th class="text-center">Prorata</th>
-                    <th class="text-center">Nbre de mois payé(s)</th>
-                    <th class="text-center">Montant payé</th>
-                    <th class="text-center">Dernier mois payé</th>
-                    <th class="text-center">Début du contrat</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($locations as $location)
-                <tr class="align-items-center">
-                    <td class="text-center"> <button class="btn btn-sm btn-light"> <strong> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</strong> </button> </td>
-                    <td class="text-center">{{$location->Locataire->phone}}</td>
-                    <td class="text-center">{{$location->Room->number}}</td>
-                    <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location->Room->total_amount,2,","," ")}} </span></td>
-                    <td class="text-center"><span class="badge bg-light text-red">{{$location->prorata_amount>0?number_format($location->prorata_amount,2,","," "):'--'}} </span></td>
-                    <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'--':$location["_locataire"]["nbr_month_paid"]):00}}</td>
-                    <td class="text-center"><span class="badge bg-light text-red">{{number_format($location["_locataire"]?
-                                            ($location->prorata_amount>0?
-                                                $location->prorata_amount:
-                                                $location["_locataire"]["nbr_facture_amount_paid"]
-                                            ):00,2,","," ")}}</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </button>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </button>
-                    </td>
-                </tr>
-                @endforeach
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["commission"],2,","," ")}} fcfa </strong> </button>
+                        </td>
 
-                <tr>
-                    <td colspan="3" class="bg-warning text-center"><strong> Détails des dépenses: </strong></td>
-                    <td colspan="5" class="text-left">
-                        <ul class="">
-                            @forelse($house->house_depenses as $depense)
-                            <li class=""><strong class="text-red">{{number_format($depense->sold_retrieved,2,","," ")}} fcfa</strong> - {{$depense->description}}</li>
-                            @empty
-                            <li>Aucune dépense éffectuée dans la maison!</li>
-                            @endforelse
-                        </ul>
-                    </td>
-                </tr>
-            </tbody>
-            @else
-            <p class="text-center text-red">Aucune location!</p>
-            @endif
-        </table>
-    </div>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["last_depenses"],2,","," ")}} fcfa </strong> </button>
+                        </td>
 
-    <br>
-    <!--  RAPPORT DE RECOUVREMENT -->
-    <div class="row">
-        <table class="table table-striped table-sm">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="text"></td>
-                    <td class="text"></td>
-                    <td class="text">
-                        <h4 class="text-center" style="text-decoration: underline;">Rapport de récouvrement</h4>
-                        <div class="p-3 shadow text-justify" style="border: #000 2px solid;border-radius:5px ">
-                            {{$state?$state->recovery_rapport:($house->PayementInitiations->last()?$house->PayementInitiations->last()->recovery_rapport:"---")}}
-                        </div>
-                    </td>
-                    <td class="text"></td>
-                    <td class="text"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                        <td class="text-center">
+                            <strong class="text-red">{{number_format($house->LocativeCharge(),2,","," ")}} fcfa</strong>
+                        </td>
 
-    <br>
-    <!-- SIGNATURE SESSION -->
-    <div class="text-right">
-        <h5 class="" style="text-decoration: underline;">Le Chef d'Agence</h5>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["net_to_paid"],2,","," ")}} fcfa </strong> </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br><br><br>
+
+        <!-- les locataires -->
+        <div class="row">
+            <table class="table table-striped table-sm" style="margin-inline-end: 50px!important;">
+                @if(count($locations)>0)
+                <thead>
+                    <tr>
+                        <!-- <th class="text-center">N°</th> -->
+                        <th class="text-center">Locataire</th>
+                        <th class="text-center">Téléphone</th>
+                        <th class="text-center">Chambre</th>
+                        <th class="text-center">Loyer Mensuel</th>
+                        <th class="text-center">Prorata</th>
+                        <th class="text-center">Nbre de mois payé(s)</th>
+                        <th class="text-center">Montant payé</th>
+                        <th class="text-center">Dernier mois payé</th>
+                        <th class="text-center">Début du contrat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- locations -->
+                    @foreach($locations as $location)
+                    <tr class="align-items-center">
+                        <td class="text-center"> <small class="btn-light"> <strong> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</strong> </small> </td>
+                        <td class="text-center">{{$location->Locataire->phone}}</td>
+                        <td class="text-center">{{$location->Room->number}}</td>
+                        <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location->Room->total_amount,2,","," ")}} </span></td>
+                        <td class="text-center"><span class="badge bg-light text-red">{{$location->prorata_amount>0?number_format($location->prorata_amount,2,","," "):'--'}} </span></td>
+                        <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'--':$location["_locataire"]["nbr_month_paid"]):00}}</td>
+                        <td class="text-center"><span class="badge bg-light text-red">{{number_format($location["_locataire"]?
+                                                ($location->prorata_amount>0?
+                                                    $location->prorata_amount:
+                                                    $location["_locataire"]["nbr_facture_amount_paid"]
+                                                ):00,2,","," ")}}</span></td>
+                        <td class="text-left">
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </small>
+                        </td>
+                        <td class="text-left">
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </small>
+                        </td>
+                    </tr>
+                    @endforeach
+
+                    <!-- chambres libres -->
+                    @foreach($buszy_rooms as $room)
+                    <tr class="align-items-center">
+                        <td class="text-center"> <small class="btn-light"> <strong> Vide </strong> </small> </td>
+                        <td class="text-center">--</td>
+                        <td class="text-center">{{$room->number}}</td>
+                        <td class="text-center"><span class="badge bg-light text-red"> {{number_format($room->total_amount,2,","," ")}} </span></td>
+                        <td class="text-center"><span class="badge bg-light text-red">-- </span></td>
+                        <td class="text-center">--</td>
+                        <td class="text-center"><span class="badge bg-light text-red">--</span></td>
+                        <td class="text-left">
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">--</strong> </small>
+                        </td>
+                        <td class="text-left">
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">--</strong> </small>
+                        </td>
+                    </tr>
+                    @endforeach
+
+                    <tr>
+                        <td colspan="3" class="bg-warning text-center"><strong> Détails des dépenses: </strong></td>
+                        <td colspan="5" class="text-left">
+                            <ul class="">
+                                @forelse($house->house_depenses as $depense)
+                                <li class=""><strong class="text-red">{{number_format($depense->sold_retrieved,2,","," ")}} fcfa</strong> - {{$depense->description}}</li>
+                                @empty
+                                <li>Aucune dépense éffectuée dans la maison!</li>
+                                @endforelse
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+                @else
+                <p class="text-center text-red">Aucune location!</p>
+                @endif
+            </table>
+        </div>
+
         <br>
-        <hr class="" style="width: 100px!important;position:absolute;right:0">
+        <!--  RAPPORT DE RECOUVREMENT -->
+        <div class="row">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text"></td>
+                        <td class="text"></td>
+                        <td class="text">
+                            <h4 class="text-center" style="text-decoration: underline;">Rapport de récouvrement</h4>
+                            <div class="p-3 shadow text-justify" style="border: #000 2px solid;border-radius:5px ">
+                                {{$state?$state->recovery_rapport:($house->PayementInitiations->last()?$house->PayementInitiations->last()->recovery_rapport:"---")}}
+                            </div>
+                        </td>
+                        <td class="text"></td>
+                        <td class="text"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <br>
+        <!-- SIGNATURE SESSION -->
+        <div class="text-right">
+            <h5 class="" style="text-decoration: underline;">Le Chef d'Agence</h5>
+            <br>
+            <hr class="" style="width: 100px!important;position:absolute;right:0">
+            <br>
+        </div>
     </div>
 </body>
 
