@@ -87,7 +87,8 @@ class RoomController extends Controller
     {
         return [
             "water_counter_number" => ["required"],
-            "water_counter_start_index" => ["required", "numeric"],
+            // "water_counter_start_index" => ["required", "numeric"],
+            "water_conventionnel_counter_start_index" => ["required", "numeric"],
         ];
     }
 
@@ -95,9 +96,9 @@ class RoomController extends Controller
     {
         return [
             "water_counter_number.required" => "Le numéro du compteur est réquis!",
-            "water_counter_start_index.required" => "L'index de début du compteur est réquis!",
+            "water_conventionnel_counter_start_index.required" => "L'index de début du compteur est réquis!",
 
-            "water_counter_start_index.numeric" => "Ce Champ est doit être de type numérique!",
+            "water_conventionnel_counter_start_index.numeric" => "Ce Champ est doit être de type numérique!",
         ];
     }
 
@@ -106,6 +107,7 @@ class RoomController extends Controller
     {
         return [
             "unit_price" => ["required", "numeric"],
+            "water_counter_start_index" => ["required", "numeric"],
         ];
     }
 
@@ -114,6 +116,9 @@ class RoomController extends Controller
         return [
             "unit_price.required" => "Le prix unitaire du compteur electrique est réquis!",
             "unit_price.numeric" => "Le prix unitaire du compteur electrique doit être de type numérique!",
+
+            "water_counter_start_index.required" => "L'index de début est réquis!",
+            "water_counter_start_index.numeric" => "L'index de début doit être de type numérique!",
         ];
     }
 
@@ -240,7 +245,6 @@ class RoomController extends Controller
                 }
             }
 
-
             ###____TRAITEMENT DE L'IMAGE
             if ($request->file("photo")) {
                 $photo = $request->file("photo");
@@ -269,11 +273,9 @@ class RoomController extends Controller
             $formData["electricity_counter_number"] = $request->electricity_counter_number ? $request->electricity_counter_number : "--";
             $formData["electricity_counter_start_index"] = $request->electricity_counter_start_index ? $request->electricity_counter_start_index : 0;
 
-
             $formData["cleaning"] = $request->cleaning ? $request->cleaning : 0;
             $formData["comments"] = $request->comments ? $request->comments : "---";
             $formData["rubbish"] = $request->rubbish ? $request->rubbish : 0;
-
 
             $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
 

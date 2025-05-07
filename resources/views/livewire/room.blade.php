@@ -241,11 +241,21 @@
                                     </div>
 
                                     <div class="mb-3" id="water_discounter_inputs" hidden>
-                                        <span for="" class="d-block">Prix unitaire par mêtre cube</span>
-                                        <input value="{{old('unit_price')}}" type="text" name="unit_price" placeholder="Prix unitaire en mèttre cube" class="form-control" id="unit_price">
-                                        @error("unit_price")
-                                        <span class="text-red">{{$message}}</span>
-                                        @enderror
+                                        <div class="form-group mb-3">
+                                            <span for="" class="d-block">Prix unitaire par mêtre cube</span>
+                                            <input value="{{old('unit_price')}}" type="number" name="unit_price" placeholder="Prix unitaire en mèttre cube" class="form-control" id="unit_price">
+                                            @error("unit_price")
+                                            <span class="text-red">{{$message}}</span>
+                                            @enderror
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <span for="" class="d-block">Index début compteur d'eau</span>
+                                            <input value="{{old('water_counter_start_index')?old('water_counter_start_index'):0}}" type="number" name="water_counter_start_index" placeholder="Index début ...." class="form-control" id="water_counter_start_index">
+                                            @error("water_counter_start_index")
+                                            <span class="text-red">{{$message}}</span>
+                                            @enderror
+                                        </div>
                                     </div>
 
                                     <div class="mb-3" id="show_water_conventionnal_counter_inputs" hidden>
@@ -256,9 +266,9 @@
                                         @enderror
 
                                         <div class="">
-                                            <span for="" class="d-block">Index du compteur d'eau</span>
-                                            <input value="{{old('water_counter_start_index')?old('water_counter_start_index'):0}}" type="text" name="water_counter_start_index" placeholder="Index début ...." class="form-control" id="water_counter_start_index">
-                                            @error("water_counter_start_index")
+                                            <span for="" class="d-block">Index début conventionnel </span>
+                                            <input value="{{old('water_conventionnel_counter_start_index')?old('water_conventionnel_counter_start_index'):0}}" type="number" name="water_conventionnel_counter_start_index" placeholder="Index début ...." class="form-control" id="water_conventionnel_counter_start_index">
+                                            @error("water_conventionnel_counter_start_index")
                                             <span class="text-red">{{$message}}</span>
                                             @enderror
                                         </div>
@@ -622,6 +632,7 @@
                 $("#forfait_forage").val(null)
                 $("#water_counter_number").val(null)
                 $("#water_counter_start_index").val(null)
+                $("#water_conventionnel_counter_start_index").val(null)
             }
         }
 
@@ -632,6 +643,7 @@
             } else {
                 $('#water_discounter_inputs').attr("hidden", "hidden");
                 $("#unit_price").val(null)
+                $("#water_counter_start_index").val(null)
             }
         }
 
@@ -643,6 +655,7 @@
                 $('#show_water_conventionnal_counter_inputs').attr("hidden", "hidden");
                 $("#water_counter_start_index").val(null)
                 $("#water_counter_number").val(null)
+                $("#water_conventionnel_counter_start_index").val(null)
             }
         }
 
