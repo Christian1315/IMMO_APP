@@ -16,6 +16,7 @@ class StopHouseElectricityStateController extends Controller
 
     function ShowStateImprimeHtml(Request $request, $state)
     {
+        set_time_limit(3600);
         $state = StopHouseElectricityState::find($state);
 
         if (!$state) {
@@ -46,15 +47,15 @@ class StopHouseElectricityStateController extends Controller
         $paid_factures_sum = array_sum($factures_paid_array);
         $umpaid_factures_sum = array_sum($factures_umpaid_array);
 
-        // $pdf = Pdf::loadView('electricity-state', compact([
-        //     "state",
-        //     "factures_sum",
-        //     "paid_factures_sum",
-        //     "umpaid_factures_sum"
-        // ]));
+        $pdf = Pdf::loadView('electricity-state', compact([
+            "state",
+            "factures_sum",
+            "paid_factures_sum",
+            "umpaid_factures_sum"
+        ]));
 
-        // return $pdf->stream();
+        return $pdf->stream();
 
-        return view("electricity-state", compact(["state", "factures_sum", "paid_factures_sum", "umpaid_factures_sum"]));
+        // return view("electricity-state", compact(["state", "factures_sum", "paid_factures_sum", "umpaid_factures_sum"]));
     }
 }

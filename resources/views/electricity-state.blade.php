@@ -21,132 +21,173 @@
         }
 
         .rapport-title {
-            color: #fff;
-            border: solid 2px #cc3301;
+            color: #000;
+            /* border: solid 2px #cc3301; */
             text-align: center !important;
-            padding: 20px;
-            background-color: #000;
-            --bs-bg-opacity: 0.5
+            padding: 10px;
+            background-color: rgb(159, 160, 161) !important;
+            /* --bs-bg-opacity: 0.5 */
         }
 
         .text-red {
             color: #cc3301;
         }
 
+        tr th {
+            font-size: 10px !important;
+        }
+
         td {
             border: 2px solid #000;
+        }
+
+        td.text {
+            border: none !important;
         }
 
         .bg-red {
             background-color: #cc3301;
             color: #fff;
         }
+
+        tr,
+        td {
+            align-items: center !important;
+        }
+
+        .header {
+            margin-top: 100px;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-1"></div>
-            <div class="col-10 shadow-lg bg-light">
-                <!-- HEADER -->
-                <div class="row">
-                    <div class="col-12 px-0 mx-0">
-                        <div>
-                            <div class="col-12">
-                                <h3 class="rapport-title text-uppercase">état de consommation en électricité</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex" style="justify-content: space-between;">
-                    <div class="text-center">
-                        <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="img-fluid">
-                    </div>
-                    <div class="text-center">
-                        <h4 class="">Maison: <em class="text-red"> {{$state->House->name}} </em> </h4>
-                        <h4 class="">Superviseur: <em class="text-red"> {{$state->House->Supervisor->name}} </em> </h4>
-                    </div>
-                </div>
-
-                <br>
-                <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{Change_date_to_text($state->state_stoped_day) }} </strong> </h5>
-                <br>
-
-                <h6 class="">Total: <strong class="text-red"> {{count($state->StatesFactures)}}</strong> </h6>
-                @if(count($state->StatesFactures)>0)
-                <table class="table">
-                    <thead class="table-dark">
+    <div class="container-fluid bg-light">
+        <div class="row shadow-lg" style="padding-inline: 20px;">
+            <!-- HEADER -->
+            <div class="row _header px-5">
+                <table>
+                    <thead>
                         <tr>
-                            <th class="text-center">N°</th>
-                            <th class="text-center">Chambre</th>
-                            <th class="text-center" colspan="3">Locataire</th>
-                            <th class="text-center">Index début</th>
-                            <th class="text-center">Index fin</th>
-                            <th class="text-center">Consommation</th>
-                            <th class="text-center">P.U</th>
-                            <th class="text-center">Montant facturé</th>
-                            <th class="text-center">Montant Payé</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
-
                     <tbody>
-                        @foreach($state->StatesFactures as $facture)
-                        @if(!$facture->state_facture)
-                        <tr class="align-items-center">
-                            <td class="text-center">{{$loop->index+1}}</td>
-                            <td class="text-center">{{$facture->Location->Room->number}}</td>
-
-                            <td class="text-center bg-warning">{{$facture->Location->Locataire->name}}</td>
-                            <td class="text-center bg-warning">{{$facture->Location->Locataire->prenom}}</td>
-                            <td class="text-center bg-warning">{{$facture->Location->Locataire->phone}}</td>
-
-                            <td class="text-center"> {{$facture["start_index"]}} </td>
-                            <td class="text-center"> {{$facture["end_index"]}} </td>
-                            <td class="text-center"> {{$facture["consomation"]}} </td>
-                            <td class="text-center"> <strong class="shadow text-red">{{$facture->Location->Room->electricity_unit_price}} </strong> </td>
-                            <td class="text-center">{{$facture['amount']}}</td>
-                            <td class="text-center">
-                                @if($facture['paid'])
-                                {{$facture['amount']}}
-                                @else
-                                ---
-                                @endif
+                        <tr>
+                            <td class="text">
+                                <img src="{{public_path('edou_logo.png')}}" alt="" style="width: 70px;" class="rounded img-fluid">
                             </td>
-                        </tr>
-                        @endif
-                        @endforeach
-                        <tr>
-                            <td class="bg-danger text-white" colspan="2">Totaux: </td>
-                            <td colspan="7"></td>
-                            <td class="bg-warning"> <strong class="text-center">= {{$factures_sum}} fcfa</strong></td>
-                            <td class="bg-warning"> <strong class="text-center">= {{$paid_factures_sum}} fcfa</strong></td>
-                        </tr>
-
-                        <tr>
-                            <td colspan="9"></td>
-                            <td class="bg-dark text-white">Arriérés: </td>
-                            <td class="bg-secondary text-white"> <strong class="text-center">= {{$umpaid_factures_sum}} fcfa</strong></td>
+                            <td class="text"></td>
+                            <td class="text"></td>
+                            <td class="text"></td>
+                            <td class="text">
+                                <h3 class="rapport-title text-uppercase">etat de consommation en électricité</h3>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
-                @else
-                <p class="text-center text-red">Aucune facture disponible!</p>
-                @endif
+            </div>
+            <br>
 
+            <!-- infos liés  -->
+            <div class="row">
+                <table>
+                    <thead>
+                        <tr>
+                            <!-- <th></th> -->
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            
+                            <td class="text">
+                                <div class="">
+                                    <h6 class="">Maison : <em class="text-red"> {{$state->House->name}} </em> </h6>
+                                    <h6 class="">Superviseur : <strong> <em class="text-red"> {{$state->House->Supervisor->name}} </em> </h6>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <br>
+            <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{Change_date_to_text($state->state_stoped_day) }} </strong> </h5>
+            <br>
+
+            @if(count($state->StatesFactures)>0)
+            <table class="table" style="margin-left: -30px!important;">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-center">N°</th>
+                        <th class="text-center">Chambre</th>
+                        <th class="text-center" colspan="3">Locataire</th>
+                        <th class="text-center">Index début</th>
+                        <th class="text-center">Index fin</th>
+                        <th class="text-center">Consommation</th>
+                        <th class="text-center">P.U</th>
+                        <th class="text-center">Montant facturé</th>
+                        <th class="text-center">Montant Payé</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach($state->StatesFactures as $facture)
+                    @if(!$facture->state_facture)
+                    <tr class="align-items-center">
+                        <td class="text-center">{{$loop->index+1}}</td>
+                        <td class="text-center">{{$facture->Location->Room->number}}</td>
+
+                        <td class="text-center bg-warning">{{$facture->Location->Locataire->name}}</td>
+                        <td class="text-center bg-warning">{{$facture->Location->Locataire->prenom}}</td>
+                        <td class="text-center bg-warning">{{$facture->Location->Locataire->phone}}</td>
+
+                        <td class="text-center"> {{$facture["start_index"]}} </td>
+                        <td class="text-center"> {{$facture["end_index"]}} </td>
+                        <td class="text-center"> {{$facture["consomation"]}} </td>
+                        <td class="text-center"> <strong class="shadow text-red">{{$facture->Location->Room->electricity_unit_price}} </strong> </td>
+                        <td class="text-center">{{$facture['amount']}}</td>
+                        <td class="text-center">
+                            @if($facture['paid'])
+                            {{$facture['amount']}}
+                            @else
+                            ---
+                            @endif
+                        </td>
+                    </tr>
+                    @endif
+                    @endforeach
+                    <tr>
+                        <td class="bg-danger text-white" colspan="2">Totaux: </td>
+                        <td colspan="7"></td>
+                        <td class="bg-warning"> <strong class="text-center">= {{$factures_sum}} fcfa</strong></td>
+                        <td class="bg-warning"> <strong class="text-center">= {{$paid_factures_sum}} fcfa</strong></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="9"></td>
+                        <td class="bg-dark text-white">Arriérés: </td>
+                        <td class="bg-secondary text-white"> <strong class="text-center">= {{$umpaid_factures_sum}} fcfa</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            @else
+            <p class="text-center text-red">Aucune facture disponible!</p>
+            @endif
+
+            <br>
+            <!-- SIGNATURE SESSION -->
+            <div class="text-right">
+                <h5 class="" style="text-decoration: underline;">Signature du Gestionnaire de compte</h5>
                 <br>
-                <!-- SIGNATURE SESSION -->
-                <div class="text-right">
-                    <h5 class="" style="text-decoration: underline;">Signature du Gestionnaire de compte</h5>
-                    <br>
-                    <hr class="">
-                    <br>
-                </div>
+                <hr class="">
+                <br>
             </div>
             <div class="col-1"></div>
         </div>
-    </div>
 </body>
 
 </html>

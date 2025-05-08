@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StopHouseWaterState;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class StopHouseWaterStateController extends Controller
@@ -15,6 +16,8 @@ class StopHouseWaterStateController extends Controller
 
     function ShowWaterStateImprimeHtml(Request $request, $state)
     {
+        set_time_limit(3600);
+
         $state = StopHouseWaterState::find($state);
 
         if (!$state) {
@@ -44,6 +47,15 @@ class StopHouseWaterStateController extends Controller
         $paid_factures_sum = array_sum($factures_paid_array);
         $umpaid_factures_sum = array_sum($factures_umpaid_array);
 
-        return view("water-state", compact(["state", "factures_sum", "paid_factures_sum", "umpaid_factures_sum"]));
+        $pdf = Pdf::loadView('water-state', compact([
+            "state",
+            "factures_sum",
+            "paid_factures_sum",
+            "umpaid_factures_sum"
+        ]));
+
+        return $pdf->stream();
+
+        // return view("water-state", compact(["state", "factures_sum", "paid_factures_sum", "umpaid_factures_sum"]));
     }
 }
