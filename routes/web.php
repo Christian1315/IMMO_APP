@@ -15,7 +15,10 @@ use App\Http\Controllers\PaiementInitiationController;
 use App\Http\Controllers\ProprietorController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoleController;
+use App\Models\House;
+use App\Models\Locataire;
 use App\Models\Location;
+use App\Models\Room;
 use App\Models\User;
 use App\Notifications\SendNotification;
 use Illuminate\Support\Facades\Notification;
@@ -34,7 +37,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get("/debug", function () {
-    Location::where("status", 3)->update(["room" => null]);
+    // Location::where("status", 3)->update(["room" => null]);
+    House::where("visible", 0)->update(["deleted_at" => now()]);
+    Locataire::where("visible", 0)->update(["deleted_at" => now()]);
+    Room::where("visible", 0)->update(["deleted_at" => now()]);
     return "Opération éffectuée avec succès....";
 });
 

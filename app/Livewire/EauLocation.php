@@ -19,14 +19,14 @@ class EauLocation extends Component
 
     public $houses = [];
     public $current_house = [];
-    public $house;
+    // public $house;
     public $state = 0;
 
     ###__LOCATIONS
     function refreshThisAgencyLocations()
     {
         $locations = $this->current_agency->_Locations->where("status", "!=", 3)->filter(function ($location) {
-            return $location->Room->water;
+            return $location->Room?$location->Room->water:null;
         });
         ##___
         $agency_locations = [];
@@ -120,7 +120,7 @@ class EauLocation extends Component
 
 
             $location["house_name"] = $location->House->name;
-            $location["start_index"] = count($location->ElectricityFactures) != 0 ? $location->ElectricityFactures->first()->end_index : $location->Room->electricity_counter_start_index;
+            $location["start_index"] = count($location->ElectricityFactures) != 0 ? $location->ElectricityFactures->first()->end_index : ($location->Room?$location->Room->electricity_counter_start_index:null);
             // $location["end_index"] = $location->end_index;
             $location["locataire"] = $location->Locataire->name ." ". $location->Locataire->prenom;
             $location["water_factures"] = $location->WaterFactures;
@@ -137,12 +137,15 @@ class EauLocation extends Component
     ###___HOUSES
     function refreshThisAgencyHouses()
     {
-        $this->houses = $this->current_agency->_Locations->map(function ($location) {
-            if ($location->Room->water) {
-                return $location->House;
+        $_houses = $this->current_agency->_Locations->map(function ($location) {
+            if ($location->Room) {
+                if ($location->Room->water) {
+                    return $location->House;
+                }
             }
+
         });
-        $this->houses = collect($this->houses)->unique()->values();
+        $this->houses = collect($_houses)->unique()->values();
     }
 
 

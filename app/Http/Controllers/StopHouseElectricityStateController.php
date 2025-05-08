@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StopHouseElectricityState;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class StopHouseElectricityStateController extends Controller
@@ -44,6 +45,15 @@ class StopHouseElectricityStateController extends Controller
         $factures_sum = array_sum($factures_array);
         $paid_factures_sum = array_sum($factures_paid_array);
         $umpaid_factures_sum = array_sum($factures_umpaid_array);
+
+        // $pdf = Pdf::loadView('electricity-state', compact([
+        //     "state",
+        //     "factures_sum",
+        //     "paid_factures_sum",
+        //     "umpaid_factures_sum"
+        // ]));
+
+        // return $pdf->stream();
 
         return view("electricity-state", compact(["state", "factures_sum", "paid_factures_sum", "umpaid_factures_sum"]));
     }

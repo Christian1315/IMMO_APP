@@ -64,7 +64,9 @@
                                 <label>Choisissez une maison</label>
                                 <select required name="house" class="form-control">
                                     @foreach($houses as $house)
+                                    @if($house)
                                     <option value="{{$house['id']}}"> {{$house["name"]}} </option>
+                                    @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -90,8 +92,10 @@
                             <div class="col-md-12">
                                 <label>Choisissez un propriétaire</label>
                                 <select required name="proprio" class="form-control">
-                                    @foreach($this->houses as $house)
+                                    @foreach($houses as $house)
+                                    @if($house)
                                     <option value="{{$house->Proprietor->id}}"> {{$house->Proprietor->firstname}} {{$house->Proprietor->lastname}} </option>
+                                    @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -120,7 +124,7 @@
                                     <span class="text-red">Choisir la location concernée</span>
                                     <select required name="location" class="form-control">
                                         @foreach($locations as $location)
-                                        <option value="{{$location['id']}}"> <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->WaterFactures)!=0?$location->WaterFactures->first()->end_index: $location->Room->water_counter_start_index}} ; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}}</option>
+                                        <option value="{{$location['id']}}"> <strong>Maison: </strong> {{$location->House->name}} ; <strong>Index début: </strong> {{count($location->WaterFactures)!=0?$location->WaterFactures->first()->end_index: ($location->Room?$location->Room->water_counter_start_index:null)}} ; <strong>Locataire: </strong>{{$location->Locataire->name}} {{$location->Locataire->prenom}}</option>
                                         @endforeach
                                     </select>
 
@@ -163,7 +167,9 @@
                                     <span class="text-red">Choisir la maison concernée</span>
                                     <select required name="house" class="form-control">
                                         @foreach($houses as $house)
+                                        @if($house)
                                         <option value="{{$house->id}}"> {{$house->name}} </option>
+                                        @endif
                                         @endforeach
                                     </select>
 
@@ -218,7 +224,7 @@
                             <td class="text-center"> <span class="badge bg-dark text-white">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} </span> </td>
                             <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["House"]["name"]}} ({{$location->House->Supervisor->name}})</span></td>
                             <td class="text-center"><span class="badge bg-light text-dark text-bold"> {{$location["Locataire"]["phone"]}}</span></td>
-                            <td class="text-center"> <span class="badge bg-warning text-white"> {{$location["Room"]["water_counter_start_index"]}}</span> </td>
+                            <td class="text-center"> <span class="badge bg-warning text-white"> {{$location->Room?$location->Room->water_counter_start_index:null}}</span> </td>
                             <td class="text-center"> <strong class="badge bg-dark text-zhite"> {{$location["end_index"]?$location["end_index"]:0}}</strong> </td>
                             <td class="text-center"> <strong class=""> <span class="badge bg-light text-dark">{{number_format($location->Room->unit_price,2,',',' ')}}</span> </strong> </td>
                             <td class="text-center"> <strong class="badge text-red bg-light"> <i class="bi bi-currency-exchange"></i> {{$location["total_un_paid_facture_amount"]? number_format($location["total_un_paid_facture_amount"],2,","," ") :0}} fcfa </strong> </td>

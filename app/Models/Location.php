@@ -97,7 +97,7 @@ class Location extends Model
 
     function House(): BelongsTo
     {
-        return $this->belongsTo(House::class, "house")->with(["Owner", "Proprietor", "Type", "Supervisor", "City", "Country", "Departement", "Quartier", "Zone"])->where(["visible" => 1]);
+        return $this->belongsTo(House::class, "house")->with(["Owner", "Proprietor", "Type", "Supervisor", "City", "Country", "Departement", "Quartier", "Zone"]);
     }
 
     function Locataire(): BelongsTo
