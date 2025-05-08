@@ -99,7 +99,7 @@
                             <td class="text-center">
                                 <span class="badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span>
                             </td>
-                            <td class="text-center">{{ $location['Room']['number'] }}</td>
+                            <td class="text-center">{{ $location->Room?$location->Room->number:"deménagé" }}</td>
                             <td class="text-center">
                                 <span class="badge bg-light text-dark">{{ $location['Locataire']['name'] }} {{ $location['Locataire']['prenom'] }} ({{ $location['Locataire']['phone'] }}) </span>
                             </td>

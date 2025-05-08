@@ -411,8 +411,7 @@ class LocationController extends Controller
 
         $formData = $request->all();
 
-        // $location = Location::where(["visible" => 1])->find(deCrypId($id));
-        $location = Location::where(["visible" => 1])->find($id);
+        $location = Location::find($id);
 
         if (!$location) {
             alert()->error("Echec", "Cette location n'existe pas!");
@@ -727,7 +726,7 @@ class LocationController extends Controller
         Validator::make($formData, ["move_comments" => "required"], ["move_comments.required" => "Le commentaire est réquis!"])->validate();
 
         $user = request()->user();
-        $location = Location::where(["visible" => 1])->find($locationId);
+        $location = Location::find($locationId);
 
         if (!$location) {
             alert()->error("Echec", "Cette location n'existe pas!");
@@ -1022,7 +1021,7 @@ class LocationController extends Controller
 
         $formData["owner"] = $user->id;
 
-        $house = House::where(["visible" => 1])->find($formData["house"]);
+        $house = House::find($formData["house"]);
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back()->withInput();
@@ -1112,7 +1111,7 @@ class LocationController extends Controller
     ####___PAIEMENTS LIES A L'ARRET DES ETATS
     function FiltreAfterStateDateStoped(Request $request, $houseId)
     {
-        $house = House::where(["visible" => 1])->find(deCrypId($houseId));
+        $house = House::find(deCrypId($houseId));
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back()->withInput();
@@ -1172,7 +1171,7 @@ class LocationController extends Controller
     ####___PAIEMENTS LIES A L'ARRET DES ETATS
     function FiltreBeforeStateDateStoped(Request $request, $houseId)
     {
-        $house = House::where(["visible" => 1])->find(deCrypId($houseId));
+        $house = House::find(deCrypId($houseId));
         if (!$house) {
             alert()->error("Echec", "Cette maison n'existe pas!");
             return back()->withInput();

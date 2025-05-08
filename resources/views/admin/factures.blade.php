@@ -87,7 +87,7 @@
                                 <td class="text-center text-red"><span class="badge bg-light text-dark"> {{$facture["Location"]["House"]["Supervisor"]["name"]}}</span></td>
                                 <td class="text-center"> <span class="badge bg-dark">{{$facture["Owner"]["name"]}} </span> </td>
                                 <td class="text-center"> <span class="badge bg-light text-dark">{{$facture["Location"]["House"]["name"]}} </span> </td>
-                                <td class="text-center"> <span class="badge bg-light text-dark">{{$facture["Location"]["Room"]["number"]}} </span> </td>
+                                <td class="text-center"> <span class="badge bg-light text-dark">{{$facture->Location->Room?$facture->Location->number:"deménagé"}} </span> </td>
                                 <td class="text-center"><button class="btn btn-sm btn-light">{{$facture["Location"]["Locataire"]["name"]}} {{$facture["Location"]["Locataire"]["prenom"]}} </button> </td>
                                 <td class="text-center"> <a target="__blank" href="{{$facture['facture']}}" class="btn btn-sm btn-light shadow-sm"><i class="bi bi-eye"></i></a>
                                 </td>

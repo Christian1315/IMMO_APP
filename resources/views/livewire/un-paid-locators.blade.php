@@ -92,7 +92,7 @@
                             <td class="text-center">{{$loop->index+1}}</td>
                             <td class="text-center"> <span class="badge bg-dark text-white">{{$location["House"]["name"]}}</span> </td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{ $location->House->Supervisor->name }} </span> </td>
-                            <td class="text-center">{{$location["Room"]["number"]}}</td>
+                            <td class="text-center">{{ $location->Room?$location->Room->number:"deménagé" }}</td>
                             <td class="text-center"> <span class="badge bg-light text-dark"> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}}) </span> </td>
                             <td class="text-center text-red"><small> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center"> <span class="badge bg-dark text-white"> {{number_format($location->loyer,0," "," ")}}</span> </td>

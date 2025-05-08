@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Locataire extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
-    protected  $guarded = [];
+    // protected  $guarded = [];
     protected $fillable = [
         "agency",
         "email",

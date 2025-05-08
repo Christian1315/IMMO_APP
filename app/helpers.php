@@ -396,17 +396,19 @@ function GET_HOUSE_DETAIL($house)
         ##__parcourons les locations pour voir si cette chambre s'y trouve
 
         foreach ($house->Locations->where("status","!=",3) as $location) {
-            if ($location->Room->id == $room->id) {
-                $is_this_room_buzy = true;
-
-                ###___verifions la période d'entrée de cette chambre en location
-                ###__pour determiner les chambres vide dans le premier mois
-                $location_create_date = strtotime(date("Y/m/d", strtotime($location["created_at"])));
-                ##on verifie si la date de creation de la location est comprise entre le *$creation_time* et le *$first_month_period* de la maison 
-                if ($creation_time < $location_create_date && $location_create_date < $first_month_period) {
-                    array_push($busy_rooms_at_first_month, $room);
-                } else {
-                    array_push($frees_rooms_at_first_month, $room);
+            if ($location->Room) {
+                if ($location->Room->id == $room->id) {
+                    $is_this_room_buzy = true;
+    
+                    ###___verifions la période d'entrée de cette chambre en location
+                    ###__pour determiner les chambres vide dans le premier mois
+                    $location_create_date = strtotime(date("Y/m/d", strtotime($location["created_at"])));
+                    ##on verifie si la date de creation de la location est comprise entre le *$creation_time* et le *$first_month_period* de la maison 
+                    if ($creation_time < $location_create_date && $location_create_date < $first_month_period) {
+                        array_push($busy_rooms_at_first_month, $room);
+                    } else {
+                        array_push($frees_rooms_at_first_month, $room);
+                    }
                 }
             }
         }
@@ -535,17 +537,19 @@ function GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house)
         ##__parcourons les locations pour voir si cette chambre s'y trouve
 
         foreach ($house->Locations->where("status","!=",3) as $location) {
-            if ($location->Room->id == $room->id) {
-                $is_this_room_buzy = true;
-
-                ###___verifions la période d'entrée de cette chambre en location
-                ###__pour determiner les chambres vide dans le premier mois
-                $location_create_date = strtotime(date("Y/m/d", strtotime($location["created_at"])));
-                ##on verifie si la date de creation de la location est comprise entre le *$creation_time* et le *$first_month_period* de la maison 
-                if ($creation_time < $location_create_date && $location_create_date < $first_month_period) {
-                    array_push($busy_rooms_at_first_month, $room);
-                } else {
-                    array_push($frees_rooms_at_first_month, $room);
+            if ($location->Room) {
+                if ($location->Room->id == $room->id) {
+                    $is_this_room_buzy = true;
+    
+                    ###___verifions la période d'entrée de cette chambre en location
+                    ###__pour determiner les chambres vide dans le premier mois
+                    $location_create_date = strtotime(date("Y/m/d", strtotime($location["created_at"])));
+                    ##on verifie si la date de creation de la location est comprise entre le *$creation_time* et le *$first_month_period* de la maison 
+                    if ($creation_time < $location_create_date && $location_create_date < $first_month_period) {
+                        array_push($busy_rooms_at_first_month, $room);
+                    } else {
+                        array_push($frees_rooms_at_first_month, $room);
+                    }
                 }
             }
         }

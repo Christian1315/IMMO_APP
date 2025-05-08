@@ -39,7 +39,7 @@ class RoomController extends Controller
             "nature" => ["required", "integer"],
             "type" => ["required", "integer"],
             "loyer" => ["required", "numeric"],
-            "number" => "required|unique:rooms",
+            // "number" => "required|unique:rooms",
         ];
     }
 
@@ -58,7 +58,7 @@ class RoomController extends Controller
             "loyer.numeric" => "Le loyer doit être de type numérique!",
 
             "number.required" => "Le numéro de la chambre est réquis",
-            "number.unique" => "Le numéro de la chambre existe déjà",
+            // "number.unique" => "Le numéro de la chambre existe déjà",
 
             "gardiennage.required" => "Ce Champ est réquis!",
 
@@ -145,7 +145,6 @@ class RoomController extends Controller
         ];
     }
 
-
     ##################========== ROOM METHOD =============##############
     public function AddRoomType(Request $request)
     {
@@ -184,6 +183,12 @@ class RoomController extends Controller
             Validator::make($formData, $rules, $messages)->validate();
 
             $user = request()->user();
+
+            $number_room_house = Room::where(["number" => $request->number, "house" => $request->house])->first();
+            if ($number_room_house) {
+                alert()->error("Echec", "Cette chambre existe déjà dans cette maison!");
+                return back()->withInput();
+            }
 
             ###____TRAITEMENT DU HOUSE
             $house = House::where(["visible" => 1])->find($formData["house"]);
@@ -286,7 +291,7 @@ class RoomController extends Controller
             return back()->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue ".$e->getMessage());
+            alert()->error("Error", "Une erreure est survenue " . $e->getMessage());
             return back()->withInput();
         }
     }
@@ -436,7 +441,7 @@ class RoomController extends Controller
     function DeleteRoom(Request $request, $id)
     {
         $user = auth()->user();
-        $room = Room::where(["visible" => 1])->find(deCrypId($id));
+        $room = Room::find(deCrypId($id));
         if (!$room) {
             alert()->error("Echec", "Cette Chambre n'existe pas!");
             return back()->withInput();
@@ -449,9 +454,9 @@ class RoomController extends Controller
             }
         }
 
-        $room->visible = 0;
-        $room->delete_at = now();
-        $room->save();
+        // $room->visible = 0;
+        // $room->deleted_at = now();
+        $room->delete();
 
         alert()->success("Succès", "Chambre supprimée avec succès!");
         return back();

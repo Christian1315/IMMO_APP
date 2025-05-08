@@ -360,9 +360,9 @@ class LocataireController extends Controller
 
             DB::commit();
             return back()->withInput();
-        } catch (\Throwable $th) {
+        } catch (\Exception $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue!");
+            alert()->error("Error", "Une erreure est survenue ".$e->getMessage());
             return back()->withInput();
         }
     }
@@ -423,7 +423,7 @@ class LocataireController extends Controller
     function DeleteLocataire(Request $request, $id)
     {
         $user = request()->user();
-        $locataire = Locataire::where(["visible" => 1])->find(deCrypId($id));
+        $locataire = Locataire::find(deCrypId($id));
         if (!$locataire) {
             alert()->error("Echec", "Ce locataire n'existe pas!");
             return back()->withInput();
@@ -441,9 +441,9 @@ class LocataireController extends Controller
             }
         }
 
-        $locataire->visible = 0;
-        $locataire->delete_at = now();
-        $locataire->save();
+        // $locataire->visible = 0;
+        // $locataire->deleted_at = now();
+        $locataire->delete();
 
         alert()->success("Succès", "Locataire supprimé avec avec succès!");
         return back()->withInput();

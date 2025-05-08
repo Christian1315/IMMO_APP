@@ -422,7 +422,6 @@ class AdminController extends Controller
             $factures = $query->get();
         }
 
-
         $montantTotal = $factures->sum("amount");
         $users = User::all();
 

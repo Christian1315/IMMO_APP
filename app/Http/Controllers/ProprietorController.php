@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
 use App\Models\CardType;
 use App\Models\City;
-use App\Models\Client;
 use App\Models\Country;
 use App\Models\Proprietor;
 use Illuminate\Http\Request;
@@ -26,9 +24,9 @@ class ProprietorController extends Controller
     static function proprietor_rules(): array
     {
         return [
-            'firstname' => ['required'],
-            'lastname' => ['required'],
-            'phone' => ['required', "numeric"],
+            'firstname' => "required|unique:proprietors",
+            'lastname' => "required|unique:proprietors",
+            'phone' => "required|unique:proprietors|numeric",
 
             'sexe' => ['required'],
             // 'piece_number' => ['required'],
@@ -36,10 +34,10 @@ class ProprietorController extends Controller
             // 'mandate_contrat' => ['required', "file"],
             'adresse' => ['required'],
 
-            'city' => ['required', 'integer'],
-            'country' => ['required', 'integer'],
-            'card_type' => ['required', 'integer'],
-            'agency' => ['required', 'integer'],
+            'city' => "required|integer|exists:cities,id",
+            'country' => "required|integer|exists:countries,id",
+            'card_type' => "required|integer|exists:card_types,id",
+            'agency' => "required|integer|exists:agencies,id",
         ];
     }
 
@@ -72,6 +70,7 @@ class ProprietorController extends Controller
             'agency.integer' => "L'agence doit être de type entier!",
 
             'phone.numeric' => 'Ce champ doit doit être de type numeric!',
+            'phone.unique' => "Ce numéro de tephone existe déjà",
         ];
     }
 
@@ -89,38 +88,12 @@ class ProprietorController extends Controller
 
         $user = request()->user();
 
-        ###___
-        $city = City::find($formData["city"]);
-        $country = Country::find($formData["country"]);
-        $card_type = CardType::find($formData["card_type"]);
-        $agency = Agency::find($formData["agency"]);
-
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return redirect()->back()->withInput();
-        }
-
-        if (!$city) {
-            alert()->error("Echec", "Cette ville n'existe pas");
-            return redirect()->back()->withInput();
-        }
-
-        if (!$country) {
-            alert()->error("Echec", "Ce pays n'existe pas");
-            return redirect()->back()->withInput();
-        }
-
-        if (!$card_type) {
-            alert()->error("Echec", "Ce type de carte n'existe pas");
-            return redirect()->back()->withInput();
-        }
-
         ###____VOYONS SI CE PROPRIETAIRE EXISTE DEJA
-        $is_this_proprio_existe = Proprietor::where(["firstname" => $formData["firstname"], "lastname" => $formData["lastname"], "phone" => $formData["phone"], "visible" => 1])->first();
-        if ($is_this_proprio_existe) {
-            alert()->error("Echec", "Ce proprietaire existe déjà");
-            return redirect()->back()->withInput();
-        }
+        // $is_this_proprio_existe = Proprietor::where(["firstname" => $formData["firstname"], "lastname" => $formData["lastname"], "phone" => $formData["phone"], "visible" => 1])->first();
+        // if ($is_this_proprio_existe) {
+        //     alert()->error("Echec", "Ce proprietaire existe déjà");
+        //     return redirect()->back()->withInput();
+        // }
 
         ###__TRAITEMENT DU CONTRAT
         if ($request->hasFile("mandate_contrat")) {

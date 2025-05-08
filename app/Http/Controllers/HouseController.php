@@ -18,11 +18,6 @@ use App\Models\Zone;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-// use function Spatie\LaravelPdf\Support\pdf;
-
-// use Spatie\LaravelPdf\Facades\Pdf;
-
-// use function Spatie\LaravelPdf\Support\pdf;
 
 class HouseController extends Controller
 {
@@ -517,25 +512,26 @@ class HouseController extends Controller
     function DeleteHouse(Request $request, $id)
     {
         // $user = request()->user();
-        $house = House::where(["visible" => 1])->find(deCrypId($id));
+        $house = House::find(deCrypId($id));
         if (!$house) {
             alert()->error("error", "Cette maison n'existe pas!");
             return back();
         };
 
-        if (count($house->Rooms) > 0) {
-            alert()->error("error", "Cette maison dispose de chambre(s)! Veuillez bien les supprimer d'abord");
+        if (count($house->Rooms)>0) {
+            alert()->error("error", "Cette maison dispose des chambres");
             return back();
         }
 
-        if (count($house->Locations) > 0) {
+
+        if (count($house->Locations)>0) {
             alert()->error("error", "Cette maison dispose de location(s)! Veuillez bien les supprimer d'abord");
             return back();
         }
 
-        $house->visible = 0;
-        $house->delete_at = now();
-        $house->save();
+        // $house->visible = 0;
+        $house->deleted_at = now();
+        $house->delete();
 
         alert()->success("Succès", "Maison supprimée avec succès!");
         return back();

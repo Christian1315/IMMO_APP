@@ -66,7 +66,7 @@ class Agency extends Model
 
     function _Houses(): HasMany
     {
-        return $this->hasMany(House::class, "agency")->where(["visible"=>1]);
+        return $this->hasMany(House::class, "agency");
     }
 
     function _PayementInitiations():HasMany{

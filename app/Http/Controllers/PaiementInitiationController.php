@@ -48,7 +48,7 @@ class PaiementInitiationController extends Controller
 
         $user = request()->user();
 
-        $house = House::where("visible", 1)->find($formData["house"]);
+        $house = House::find($formData["house"]);
         if (!$house) {
             alert()->error("Echèc", "Cette maison n'existe pas!");
             return back()->withInput();
