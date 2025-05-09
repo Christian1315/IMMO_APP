@@ -191,7 +191,7 @@ class RoomController extends Controller
             }
 
             ###____TRAITEMENT DU HOUSE
-            $house = House::where(["visible" => 1])->find($formData["house"]);
+            $house = House::find($formData["house"]);
             if (!$house) {
                 alert()->error("Echec", "Cette maison n'existe pas!");
                 return back()->withInput();
@@ -383,7 +383,7 @@ class RoomController extends Controller
             DB::beginTransaction();
             $user = request()->user();
             $formData = $request->all();
-            $room = Room::where(["visible" => 1])->find($id);
+            $room = Room::with(["Locations"])->find($id);
             if (!$room) {
                 alert()->error("Echec", "Cette Chambre n'existe pas!");
                 return back()->withInput();
@@ -398,7 +398,7 @@ class RoomController extends Controller
 
             ###____TRAITEMENT DU HOUSE
             if ($request->get("house")) {
-                $house = House::where(["visible" => 1])->find($request->get("house"));
+                $house = House::find($request->get("house"));
                 if (!$house) {
                     alert()->error("Echec", "Cette Chambre n'existe pas!");
                     return back()->withInput();
@@ -422,18 +422,24 @@ class RoomController extends Controller
                     return back()->withInput();
                 }
             }
+            
             $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
             $formData["electricity_counter_number"] = $room->electricity_counter_number;
 
             #ENREGISTREMENT DE LA CARTE DANS LA DB
             $room->update($formData);
 
+            // MISE A JOUR DES LOYER DES LOCATIONS LIEES A CETTE CHAMBRE
+            foreach ($room->Locations as $location) {
+                $location->update(["loyer" => $room->total_amount]);
+            }
+
             DB::commit();
             alert()->success("Succès", "Chambre modifiée avec succès!");
             return back()->withInput();
-        } catch (\Throwable $th) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue");
+            alert()->error("Error", "Une erreure est survenue " . $e->getMessage());
             return back()->withInput();
         }
     }

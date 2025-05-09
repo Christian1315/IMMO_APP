@@ -426,7 +426,7 @@
                     <tbody>
                         @foreach($rooms as $room)
                         <tr class="align-items-center">
-                            <td class="text-center d-flex">{{$loop->index + 1}}</td>
+                            <td class="text-center d-flex">{{$loop->index + 1}} ({{$room->id}})</td>
                             <td class="text-center">{{$room["number"]}} @if($room->buzzy())<i class="bi text-red bi-geo-alt-fill"></i> @else<i class="bi text-primary bi-geo-alt-fill"></i> @endif</td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{$room["House"]["name"]}}</span></td>
                             <td class="text-center"><span class="badge bg-light text-dark">{{$room["House"]["Supervisor"]["name"]}}</span></td>
@@ -574,11 +574,11 @@
                 }
             }).catch((error) => {
                 alert("une erreure s'est produite")
-                console.log(error)
             })
         }
 
         function updateModal_fun(id) {
+            // alert("Updating ....")
             axios.get("{{env('API_BASE_URL')}}room/" + id + "/retrieve").then((response) => {
                 var room = response.data
                 var room_fullname = room["number"];
@@ -607,7 +607,6 @@
 
             }).catch((error) => {
                 alert("une erreure s'est produite")
-                console.log(error)
             })
         }
 

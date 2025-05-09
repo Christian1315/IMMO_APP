@@ -818,6 +818,7 @@ class LocationController extends Controller
             $location = Location::with(["House", "Locataire", "Room"])->find($formData["location"]);
             $type = PaiementType::find($formData["type"]);
 
+            // dd($location->loyer);
             $formData["module"] = 2;
             $formData["status"] = 1;
             $formData["amount"] = $location->loyer;
@@ -871,7 +872,9 @@ class LocationController extends Controller
             }
             ##___
 
-            $montant = $location->Locataire->prorata ? $request->prorata_amount : $request->amount;
+            $montant = $location->Locataire->prorata ?
+                $request->prorata_amount :
+                $location->loyer;
 
             $factureDatas = [
                 "owner" => $user->id,
@@ -984,9 +987,9 @@ class LocationController extends Controller
             ###__
             alert()->success("Succès", "Paiement ajouté avec succès!!");
             return back()->withInput();
-        } catch (\Throwable $th) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-            alert()->success("Error", "Une erreure est survenue! ");
+            alert()->success("Error", "Une erreure est survenue! " . $e->getMessage());
             return back()->withInput();
         }
     }
