@@ -9,6 +9,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 // use PhpOffice\PhpSpreadsheet\Calculation\Logical\Boolean;
 
+/**
+ * @property int $id
+ * @property float $gardiennage
+ * @property float $rubbish
+ * @property float $vidange
+ * @property float $cleaning
+ * @property int $owner
+ * @property int $house
+ * @property int $nature
+ * @property int $type
+ */
 class Room extends Model
 {
     use HasFactory;
@@ -16,38 +27,62 @@ class Room extends Model
 
     protected $guarded = [];
 
-    function LocativeCharge()
+    /**
+     * Calculate the total locative charges
+     */
+    public function LocativeCharge(): float
     {
-        return ($this->gardiennage + $this->rubbish + $this->vidange + $this->cleaning);
+        return $this->gardiennage + $this->rubbish + $this->vidange + $this->cleaning;
     }
 
-    function Owner(): BelongsTo
+    /**
+     * Get the owner of the room
+     */
+    public function Owner(): BelongsTo
     {
         return $this->belongsTo(User::class, "owner");
     }
 
-    function House(): BelongsTo
+    /**
+     * Get the house that owns the room
+     */
+    public function House(): BelongsTo
     {
-        return $this->belongsTo(House::class, "house")->where(["visible" => 1])->with(["Proprietor"]);
+        return $this->belongsTo(House::class, "house")
+            ->where(["visible" => 1])
+            ->with(["Proprietor"]);
     }
 
-    function Nature(): BelongsTo
+    /**
+     * Get the nature of the room
+     */
+    public function Nature(): BelongsTo
     {
         return $this->belongsTo(RoomNature::class, "nature");
     }
 
-    function Type(): BelongsTo
+    /**
+     * Get the type of the room
+     */
+    public function Type(): BelongsTo
     {
         return $this->belongsTo(RoomType::class, "type");
     }
 
-    function Locations(): HasMany
+    /**
+     * Get all locations for this room
+     */
+    public function Locations(): HasMany
     {
-        return $this->hasMany(Location::class, "room")->with(["Locataire", "House", "Room", "Type"]);
+        return $this->hasMany(Location::class, "room")
+            ->with(["Locataire", "House", "Room", "Type"]);
     }
 
-    function buzzy()
+    /**
+     * Check if the room is currently occupied
+     */
+    public function buzzy(): bool
     {
-        return count($this->Locations) > 0 ? true : false;
+        return $this->Locations()->exists();
     }
 }

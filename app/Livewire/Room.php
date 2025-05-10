@@ -4,93 +4,82 @@ namespace App\Livewire;
 
 use App\Models\RoomNature;
 use App\Models\RoomType;
+use App\Models\Agency;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-
 
 class Room extends Component
 {
     use WithFileUploads;
 
-    public $agency;
-    public $current_agency;
+    private const DELETE_ROOM_TITLE = 'Suppression de la chambre!';
+    private const DELETE_ROOM_TEXT = 'Voulez-vous vraiment supprimer cette chambre?';
+    private const DELETE_HOUSE_TITLE = 'Suppression d\'une maison!';
+    private const DELETE_HOUSE_TEXT = 'Voulez-vous vraiment supprimer cette maison?';
 
-    public $rooms = [];
-    public $rooms_count = [];
+    public Agency $agency;
+    public Agency $current_agency;
 
-    // 
-    public $countries = [];
-    public $proprietors = [];
-    public $houses = [];
+    public Collection $rooms;
+    public int $rooms_count = 0;
 
-    public $cities = [];
-    public $room_types = [];
-    public $room_natures = [];
-    public $departements = [];
-    public $quartiers = [];
-    public $zones = [];
+    public Collection $countries;
+    public Collection $proprietors;
+    public Collection $houses;
+    public Collection $cities;
+    public Collection $room_types;
+    public Collection $room_natures;
+    public Collection $departements;
+    public Collection $quartiers;
+    public Collection $zones;
 
-    ###___ROOMS
-    function refreshThisAgencyRooms()
-    {
-        $title = 'Suppression de la chambre!';
-        $text = "Voulez-vous vraiment supprimer cette chambre?";
-        confirmDelete($title, $text);
-
-        ###__TRIONS CEUX QUI SE TROUVENT DANS L'AGENCE ACTUELLE
-        ##__on recupere les maisons qui appartiennent aux propriétaires
-        ##__ se trouvant dans cette agence
-        $agency_rooms = [];
-
-        foreach ($this->current_agency->_Proprietors as $proprio) {
-            foreach ($proprio->Houses as $house) {
-                foreach ($house->Rooms as $room) {
-                    array_push($agency_rooms, $room);
-                }
-            }
-        }
-        $this->rooms = $agency_rooms;
-        $this->rooms_count = count($this->rooms);
-    }
-
-    ###___HOUSES
-    function refreshThisAgencyHouses()
-    {
-        $title = 'Suppression d\'une maison!';
-        $text = "Voulez-vous vraiment supprimer cette maison?";
-        confirmDelete($title, $text);
-
-        $agency = $this->current_agency;
-
-        $agency_houses = [];
-        foreach ($agency->_Proprietors as $proprio) {
-            foreach ($proprio->Houses as $house) {
-                array_push($agency_houses, $house);
-            }
-        }
-        $this->houses = $agency_houses;
-    }
-
-
-    function mount($agency)
+    public function mount(Agency $agency): void
     {
         set_time_limit(0);
         $this->current_agency = $agency;
 
-        ###___ROOMS
+        $this->initializeCollections();
+        $this->loadAgencyData();
+    }
+
+    private function initializeCollections(): void
+    {
+        $this->rooms = collect();
+        $this->countries = collect();
+        $this->proprietors = collect();
+        $this->houses = collect();
+        $this->cities = collect();
+        $this->room_types = RoomType::all();
+        $this->room_natures = RoomNature::all();
+        $this->departements = collect();
+        $this->quartiers = collect();
+        $this->zones = collect();
+    }
+
+    private function loadAgencyData(): void
+    {
         $this->refreshThisAgencyRooms();
-
-        // MAISONS
         $this->refreshThisAgencyHouses();
+    }
 
+    public function refreshThisAgencyRooms(): void
+    {
+        confirmDelete(self::DELETE_ROOM_TITLE, self::DELETE_ROOM_TEXT);
 
-        // roomS TYPES
-        $room_types = RoomType::all();
-        $this->room_types = $room_types;
+        $this->rooms = $this->current_agency->_Proprietors
+            ->flatMap(fn($proprio) => $proprio->Houses)
+            ->flatMap(fn($house) => $house->Rooms);
 
-        // ROOM NATURE
-        $room_natures = RoomNature::all();
-        $this->room_natures = $room_natures;
+        $this->rooms_count = $this->rooms->count();
+    }
+
+    public function refreshThisAgencyHouses(): void
+    {
+        confirmDelete(self::DELETE_HOUSE_TITLE, self::DELETE_HOUSE_TEXT);
+
+        $this->houses = $this->current_agency->_Proprietors
+            ->flatMap(fn($proprio) => $proprio->Houses);
     }
 
     public function render()

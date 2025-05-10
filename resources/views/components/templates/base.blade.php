@@ -179,6 +179,8 @@
         </div>
 
         @livewireScripts
+
+        @stack('scripts')
     </body>
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="{{asset('fichiers/jquery.min.js')}}"></script>

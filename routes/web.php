@@ -205,7 +205,7 @@ Route::prefix("room")->group(function () {
             Route::any('add', 'AddRoomNature')->name("room.AddRoomNature"); ##__AJOUT D'UNE NATURE
         });
 
-        Route::post('add', '_AddRoom')->name("room._AddRoom"); #AJOUT D'UNE CHAMBRE
+        Route::post('add', 'AddRoom')->name("room._AddRoom"); #AJOUT D'UNE CHAMBRE
         Route::patch('{id}/update', 'UpdateRoom')->name("room.UpdateRoom"); #MODIFICATION D'UNE CHAMBRE 
         Route::delete('{id}/delete', 'DeleteRoom')->name("room.DeleteRoom"); #SUPPRESSION D'UNE CHAMBRE 
 

@@ -2,469 +2,337 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agency;
-use App\Models\House;
 use App\Models\Room;
 use App\Models\RoomNature;
 use App\Models\RoomType;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class RoomController extends Controller
 {
-    ##======== ROOM TYPE VALIDATION =======##
-    static function room_type_rules(): array
-    {
-        return [
-            "name" => ["required"],
-            "description" => ["required"],
-        ];
-    }
+    private const ERROR_MESSAGES = [
+        'room_not_found' => 'Cette Chambre n\'existe pas!',
+        'house_not_found' => 'Cette maison n\'existe pas!',
+        'nature_not_found' => 'Cette nature de chambre n\'existe pas!',
+        'type_not_found' => 'Ce type de chambre n\'existe pas!',
+        'agency_not_found' => 'Cette agence n\'existe pas!',
+        'supervisor_not_found' => 'Ce superviseur n\'existe pas!',
+        'no_results' => 'Aucun résultat trouvé',
+        'unauthorized' => 'Cette Chambre n\'a pas été crée par vous! Vous ne pouvez pas la modifier',
+    ];
 
-    static function room_type_messages(): array
-    {
-        return [
-            "name.required" => "Le nom du type de la chambre est réquis!",
-            "description.required" => "La description du type de la chambre est réquise!",
-        ];
-    }
+    private const VALIDATION_RULES = [
+        'room_type' => [
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+        ],
+        'room' => [
+            'house' => ['required', 'integer', 'exists:houses,id'],
+            'nature' => ['required', 'integer', 'exists:room_natures,id'],
+            'type' => ['required', 'integer', 'exists:room_types,id'],
+            'loyer' => ['required', 'numeric', 'min:0'],
+            'number' => ['required', 'string', 'max:50'],
+        ],
 
-    ##======== ROOM ADD VALIDATION =======##
-    static function room_rules(): array
-    {
-        return [
-            "house" => ["required", "integer"],
-            "nature" => ["required", "integer"],
-            "type" => ["required", "integer"],
-            "loyer" => ["required", "numeric"],
-            // "number" => "required|unique:rooms",
-        ];
-    }
+        // eau
+        'water_discounter' => [
+            'unit_price' => ['required', 'numeric', 'min:0', 'max:1000000'],
+            'water_counter_start_index' => ['required', 'numeric', 'min:0', 'max:1000000'],
+        ],
+        'water_conventionnal_counter' => [
+            'water_counter_number' => ['required', 'string', 'max:50', 'unique:rooms,water_counter_number'],
+            'water_conventionnel_counter_start_index' => ['required', 'numeric', 'min:0', 'max:1000000'],
+        ],
+        'forage' => [
+            'forfait_forage' => ['required', 'numeric', 'min:0', 'max:1000000'],
+        ],
 
-    static function room_messages(): array
-    {
-        return [
-            "house.required" => "Veuillez préciser la maison!",
-            "nature.required" => "Veuillez préciser la nature de la chambre!",
-            "type.required" => "Veuillez préciser le type de la chambre!",
+        // electricite
+        'electricity_discounter' => [
+            'electricity_unit_price' => ['required', 'numeric', 'min:0', 'max:1000000'],
+            'electricity_counter_number' => ['required', 'string', 'max:50', 'unique:rooms,electricity_counter_number'],
+            'electricity_counter_start_index' => ['required', 'numeric', 'min:0', 'max:1000000'],
+        ],
+    ];
 
-            "house.integer" => "Ce champ doit être de type entier!",
-            "nature.integer" => "Ce champ doit être de type entier!",
-            "type.integer" => "Ce champ doit être de type entier!",
+    private const VALIDATION_MESSAGES = [
+        'name.required' => 'Le nom du type de la chambre est réquis!',
+        'name.string' => 'Le nom doit être une chaîne de caractères!',
+        'name.max' => 'Le nom ne doit pas dépasser 255 caractères!',
 
-            "loyer.required" => "Le loyer est réquis",
-            "loyer.numeric" => "Le loyer doit être de type numérique!",
+        'description.required' => 'La description du type de la chambre est réquise!',
+        'description.string' => 'La description doit être une chaîne de caractères!',
 
-            "number.required" => "Le numéro de la chambre est réquis",
-            // "number.unique" => "Le numéro de la chambre existe déjà",
+        'house.required' => 'Veuillez préciser la maison!',
+        'house.integer' => 'La maison doit être un identifiant valide!',
+        'house.exists' => 'La maison sélectionnée n\'existe pas!',
 
-            "gardiennage.required" => "Ce Champ est réquis!",
+        'nature.required' => 'Veuillez préciser la nature de la chambre!',
+        'nature.integer' => 'La nature doit être un identifiant valide!',
+        'nature.exists' => 'La nature sélectionnée n\'existe pas!',
 
-            "home_banner.boolean" => "Ce Champ est un booléen!",
-        ];
-    }
+        'type.required' => 'Veuillez préciser le type de la chambre!',
+        'type.integer' => 'Le type doit être un identifiant valide!',
+        'type.exists' => 'Le type sélectionné n\'existe pas!',
 
-    // ###### FORAGE VALIDATION #########
-    static function forage_rules(): array
-    {
-        return [
-            "forfait_forage" => ["required", "numeric"],
-        ];
-    }
+        'loyer.required' => 'Le loyer est réquis!',
+        'loyer.numeric' => 'Le loyer doit être un nombre!',
+        'loyer.min' => 'Le loyer ne peut pas être négatif!',
 
-    static function forage_messages(): array
-    {
-        return [
-            "forfait_forage.required" => "Le forfait forage est réquis!",
-            "forfait_forage.numeric" => "Le forfait forage doit être de type numérique!",
-        ];
-    }
+        'number.required' => 'Le numéro de la chambre est réquis!',
+        'number.string' => 'Le numéro doit être une chaîne de caractères!',
+        'number.max' => 'Le numéro ne doit pas dépasser 50 caractères!',
 
-    ##======== CONVENTIONNEL COUNTER VALIDATION =======##
-    static function conven_counter_water_rules(): array
-    {
-        return [
-            "water_counter_number" => ["required"],
-            // "water_counter_start_index" => ["required", "numeric"],
-            "water_conventionnel_counter_start_index" => ["required", "numeric"],
-        ];
-    }
+        'unit_price.required' => 'Le prix unitaire du décompteur est réquis!',
+        'unit_price.numeric' => 'Le prix unitaire doit être un nombre!',
+        'unit_price.min' => 'Le prix unitaire ne peut pas être négatif!',
+        'unit_price.max' => 'Le prix unitaire ne peut pas dépasser 1,000,000!',
 
-    static function conven_counter_water_messages(): array
-    {
-        return [
-            "water_counter_number.required" => "Le numéro du compteur est réquis!",
-            "water_conventionnel_counter_start_index.required" => "L'index de début du compteur est réquis!",
+        'water_counter_start_index.required' => 'L\'index de début du décompteur est réquis!',
+        'water_counter_start_index.numeric' => 'L\'index de début doit être un nombre!',
+        'water_counter_start_index.min' => 'L\'index de début ne peut pas être négatif!',
+        'water_counter_start_index.max' => 'L\'index de début ne peut pas dépasser 1,000,000!',
 
-            "water_conventionnel_counter_start_index.numeric" => "Ce Champ est doit être de type numérique!",
-        ];
-    }
+        'water_counter_number.required' => 'Le numéro du compteur est réquis!',
+        'water_counter_number.string' => 'Le numéro du compteur doit être une chaîne de caractères!',
+        'water_counter_number.max' => 'Le numéro du compteur ne doit pas dépasser 50 caractères!',
+        'water_counter_number.unique' => 'Ce numéro de compteur est déjà utilisé!',
 
-    ##======== DISCONTER WATER VALIDATION =======##
-    static function discounter_water_rules(): array
-    {
-        return [
-            "unit_price" => ["required", "numeric"],
-            "water_counter_start_index" => ["required", "numeric"],
-        ];
-    }
+        'water_conventionnel_counter_start_index.required' => 'L\'index de début du compteur conventionnel est réquis!',
+        'water_conventionnel_counter_start_index.numeric' => 'L\'index de début doit être un nombre!',
+        'water_conventionnel_counter_start_index.min' => 'L\'index de début ne peut pas être négatif!',
+        'water_conventionnel_counter_start_index.max' => 'L\'index de début ne peut pas dépasser 1,000,000!',
 
-    static function discounter_water_messages(): array
-    {
-        return [
-            "unit_price.required" => "Le prix unitaire du compteur electrique est réquis!",
-            "unit_price.numeric" => "Le prix unitaire du compteur electrique doit être de type numérique!",
+        'forfait_forage.required' => 'Le forfait forage est réquis!',
+        'forfait_forage.numeric' => 'Le forfait forage doit être un nombre!',
+        'forfait_forage.min' => 'Le forfait forage ne peut pas être négatif!',
+        'forfait_forage.max' => 'Le forfait forage ne peut pas dépasser 1,000,000!',
 
-            "water_counter_start_index.required" => "L'index de début est réquis!",
-            "water_counter_start_index.numeric" => "L'index de début doit être de type numérique!",
-        ];
-    }
+        'electricity_counter_number.required' => 'Le numéro du compteur d\'electricité est réquis!',
+        'electricity_unit_price.required' => 'Le prix unitaire du compteur d\'electricité est réquis!',
+        'electricity_counter_start_index.required' => 'L\'index de début du compteur est réquis!',
+    ];
 
-    ##======== ELECTRICITY DISCOUNTER VALIDATION =======##
-    static function electricity_discounter_rules(): array
-    {
-        return [
-            "electricity_unit_price" => ["required", "numeric"],
-            "electricity_counter_number" => ["required"],
-            "electricity_counter_start_index" => ["required", "numeric"],
-        ];
-    }
-
-    static function electricity_discounter_messages(): array
-    {
-        return [
-            "electricity.required" => "L'electricité est réquise",
-            "electricity_unit_price.required" => "Le prix unitaire de l'electricité est réquis",
-            "electricity_counter_number.required" => "Le numéro du compteur d'electricité est réquis",
-            "electricity_counter_start_index.required" => "L'index de debut du compteur électrique est réquis",
-
-            "electricity_unit_price.numeric" => "Le prix unitaire d'electricité doit être de type numérique",
-            "electricity_counter_start_index.numeric" => "L'index de debut du compteur électrique doit être de type numérique!",
-        ];
-    }
-
-    ##################========== ROOM METHOD =============##############
     public function AddRoomType(Request $request)
     {
-        $formData = $request->all();
-        $rules = self::room_type_rules();
-        $messages = self::room_type_messages();
-        Validator::make($formData, $rules, $messages)->validate();
-
-        RoomType::create($formData);
-        alert()->success("Succès", "Type de chambre ajouté avec succès!");
-        return back()->withInput();
+        try {
+            $this->validate($request, self::VALIDATION_RULES['room_type'], self::VALIDATION_MESSAGES);
+            RoomType::create($request->all());
+            return $this->successResponse('Type de chambre ajouté avec succès!');
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 
     public function AddRoomNature(Request $request)
     {
-        $formData = $request->all();
-        $rules = self::room_type_rules();
-        $messages = self::room_type_messages();
-
-        Validator::make($formData, $rules, $messages)->validate();
-
-        RoomNature::create($formData);
-        alert()->success("Succès", "Nature de chambre ajoutée avec succès!");
-        return back()->withInput();
+        try {
+            $this->validate($request, self::VALIDATION_RULES['room_type'], self::VALIDATION_MESSAGES);
+            RoomNature::create($request->all());
+            return $this->successResponse('Nature de chambre ajoutée avec succès!');
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 
-    function _AddRoom(Request $request)
+    public function AddRoom(Request $request)
     {
         try {
             DB::beginTransaction();
-            $formData = $request->all();
 
-            #####_____VALIDATION
-            $rules = self::room_rules();
-            $messages = self::room_messages();
-            Validator::make($formData, $rules, $messages)->validate();
+            // Validation de base de la chambre
+            $this->validate($request, self::VALIDATION_RULES['room'], self::VALIDATION_MESSAGES);
 
-            $user = request()->user();
-
-            $number_room_house = Room::where(["number" => $request->number, "house" => $request->house])->first();
-            if ($number_room_house) {
-                alert()->error("Echec", "Cette chambre existe déjà dans cette maison!");
-                return back()->withInput();
+            // Validation des options d'eau sélectionnées
+            if ($request->forage) {
+                $this->validate($request, self::VALIDATION_RULES['forage'], self::VALIDATION_MESSAGES);
             }
 
-            ###____TRAITEMENT DU HOUSE
-            $house = House::find($formData["house"]);
-            if (!$house) {
-                alert()->error("Echec", "Cette maison n'existe pas!");
-                return back()->withInput();
+            if ($request->water_discounter) {
+                $this->validate($request, self::VALIDATION_RULES['water_discounter'], self::VALIDATION_MESSAGES);
             }
 
-            ###____TRAITEMENT DU HOUSE NATURE
-            $nature = RoomNature::find($formData["nature"]);
-            if (!$nature) {
-                alert()->error("Echec", "Cette nature de chambre n'existe pas!");
-                return back()->withInput();
+            if ($request->water_conventionnal_counter) {
+                $this->validate($request, self::VALIDATION_RULES['water_conventionnal_counter'], self::VALIDATION_MESSAGES);
             }
 
-            ###____TRAITEMENT DU HOUSE TYPE
-            $type = RoomType::find($formData["type"]);
-            if (!$type) {
-                alert()->error("Echec", "Ce type de chambre n'existe pas!");
-                return back()->withInput();
+            // Validation des options d'electricité sélectionnées
+            if ($request->electricity_discounter) {
+                $this->validate($request, self::VALIDATION_RULES['electricity_discounter'], self::VALIDATION_MESSAGES);
             }
 
-            ###___
-
-            if ($request->water) {
-
-                ###____
-                if ($request->get("forage")) {
-                    $rules = self::forage_rules();
-                    $messages = self::forage_messages();
-                    Validator::make($formData, $rules, $messages)->validate();
-                }
-
-                ###____
-                if ($request->get("water_conventionnal_counter")) {
-                    $rules = self::conven_counter_water_rules();
-                    $messages = self::conven_counter_water_messages();
-                    Validator::make($formData, $rules, $messages)->validate();
-                }
-
-
-                ###____
-                if ($request->get("water_discounter")) {
-                    if ($request->get("water_discounter")) {
-                        $rules = self::discounter_water_rules();
-                        $messages = self::discounter_water_messages();
-                        Validator::make($formData, $rules, $messages)->validate();
-                    }
-                }
+            // Vérification de l'unicité du numéro de chambre
+            if ($this->isRoomNumberExists($request->number, $request->house)) {
+                return $this->errorResponse('Cette chambre existe déjà dans cette maison!');
             }
 
-            ###____
-            if ($request->electricity) {
-
-                if ($request->electricity_discounter) {
-                    $rules = self::electricity_discounter_rules();
-                    $messages = self::electricity_discounter_messages();
-                    Validator::make($formData, $rules, $messages)->validate();
-                }
-            }
-
-            ###____TRAITEMENT DE L'IMAGE
-            if ($request->file("photo")) {
-                $photo = $request->file("photo");
-                $photoName = $photo->getClientOriginalName();
-                $photo->move("room_images", $photoName);
-                $formData["photo"] = asset("room_images/" . $photoName);
-            }
-
-            #ENREGISTREMENT DE LA CARTE DANS LA DB
-            $formData["gardiennage"] = $request->gardiennage ? $request->gardiennage : 0;
-            $formData["vidange"] = $request->vidange ? $request->vidange : 0;
-
-            $formData["owner"] = $user->id;
-            $formData["water"] = $request->water ? 1 : 0;
-            $formData["water_discounter"] = $request->water_discounter ? 1 : 0;
-            $formData["forage"] = $request->forage ? 1 : 0;
-            $formData["forfait_forage"] = $request->forfait_forage ? $request->forfait_forage : 0;
-            $formData["water_counter_number"] = $request->water_counter_number ? $request->water_counter_number : "--";
-            $formData["water_conventionnal_counter"] = $request->water_conventionnal_counter ? 1 : 0;
-            $formData["water_counter_start_index"] = $request->water_counter_start_index ? $request->water_counter_start_index : 0;
-
-            $formData["electricity"] = $request->electricity ? 1 : 0;
-            $formData["electricity_discounter"] = $request->electricity_discounter ? 1 : 0;
-            $formData["electricity_conventionnal_counter"] = $request->electricity_conventionnal_counter ? 1 : 0;
-            $formData["electricity_card_counter"] = $request->electricity_card_counter ? 1 : 0;
-            $formData["electricity_counter_number"] = $request->electricity_counter_number ? $request->electricity_counter_number : "--";
-            $formData["electricity_counter_start_index"] = $request->electricity_counter_start_index ? $request->electricity_counter_start_index : 0;
-
-            $formData["cleaning"] = $request->cleaning ? $request->cleaning : 0;
-            $formData["comments"] = $request->comments ? $request->comments : "---";
-            $formData["rubbish"] = $request->rubbish ? $request->rubbish : 0;
-
-            $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
-
+            $formData = $this->prepareRoomData($request);
             Room::create($formData);
 
             DB::commit();
-            alert()->success("Succès", "Chambre ajoutée avec succès!!");
-            return back()->withInput();
+            return $this->successResponse('Chambre ajoutée avec succès!');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue " . $e->getMessage());
-            return back()->withInput();
+            return $this->errorResponse('Une erreur est survenue: ');
         }
     }
 
-    ###___FILTRE BY SUPERVISOR
-    function FiltreRoomBySupervisor(Request $request, $agency)
-    {
-        $user = request()->user();
-        $agency = Agency::find($agency);
-
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        ####____
-        $supervisor = User::find($request->supervisor);
-        if (!$supervisor) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        $rooms = [];
-        foreach ($agency->_Proprietors as $proprio) {
-            foreach ($proprio->Houses->where("supervisor", $request->supervisor) as $house) {
-                foreach ($house->Rooms as $room) {
-                    array_push($rooms, $room);
-                }
-            }
-        }
-
-        if (count($rooms) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            // Session::forget("filteredHouses");
-            return back()->withInput();
-        }
-
-        session()->flash("filteredRooms", collect($rooms));
-
-        alert()->success("Succès", "Chambres filtrées par superviseur avec succès!");
-        return back()->withInput();
-    }
-
-    ###___FILTRE BY HOUSE
-    function FiltreRoomByHouse(Request $request, $agency)
-    {
-        $user = request()->user();
-        $agency = Agency::find($agency);
-
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        ####____
-        $house = House::find($request->house);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        $rooms = [];
-        foreach ($agency->_Proprietors as $proprio) {
-            foreach ($proprio->Houses as $house) {
-                if ($house->id == $request->house) {
-                    foreach ($house->Rooms as $room) {
-                        array_push($rooms, $room);
-                    }
-                }
-            }
-        }
-
-        if (count($rooms) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            // Session::forget("filteredHouses");
-            return back()->withInput();
-        }
-
-        session()->flash("filteredRooms", $rooms);
-        $msg = "Chambres filtrées filtrées par maison  $house->name avec succès!";
-        alert()->success("Succès", $msg);
-        return back()->withInput();
-    }
-
-
-    function UpdateRoom(Request $request, $id)
+    public function UpdateRoom(Request $request, $id)
     {
         try {
             DB::beginTransaction();
-            $user = request()->user();
-            $formData = $request->all();
-            $room = Room::with(["Locations"])->find($id);
-            if (!$room) {
-                alert()->error("Echec", "Cette Chambre n'existe pas!");
-                return back()->withInput();
-            };
 
-            if (!auth()->user()->is_master && !auth()->user()->is_admin) {
-                if ($room->owner != $user->id) {
-                    alert()->error("Echec", "Cette Chambre n'a pas été crée par vous! Vous ne pouvez pas la modifier");
-                    return back()->withInput();
-                }
+            $room = Room::with('Locations')->findOrFail($id);
+
+            if (!$this->canModifyRoom($room)) {
+                return $this->errorResponse(self::ERROR_MESSAGES['unauthorized']);
             }
 
-            ###____TRAITEMENT DU HOUSE
-            if ($request->get("house")) {
-                $house = House::find($request->get("house"));
-                if (!$house) {
-                    alert()->error("Echec", "Cette Chambre n'existe pas!");
-                    return back()->withInput();
-                }
-            }
+            $formData = $this->prepareRoomData($request);
 
-            ###____TRAITEMENT DU HOUSE NATURE
-            if ($request->get("nature")) {
-                $nature = RoomNature::find($request->get("nature"));
-                if (!$nature) {
-                    alert()->error("Echec", "Cette nature de chambre n'existe pas!");
-                    return back()->withInput();
-                }
-            }
+            $room->update(array_merge($formData, [
+                "electricity_counter_number" => $request->electricity_counter_number ??
+                    $room->electricity_counter_number
+            ]));
 
-            ###____TRAITEMENT DU ROOM TYPE
-            if ($request->get("type")) {
-                $type = RoomType::find($request->get("type"));
-                if (!$type) {
-                    alert()->error("Echec", "Ce type de chambre n'existe pas!");
-                    return back()->withInput();
-                }
-            }
-            
-            $formData["total_amount"] = $formData["loyer"] + $formData["gardiennage"] + $formData["rubbish"] + $formData["vidange"] + $formData["cleaning"];
-            $formData["electricity_counter_number"] = $room->electricity_counter_number;
-
-            #ENREGISTREMENT DE LA CARTE DANS LA DB
-            $room->update($formData);
-
-            // MISE A JOUR DES LOYER DES LOCATIONS LIEES A CETTE CHAMBRE
-            foreach ($room->Locations as $location) {
-                $location->update(["loyer" => $room->total_amount]);
-            }
+            $this->updateRelatedLocations($room);
 
             DB::commit();
-            alert()->success("Succès", "Chambre modifiée avec succès!");
-            return back()->withInput();
-        } catch (\Throwable $e) {
+            return $this->successResponse('Chambre modifiée avec succès!');
+        } catch (\Exception $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue " . $e->getMessage());
-            return back()->withInput();
+            return $this->errorResponse('Une erreur est survenue');
         }
     }
 
-    function DeleteRoom(Request $request, $id)
+    public function DeleteRoom(Request $request, $id)
     {
-        $user = auth()->user();
-        $room = Room::find(deCrypId($id));
-        if (!$room) {
-            alert()->error("Echec", "Cette Chambre n'existe pas!");
-            return back()->withInput();
-        };
+        try {
+            $room = Room::findOrFail(deCrypId($id));
 
-        if (!auth()->user()->is_master && !auth()->user()->is_admin) {
-            if ($room->owner != $user->id) {
-                alert()->error("Echec", "Cette Chambre ne vous appartient pas!");
-                return back()->withInput();
+            if (!$this->canModifyRoom($room)) {
+                return $this->errorResponse(self::ERROR_MESSAGES['unauthorized']);
             }
+
+            $room->delete();
+            return $this->successResponse('Chambre supprimée avec succès!');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Une erreur est survenue: ' . $e->getMessage());
+        }
+    }
+
+    private function isRoomNumberExists($number, $houseId): bool
+    {
+        return Room::where(['number' => $number, 'house' => $houseId])->exists();
+    }
+
+    private function canModifyRoom(Room $room): bool
+    {
+        return auth()->user()->is_master ||
+            auth()->user()->is_admin ||
+            $room->owner === auth()->id();
+    }
+
+    private function prepareRoomData(Request $request): array
+    {
+        $data = $request->all();
+
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $this->handlePhotoUpload($request->file('photo'));
         }
 
-        // $room->visible = 0;
-        // $room->deleted_at = now();
-        $room->delete();
+        // Calculate total amount
+        $data['total_amount'] = $this->calculateTotalAmount($data);
 
-        alert()->success("Succès", "Chambre supprimée avec succès!");
-        return back();
+        // eau
+        ($request->water_discounter ||
+            $request->water_conventionnal_counter ||
+            $request->forage ||
+            $request->unit_price ||
+            $request->forfait_forage ||
+            $request->water_counter_start_index) ?
+            $data["water"] = 1 : null;
+
+        $data["forfait_forage"] = $request->forfait_forage ?? 0;
+        $data["water_counter_number"] = $request->water_counter_number ?? 0;
+        $data["comments"] = $request->comments ?? '--';
+        $data["water_counter_start_index"] = $request->water_counter_start_index ?? 0;
+       
+        // electricite
+        ($request->electricity_discounter ||
+            $request->electricity_card_counter ||
+            $request->electricity_conventionnal_counter ||
+            $request->electricity_counter_number ||
+            $request->electricity_unit_price ||
+            $request->electricity_counter_start_index) ?
+            $data["electricity"] = 1 : null;
+
+        $data["electricity_discounter"] = $request->electricity_discounter ?? 0;
+        $data["electricity_card_counter"] = $request->electricity_card_counter ?? 0;
+        $data["electricity_conventionnal_counter"] = $request->electricity_conventionnal_counter ?? 0;
+        $data["electricity_counter_number"] = $request->electricity_counter_number ?? 0;
+        $data["electricity_unit_price"] = $request->electricity_unit_price ?? 0;
+        $data["electricity_counter_start_index"] = $request->electricity_counter_start_index ?? 0;
+
+        // Set fields
+        $booleanFields = [
+            'water',
+            'water_discounter',
+            'water_conventionnal_counter',
+            'forage',
+
+            'electricity',
+            'electricity_discounter',
+            'electricity_card_counter',
+            'electricity_conventionnal_counter',
+        ];
+
+        foreach ($booleanFields as $field) {
+            $data[$field] = $request->has($field) ? 1 : 0;
+        }
+
+        return $data;
+    }
+
+    private function handlePhotoUpload($photo): string
+    {
+        $photoName = $photo->getClientOriginalName();
+        $photo->move('room_images', $photoName);
+        return asset('room_images/' . $photoName);
+    }
+
+    private function calculateTotalAmount(array $data): float
+    {
+        return array_sum([
+            $data['loyer'] ?? 0,
+            $data['gardiennage'] ?? 0,
+            $data['rubbish'] ?? 0,
+            $data['vidange'] ?? 0,
+            $data['cleaning'] ?? 0
+        ]);
+    }
+
+    private function updateRelatedLocations(Room $room): void
+    {
+        $room->Locations()->update(['loyer' => $room->total_amount]);
+    }
+
+    private function successResponse(string $message)
+    {
+        alert()->success('Succès', $message);
+        return back()->withInput();
+    }
+
+    private function errorResponse(string $message)
+    {
+        alert()->error('Echec', $message);
+        return back()->withInput();
     }
 }

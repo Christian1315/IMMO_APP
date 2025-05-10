@@ -32,7 +32,7 @@
         <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css"> -->
         <script src="https://cdn.datatables.net/1.13.10/css/jquery.dataTables.css"></script>
 
-        
+
         @livewireStyles
     </head>
 
@@ -360,6 +360,7 @@
             </div>
         </div>
         @livewireScripts
+        @stack('scripts')
     </body>
     <!-- Bootstrap core JavaScript
             ================================================== -->
@@ -381,6 +382,15 @@
     <!-- API DE GESTION DES SUM DES COLUMS DES DATATABLES -->
     <script src="https://cdn.datatables.net/plug-ins/2.1.8/api/sum().js"></script>
 
+    <!-- <script type="text/javascript">
+        // alert("{{env('VITE_API_BASE_URL')}}")
+        window.appConfig = {
+            apiUrl: "{{env('VITE_API_BASE_URL')}}"
+        };
+
+        const API_BASE_URL =  window.appConfig.apiUrl;
+        alert(API_BASE_URL)
+    </script> -->
 
 
 
