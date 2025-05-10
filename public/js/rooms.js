@@ -1,5 +1,5 @@
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/v1/immo/";
+const API_BASE_URL = "https://immo.kadjivsarl.com/api/v1/immo/";
 
 function showLocators(id) {
     $("#room_locators").empty();
