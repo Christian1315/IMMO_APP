@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <title>Recouvrement des locataires</title>
+    <title>Recouvrement du 10</title>
 
     <style>
         * {
@@ -63,7 +63,7 @@
                         <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="rounded img-fluid">
                     </div>
                     <div class="col-9 px-0 mx-0 d-flex align-items-center ">
-                        <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
+                        <h3 class="rapport-title text-uppercase">taux de recouvrement du 10</h3>
                     </div>
                 </div>
                 <br>

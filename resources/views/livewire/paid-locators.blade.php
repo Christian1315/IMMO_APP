@@ -95,7 +95,7 @@
                         @foreach (session('filteredLocators') ? session("filteredLocators") : $locators as $location)
                         <tr class="align-items-center">
                             <td class="text-center">{{ $loop->index + 1 }}</td>
-                            <td class="text-center"><span class="badge bg-dark"> {{ $location['House']['name'] }}</span> </td>
+                            <td class="text-center"><span class="badge bg-dark"> {{ $location->House->name }}</span> </td>
                             <td class="text-center">
                                 <span class="badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span>
                             </td>

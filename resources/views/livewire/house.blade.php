@@ -8,7 +8,11 @@
     </div>
 
     <!-- Modal room type-->
-    <div class="modal fade" id="room_type" aria-labelledby="room_type" aria-hidden="true">
+    <div class="modal fade" id="room_type"
+        data-bs-keyboard="false"
+        tabindex="-1"
+        aria-labelledby="staticBackdropLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -62,7 +66,10 @@
     </div>
 
     <!-- ADD HOUSE -->
-    <div class="modal fade" id="addHouse" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+    <div class="modal fade" id="addHouse"
+        data-bs-keyboard="false"
+        tabindex="-1"
+        aria-labelledby="staticBackdropLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

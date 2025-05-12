@@ -3,72 +3,70 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Carbon\Carbon;
 
 class Recovery05 extends Component
 {
+    private const TARGET_DAY = '05';
+    private const DATE_FORMAT = 'Y/m/d';
 
     public $agency;
-
     public $locators = [];
     public $houses = [];
 
-    function refreshLocators()
+    public function mount($agency): void
     {
-        ###___LOCATORS
-        #####____locataires ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locators_that_paid_after_state_stoped_day_of_all_houses = [];
-
-        ###____PARCOURONS TOUTES LES MAISONS DE CETTE AGENCE, PUIS FILTRONS LES ETATS
-        foreach ($this->agency->_Houses as $house) {
-
-            ###___DERNIER ETAT D'ARRET DE CETTE MAISON
-            $house_last_state = $house->States->last();
-            if ($house_last_state) {
-                ###__DATE DU DERNIER ARRET DES ETATS DE CETTE MAISON
-                $house_last_state_date = date("Y/m/d", strtotime($house_last_state->stats_stoped_day));
-
-                ###__LES FACTURES DE CET DERNIER ETAT
-                $house_last_state_factures = $house_last_state->Factures;
-
-                foreach ($house_last_state_factures as $facture) {
-                    ###___Echéance date
-                    $location_echeance_date = date("Y/m/d", strtotime($facture->Location->previous_echeance_date));
-
-                    $location_payement_date = date("Y/m/d",  strtotime($facture->echeance_date));
-
-                    ####___determinons le jour de la date d'écheance
-                    $day_of_this_date = explode("/", $location_echeance_date)[2];
-                    ###____
-                    
-                    ###___on verifie si la date de paiement se trouve entre *la date d'arrêt* de l'etat et *la date d'échéance*
-                    if ($house_last_state_date > $location_payement_date && $location_payement_date <= $location_echeance_date) {
-                        ###___on verifie si le jour de la date d'écheance est le 05
-                        if ($day_of_this_date == 05) {
-                            $facture->Location->Locataire["locator_location"] = $facture->Location;
-                            array_push($locators_that_paid_after_state_stoped_day_of_all_houses, $facture->Location->Locataire);
-                        }
-                    }
-                };
-            }
-        };
-
-        $this->locators = $locators_that_paid_after_state_stoped_day_of_all_houses;
+        set_time_limit(0);
+        $this->agency = $agency;
+        $this->refreshThisAgencyHouses();
+        $this->refreshLocators();
     }
 
-    ###___HOUSES
-    function refreshThisAgencyHouses()
+    public function refreshLocators(): void
+    {
+        $this->locators = $this->getLocatorsThatPaidAfterStateStopped();
+    }
+
+    public function refreshThisAgencyHouses(): void
     {
         $this->houses = $this->agency->_Houses;
     }
 
-    function mount($agency)
+    private function getLocatorsThatPaidAfterStateStopped(): array
     {
-        set_time_limit(0);
+        $locators = [];
 
-        $this->agency = $agency;
+        foreach ($this->houses as $house) {
+            $lastState = $house->States->last();
+            
+            if (!$lastState) {
+                continue;
+            }
 
-        $this->refreshThisAgencyHouses();
-        $this->refreshLocators();
+            $lastStateDate = Carbon::parse($lastState->stats_stoped_day)->format(self::DATE_FORMAT);
+            
+            foreach ($lastState->Factures as $facture) {
+                $location = $facture->Location;
+                $echeanceDate = Carbon::parse($facture->echeance_date)->format(self::DATE_FORMAT);
+                $previousEcheanceDate = Carbon::parse($location->previous_echeance_date)->format(self::DATE_FORMAT);
+                
+                if ($this->isValidPaymentDate($lastStateDate, $echeanceDate, $previousEcheanceDate)) {
+                    $location->Locataire["locator_location"] = $location;
+                    $locators[] = $location->Locataire;
+                }
+            }
+        }
+
+        return $locators;
+    }
+
+    private function isValidPaymentDate(string $stateDate, string $echeanceDate, string $previousEcheanceDate): bool
+    {
+        $dueDay = Carbon::parse($previousEcheanceDate)->format('d');
+        
+        return $stateDate > $echeanceDate 
+            && $echeanceDate <= $previousEcheanceDate 
+            && $dueDay === self::TARGET_DAY;
     }
 
     public function render()

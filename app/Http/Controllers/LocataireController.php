@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class LocataireController extends Controller
 {
@@ -78,192 +79,181 @@ class LocataireController extends Controller
     #####_____FILTRATGE
     static function _recovery05ToEcheanceDate($request, $agencyId, $inner_call = false)
     {
-        $agency = Agency::where(["visible" => 1])->find($agencyId);
+        try {
+            // Find agency with eager loading of houses and their states
+            $agency = Agency::where("visible", 1)
+                ->with(['_Houses.States', '_Houses.States.Factures.Location.Locataire'])
+                ->find($agencyId);
 
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-        }
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
 
-        #####____locataires ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locators_that_paid_after_state_stoped_day_of_all_houses = [];
+            $result = [
+                'paid' => [],
+                'unpaid' => []
+            ];
 
-        #####____location ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locations_that_paid_after_state_stoped_day_of_all_houses = [];
-        $locations_that_do_not__paid_after_state_stoped_day_of_all_houses = [];
+            // Process each house
+            foreach ($agency->_Houses as $house) {
+                $lastState = $house->States->last();
 
-        ###____PARCOURONS TOUTES LES MAISONS DE CETTE AGENCE, PUIS FILTRONS LES ETATS
-        foreach ($agency->_Houses as $house) {
+                if (!$lastState) {
+                    continue;
+                }
 
-            ###___DERNIER ETAT D'ARRET DE CETTE MAISON
-            $house_last_state = $house->States->last();
-            if ($house_last_state) {
-                ###__DATE DU DERNIER ARRET DES ETATS DE CETTE MAISON
-                $house_last_state_date = date("Y/m/d", strtotime($house_last_state->stats_stoped_day));
+                $stateStopDate = date("Y/m/d", strtotime($lastState->stats_stoped_day));
 
-                ###__LES FACTURES DE CET DERNIER ETAT
-                $house_last_state_factures = $house_last_state->Factures;
+                // Process each facture
+                foreach ($lastState->Factures as $facture) {
+                    $location = $facture->Location;
+                    $echeanceDate = date("Y/m/d", strtotime($location->previous_echeance_date));
+                    $paymentDate = date("Y/m/d", strtotime($facture->echeance_date));
 
-                foreach ($house_last_state_factures as $facture) {
-                    ###___Echéance date
-                    $location_echeance_date = date("Y/m/d", strtotime($facture->Location->previous_echeance_date));
+                    // Check if payment is within valid period
+                    if ($stateStopDate > $paymentDate && $paymentDate <= $echeanceDate) {
+                        $dayOfEcheance = (int)date("d", strtotime($location->previous_echeance_date));
 
-                    $location_payement_date = date("Y/m/d",  strtotime($facture->echeance_date));
-
-                    // dd($house_last_state_date, $location_echeance_date, $location_payement_date);
-                    ####___determinons le jour de la date d'écheance
-                    $day_of_this_date = explode("/", $location_echeance_date)[2];
-                    ###____
-                    ###___on verifie si la date de paiement se trouve entre *la date d'arrêt* de l'etat et *la date d'échéance*
-                    if ($house_last_state_date > $location_payement_date && $location_payement_date <= $location_echeance_date) {
-                        ###___on verifie si le jour de la date d'écheance est le 05
-                        if ($day_of_this_date == 05) {
+                        if ($dayOfEcheance === 5) {
                             if ($inner_call) {
-                                ###___pour un out_call, 
-                                ###____on renvoie les locations en lieu et place des locataires
-                                array_push($locations_that_paid_after_state_stoped_day_of_all_houses, $facture->Location);
+                                $result['paid'][] = $location;
+                            }else {
+                                $result['paid'][] = $location->Locataire;
                             }
-                            array_push($locators_that_paid_after_state_stoped_day_of_all_houses, $facture->Location->Locataire);
-                        } else {
-                            if ($inner_call) {
-                                ###___pour un out_call, 
-                                ###____on renvoie aussi les locations n'ayant pas payés dans la période
-                                array_push($locations_that_do_not__paid_after_state_stoped_day_of_all_houses, $facture->Location);
-                            }
+                        } else if ($inner_call) {
+                            $result['unpaid'][] = $location;
                         }
                     }
-                };
+                }
             }
-        };
-        // dd($locators_that_paid_after_state_stoped_day_of_all_houses);
 
-        if ($inner_call) {
-            $data["locations_that_paid"] = $locations_that_paid_after_state_stoped_day_of_all_houses;
-            $data["locations_that_do_not_paid"] = $locations_that_do_not__paid_after_state_stoped_day_of_all_houses;
-            return $data;
+            if ($inner_call) {
+                // dd($result['paid']);
+                return [
+                    'locations_that_paid' => $result['paid'],
+                    'locations_that_do_not_paid' => $result['unpaid']
+                ];
+            }
+
+            return $result['paid'];
+        } catch (\Exception $e) {
+            \Log::error('Error in _recovery05ToEcheanceDate: ' . $e->getMessage());
+            throw $e;
         }
-        // dd($locators_that_paid_after_state_stoped_day_of_all_houses);
     }
 
     static function _recovery10ToEcheanceDate($request, $agencyId, $inner_call = false)
     {
-        $agency = Agency::where(["visible" => 1])->find($agencyId);
+        try {
+            $agency = Agency::where(["visible" => 1])->find($agencyId);
+            if (!$agency) {
+                throw new \Exception("Agence non trouvée");
+            }
 
-        #####____locataires ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locators_that_paid_after_state_stoped_day_of_all_houses = [];
+            $result = [
+                'paid' => [],
+                'unpaid' => []
+            ];
 
-        #####____location ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locations_that_paid_after_state_stoped_day_of_all_houses = [];
-        $locations_that_do_not__paid_after_state_stoped_day_of_all_houses = [];
+            foreach ($agency->_Houses->load("States") as $house) {
+                $lastState = $house->States->last();
 
-        ###____PARCOURONS TOUTES LES MAISONS DE CETTE AGENCE, PUIS FILTRONS LES ETATS
-        foreach ($agency->_Houses as $house) {
+                if (!$lastState) {
+                    continue;
+                }
 
-            ###___DERNIER ETAT D'ARRET DE CETTE MAISON
-            $house_last_state = $house->States->last();
-            if ($house_last_state) {
-                ###__DATE DU DERNIER ARRET DES ETATS DE CETTE MAISON
-                $house_last_state_date = date("Y/m/d", strtotime($house_last_state->stats_stoped_day));
+                $stateStopDate = date("Y/m/d", strtotime($lastState->stats_stoped_day));
 
-                ###__LES FACTURES DE CET DERNIER ETAT
-                $house_last_state_factures = $house_last_state->Factures;
+                // Process each facture
+                foreach ($lastState->Factures as $facture) {
+                    $location = $facture->Location;
+                    $echeanceDate = date("Y/m/d", strtotime($location->previous_echeance_date));
+                    $paymentDate = date("Y/m/d", strtotime($facture->echeance_date));
 
-                foreach ($house_last_state_factures as $facture) {
-                    ###___Echéance date
-                    $location_echeance_date = date("Y/m/d", strtotime($facture->Location->previous_echeance_date));
+                    // Check if payment is within valid period
+                    if ($stateStopDate > $paymentDate && $paymentDate <= $echeanceDate) {
+                        $dayOfEcheance = (int)date("d", strtotime($location->previous_echeance_date));
 
-                    $location_payement_date = date("Y/m/d",  strtotime($facture->echeance_date));
-
-                    ####___determinons le jour de la date d'écheance
-                    $day_of_this_date = explode("/", $location_echeance_date)[2];
-                    ###____
-                    ###___on verifie si la date de paiement se trouve entre *la date d'arrêt* de l'etat et *la date d'échéance*
-                    if ($house_last_state_date > $location_payement_date && $location_payement_date <= $location_echeance_date) {
-                        ###___on verifie si le jour de la date d'écheance est le 10
-                        if ($day_of_this_date == 10) {
+                        if ($dayOfEcheance === 10) {
                             if ($inner_call) {
-                                ###___pour un out_call, 
-                                ###____on renvoie les locations en lieu et place des locataires
-                                array_push($locations_that_paid_after_state_stoped_day_of_all_houses, $facture->Location);
+                                $result['paid'][] = $location;
+                            }else {
+                                $result['paid'][] = $location->Locataire;
                             }
-                            array_push($locators_that_paid_after_state_stoped_day_of_all_houses, $facture->Location->Locataire);
-                        } else {
-                            if ($inner_call) {
-                                ###___pour un out_call, 
-                                ###____on renvoie aussi les locations n'ayant pas payés dans la période
-                                array_push($locations_that_do_not__paid_after_state_stoped_day_of_all_houses, $facture->Location);
-                            }
+                        } else if ($inner_call) {
+                            $result['unpaid'][] = $location;
                         }
                     }
-                };
+                }
             }
-        };
 
-        if ($inner_call) {
-            $data["locations_that_paid"] = $locations_that_paid_after_state_stoped_day_of_all_houses;
-            $data["locations_that_do_not_paid"] = $locations_that_do_not__paid_after_state_stoped_day_of_all_houses;
-            return $data;
+            if ($inner_call) {
+                return [
+                    'locations_that_paid' => $result['paid'],
+                    'locations_that_do_not_paid' => $result['unpaid']
+                ];
+            }
+
+            return $result['paid'];
+        } catch (\Exception $e) {
+            \Log::error('Error in _recovery10ToEcheanceDate: ' . $e->getMessage());
+            throw $e;
         }
     }
 
     function _recoveryQualitatif($request, $agencyId, $inner_call = false)
     {
-        $agency = Agency::where(["visible" => 1])->find($agencyId);
+        try {
+            $agency = Agency::where(["visible" => 1])->find($agencyId);
 
-        #####____locataires ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locators_that_paid_after_state_stoped_day_of_all_houses = [];
+            $result = [
+                'paid' => [],
+                'unpaid' => []
+            ];
 
-        #####____location ayant payés après l'arrêt d'etat du dernier state dans toutes les maisons
-        $locations_that_paid_after_state_stoped_day_of_all_houses = [];
-        $locations_that_do_not__paid_after_state_stoped_day_of_all_houses = [];
+            foreach ($agency->_Houses->load("States") as $house) {
+                $lastState = $house->States->last();
 
-        ###____PARCOURONS TOUTES LES MAISONS DE CETTE AGENCE, PUIS FILTRONS LES ETATS
-        foreach ($agency->_Houses as $house) {
+                if (!$lastState) {
+                    continue;
+                }
 
-            ###___DERNIER ETAT D'ARRET DE CETTE MAISON
-            $house_last_state = $house->States->last();
-            if ($house_last_state) {
-                ###__DATE DU DERNIER ARRET DES ETATS DE CETTE MAISON
-                $house_last_state_date = date("Y/m/d", strtotime($house_last_state->stats_stoped_day));
+                $stateStopDate = date("Y/m/d", strtotime($lastState->stats_stoped_day));
 
-                ###__LES FACTURES DE CET DERNIER ETAT
-                $house_last_state_factures = $house_last_state->Factures;
+                // Process each facture
+                foreach ($lastState->Factures as $facture) {
+                    $location = $facture->Location;
+                    $echeanceDate = date("Y/m/d", strtotime($location->previous_echeance_date));
+                    $paymentDate = date("Y/m/d", strtotime($facture->echeance_date));
 
-                foreach ($house_last_state_factures as $facture) {
-                    ###___Echéance date
-                    $location_echeance_date = date("Y/m/d", strtotime($facture->Location->previous_echeance_date));
+                    // Check if payment is within valid period
+                    if ($stateStopDate > $paymentDate && $paymentDate <= $echeanceDate) {
+                        $dayOfEcheance = (int)date("d", strtotime($location->previous_echeance_date));
 
-                    $location_payement_date = date("Y/m/d",  strtotime($facture->echeance_date));
-
-                    ####___determinons le jour de la date d'écheance
-                    $day_of_this_date = explode("/", $location_echeance_date)[2];
-                    ###____
-                    ###___on verifie si la date de paiement se trouve entre *la date d'arrêt* de l'etat et *la date d'échéance*
-                    if ($house_last_state_date > $location_payement_date && $location_payement_date <= $location_echeance_date) {
-                        ###___on verifie si le jour de la date d'écheance est le 05 ou le 10
-                        if ($day_of_this_date == 05 || $day_of_this_date == 10) {
+                        if ($dayOfEcheance === 5 || $dayOfEcheance === 10) {
                             if ($inner_call) {
-                                ###___pour un out_call, 
-                                ###____on renvoie les locations en lieu et place des locataires
-                                array_push($locations_that_paid_after_state_stoped_day_of_all_houses, $facture->Location);
+                                $result['paid'][] = $location;
+                            }else {
+                                $result['paid'][] = $location->Locataire;
                             }
-
-                            array_push($locators_that_paid_after_state_stoped_day_of_all_houses, $facture->Location->Locataire);
-                        } else {
-                            if ($inner_call) {
-                                ###___pour un out_call, 
-                                ###____on renvoie aussi les locations n'ayant pas payés dans la période
-                                array_push($locations_that_do_not__paid_after_state_stoped_day_of_all_houses, $facture->Location);
-                            }
+                        } else if ($inner_call) {
+                            $result['unpaid'][] = $location;
                         }
                     }
-                };
+                }
             }
-        };
 
-        if ($inner_call) {
-            $data["locations_that_paid"] = $locations_that_paid_after_state_stoped_day_of_all_houses;
-            $data["locations_that_do_not_paid"] = $locations_that_do_not__paid_after_state_stoped_day_of_all_houses;
-            return $data;
+            if ($inner_call) {
+                return [
+                    'locations_that_paid' => $result['paid'],
+                    'locations_that_do_not_paid' => $result['unpaid']
+                ];
+            }
+
+            return $result['paid'];
+        } catch (\Exception $e) {
+            \Log::error('Error in _recoveryQualitatif: ' . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -273,80 +263,86 @@ class LocataireController extends Controller
         $this->middleware(['auth:'])->except(["ShowAgencyTaux05", "ShowAgencyTaux10", "ShowAgencyTauxQualitatif"]);
     }
 
+    private function validateAgency($agencyId)
+    {
+        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
+        if (!$agency) {
+            throw new \Exception("Cette agence n'existe pas");
+        }
+        return $agency;
+    }
+
+    private function validateSupervisor($supervisorId)
+    {
+        $supervisor = User::where("visible", 1)->find(deCrypId($supervisorId));
+        if (!$supervisor) {
+            throw new \Exception("Ce superviseur n'existe pas");
+        }
+        return $supervisor;
+    }
+
+    private function validateHouse($houseId)
+    {
+        $house = House::where("visible", 1)->find(deCrypId($houseId));
+        if (!$house) {
+            throw new \Exception("Cette maison n'existe pas");
+        }
+        return $house;
+    }
+
+    private function handleException($e, $message = "Une erreur est survenue")
+    {
+        Log::error($e->getMessage());
+        alert()->error("Echec", $message . ": " . $e->getMessage());
+        return back()->withInput();
+    }
+
     function _AddLocataire(Request $request)
     {
         try {
             DB::beginTransaction();
 
-            #VALIDATION DES DATAs DEPUIS LA CLASS BASE_HELPER HERITEE PAR Card_HELPER
             $formData = $request->all();
             $rules = self::locataire_rules();
             $messages = self::locataire_messages();
 
             Validator::make($formData, $rules, $messages)->validate();
-            $formData = $request->all();
-            $user = request()->user();
 
-            ###___TRAITEMENT DES DATAS
+            $user = request()->user();
             $cardType = CardType::find($formData["card_type"]);
             $departement = Departement::find($formData["departement"]);
             $country = Country::find($formData["country"]);
             $agency = Agency::find($formData["agency"]);
 
+            if (!$cardType || !$departement || !$country || !$agency) {
+                throw new \Exception("Données invalides: Type de carte, département, pays ou agence non trouvé");
+            }
 
-            ####___VERIFIONS S'IL S'AGIT D'UN PRORANA OU PAS
             if ($request->get("prorata")) {
                 Validator::make(
                     $formData,
-                    [
-                        "prorata_date" => ["required", "date"],
-                    ],
+                    ["prorata_date" => ["required", "date"]],
                     [
                         "prorata_date.required" => "Veuillez préciser la date du prorata!",
                         "prorata_date.date" => "Ce champ est de type date",
                     ]
                 )->validate();
             }
-            
-            if (!$cardType) {
-                alert()->error("Echec", "Ce Type de carte n'existe pas!");
-                return back()->withInput();
-            }
 
-            if (!$departement) {
-                alert()->error("Echec", "Ce département n'existe pas!");
-                return back()->withInput();
-            }
-
-            if (!$country) {
-                alert()->error("Echec", "Ce pays n'existe pas!");
-                return back()->withInput();
-            }
-
-            if (!$agency) {
-                alert()->error("Echec", "Cette agence n'existe pas!");
-                return back()->withInput();
-            }
-
-            ##___TRAITEMENT DE L'IMAGE
             if ($request->file("mandate_contrat")) {
                 $img = $request->file("mandate_contrat");
                 $imgName = $img->getClientOriginalName();
                 $img->move("mandate_contrats", $imgName);
-
-                #ENREGISTREMENT DU LOCATAIRE DANS LA DB
-                if ($user) {
-                    $formData["owner"] = $user->id;
-                }
                 $formData["mandate_contrat"] = asset("mandate_contrats/" . $imgName);
             }
 
             $formData["prorata"] = $request->prorata ? 1 : 0;
+            if ($user) {
+                $formData["owner"] = $user->id;
+            }
 
-            ###___
             $locator = Locataire::create($formData);
 
-            // avaliseur
             if ($request->avalisor) {
                 $locator->avaliseur()->create([
                     "ava_name" => $request->ava_name,
@@ -356,814 +352,747 @@ class LocataireController extends Controller
                 ]);
             }
 
-            alert()->success("Succès", "Locataire ajouté avec succès!");
-
             DB::commit();
+            alert()->success("Succès", "Locataire ajouté avec succès!");
             return back()->withInput();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors());
+            return $this->handleException($e, "Erreur lors de l'ajout du locataire");
         } catch (\Exception $e) {
             DB::rollBack();
-            alert()->error("Error", "Une erreure est survenue ".$e->getMessage());
-            return back()->withInput();
+            return $this->handleException($e, "Erreur lors de l'ajout du locataire");
         }
     }
 
-
     function UpdateLocataire(Request $request, $id)
     {
-        $user = request()->user();
-        $formData = $request->all();
-        $locataire = Locataire::where(["visible" => 1])->find($id);
-        if (!$locataire) {
-            alert()->error("Echec", "Ce locataire n'existe pas!");
+        try {
+            DB::beginTransaction();
+
+            $user = request()->user();
+            $formData = $request->all();
+            $locataire = Locataire::where(["visible" => 1])->find($id);
+
+            if (!$locataire) {
+                throw new \Exception("Ce locataire n'existe pas!");
+            }
+
+            if (!auth()->user()->is_master && !auth()->user()->is_admin) {
+                if ($locataire->owner != $user->id) {
+                    throw new \Exception("Ce locataire ne vous appartient pas!");
+                }
+            }
+
+            if ($request->get("card_type")) {
+                $type = CardType::find($request->get("card_type"));
+                if (!$type) {
+                    throw new \Exception("Ce type de carte n'existe pas!");
+                }
+            }
+
+            if ($request->get("departement")) {
+                $departement = Departement::find($request->get("departement"));
+                if (!$departement) {
+                    throw new \Exception("Ce departement n'existe pas!");
+                }
+            }
+
+            if ($request->get("country")) {
+                $country = Country::find($request->get("country"));
+                if (!$country) {
+                    throw new \Exception("Ce pays n'existe pas!");
+                }
+            }
+
+            $locataire->update($formData);
+
+            DB::commit();
+            alert()->success("Succès", "Locataire modifié avec succès!");
             return back()->withInput();
-        };
-
-        if (!auth()->user()->is_master && !auth()->user()->is_admin) {
-            if ($locataire->owner != $user->id) {
-                alert()->error("Echec", "Ce locataire ne vous appartient pas!");
-                return back()->withInput();
-            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de la modification du locataire");
         }
-
-        ####____TRAITEMENT DU TYPE DE CARTE
-        if ($request->get("card_type")) {
-            $type = CardType::find($request->get("card_type"));
-
-            if (!$type) {
-                alert()->error("Echec", "Ce type de carte n'existe pas!");
-                return back()->withInput();
-            }
-        }
-
-        ####____TRAITEMENT DU DEPARTEMENT
-        if ($request->get("departement")) {
-            $departement = Departement::find($request->get("departement"));
-
-            if (!$departement) {
-                alert()->error("Echec", "Ce departement de carte n'existe pas!");
-                return back()->withInput();
-            }
-        }
-
-        ####____TRAITEMENT DU COUNTRY
-        if ($request->get("country")) {
-            $country = Country::find($request->get("country"));
-            if (!$country) {
-                alert()->error("Echec", "Ce pays n'existe pas!");
-                return back()->withInput();
-            }
-        }
-
-        $locataire->update($formData);
-
-        alert()->success("Succès", "Locataire modifié avec avec succès!");
-        return back()->withInput();
     }
 
     function DeleteLocataire(Request $request, $id)
     {
-        $user = request()->user();
-        $locataire = Locataire::find(deCrypId($id));
-        if (!$locataire) {
-            alert()->error("Echec", "Ce locataire n'existe pas!");
-            return back()->withInput();
-        };
+        try {
+            DB::beginTransaction();
 
-        if (count($locataire->Locations) > 0) {
-            alert()->error("error", "Ce locataire dispose de locations(s)! Veuillez bien les supprimer d'abord");
-            return back();
-        }
+            $user = request()->user();
+            $locataire = Locataire::find(deCrypId($id));
 
-        if (!auth()->user()->is_master && !auth()->user()->is_admin) {
-            if ($locataire->owner != $user->id) {
-                alert()->error("Echec", "Ce locataire ne vous appartient pas!");
-                return back()->withInput();
+            if (!$locataire) {
+                throw new \Exception("Ce locataire n'existe pas!");
             }
+
+            if (count($locataire->Locations) > 0) {
+                throw new \Exception("Ce locataire dispose de locations(s)! Veuillez bien les supprimer d'abord");
+            }
+
+            if (!auth()->user()->is_master && !auth()->user()->is_admin) {
+                if ($locataire->owner != $user->id) {
+                    throw new \Exception("Ce locataire ne vous appartient pas!");
+                }
+            }
+
+            $locataire->delete();
+
+            DB::commit();
+            alert()->success("Succès", "Locataire supprimé avec succès!");
+            return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de la suppression du locataire");
         }
-
-        // $locataire->visible = 0;
-        // $locataire->deleted_at = now();
-        $locataire->delete();
-
-        alert()->success("Succès", "Locataire supprimé avec avec succès!");
-        return back()->withInput();
     }
 
     #####___FILTRE PAR SUPERVISEUR
     function FiltreBySupervisor(Request $request, Agency $agency)
     {
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        if (!User::find($request->supervisor)) {
-            alert()->error("Echèc", "Ce superviseur n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locators_filtred = [];
-
-        ###___LOCATORS
-        $locators = $agency->_Locataires;
-
-        foreach ($locators as $locator) {
-            foreach ($locator->Locations as $location) {
-                if ($location->House->Supervisor->id == $request->supervisor) {
-                    array_push($locators_filtred, $locator);
-                }
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
-        if (count($locators_filtred) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            return back()->withInput();
+            $supervisor = User::find($request->supervisor);
+            if (!$supervisor) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
+
+            $locators = $agency->_Locataires;
+            $locators_filtred = $locators->filter(function ($locator) use ($supervisor) {
+                return $locator->Locations->contains(function ($location) use ($supervisor) {
+                    return $location->House->Supervisor->id === $supervisor->id;
+                });
+            })->values();
+
+            if ($locators_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            alert()->success("Succès", "Locataires filtrés avec succès!");
+            return back()->withInput()->with(["locators_filtred" => $locators_filtred]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage par superviseur");
         }
-        ####____
-        alert()->success("Succès", "Locataires filtrés avec succès!");
-        return back()->withInput()->with(["locators_filtred" => $locators_filtred]);
     }
 
     #####___FILTRE PAR MAISON
     function FiltreByHouse(Request $request, Agency $agency)
     {
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        if (!User::find($request->house)) {
-            alert()->error("Echèc", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locators_filtred = [];
-
-        ###___LOCATORS
-        $locators = $agency->_Locataires;
-
-        foreach ($locators as $locator) {
-            foreach ($locator->Locations as $location) {
-                if ($location->House->id == $request->house) {
-                    array_push($locators_filtred, $locator);
-                }
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
-        if (count($locators_filtred) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            return back()->withInput();
+            $house = House::find($request->house);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            $locators = $agency->_Locataires;
+            $locators_filtred = $locators->filter(function ($locator) use ($house) {
+                return $locator->Locations->contains(function ($location) use ($house) {
+                    return $location->House->id === $house->id;
+                });
+            })->values();
+
+            if ($locators_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            alert()->success("Succès", "Locataires filtrés avec succès!");
+            return back()->withInput()->with(["locators_filtred" => $locators_filtred]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage par maison");
         }
-        ####____
-        alert()->success("Succès", "Locataires filtrés avec succès!");
-        return back()->withInput()->with(["locators_filtred" => $locators_filtred]);
     }
 
+    private function getLocatorsThatPaidAfterStateStopped($agency, $isPaid = true)
+    {
+        try {
+            // Get the current date in Y/m/d format
+            $now = now()->format('Y/m/d');
+
+            // Get all locations for the agency with their related data
+            $locations = $agency->_Locations()
+                ->with(['House.Supervisor', 'Locataire'])
+                ->get();
+
+            // Filter locations based on payment status and date
+            return $locations->filter(function ($location) use ($now, $isPaid) {
+                $echeanceDate = $location->echeance_date->format('Y/m/d');
+                return $isPaid ? $echeanceDate > $now : $echeanceDate < $now;
+            })->values();
+        } catch (\Exception $e) {
+            Log::error('Error in getLocatorsThatPaidAfterStateStopped: ' . $e->getMessage());
+            throw new \Exception("Erreur lors de la récupération des locations: " . $e->getMessage());
+        }
+    }
 
     #LOCATAIRES A JOUR PAR SUPERVISEUR
     function PaidFiltreBySupervisor(Request $request, $agency)
     {
-        $user = request()->user();
-        $agency = Agency::find($agency);
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        ####____
-        $supervisor = User::find($request->supervisor);
-        if (!$supervisor) {
-            alert()->error("Echec", "Ce superviseur n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locataires = [];
-        ###____
-
-        $locations = $agency->_Locations;
-
-        $now = strtotime(date("Y/m/d", strtotime(now())));
-
-        foreach ($locations as $location) {
-            ###__la location
-            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
-
-            if ($location_echeance_date > $now) {
-                // on recupere les location de cette maisons
-                if ($location->House->Supervisor->id == $supervisor->id) {
-                    array_push($locataires, $location);
-                }
+            $agency = Agency::find($agency);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
+            $supervisor = User::find($request->supervisor);
+            if (!$supervisor) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
 
-        if (count($locataires) == 0) {
-            // Session::forget("filteredLocators");
-            alert()->error("Echèc", "Aucun résultat trouvé");
+            $paidLocations = $this->getLocatorsThatPaidAfterStateStopped($agency, true);
+            $filteredLocations = $this->filterLocationsBySupervisor($paidLocations, $supervisor->id);
+
+            if ($filteredLocations->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            session()->flash("filteredLocators", $filteredLocations);
+            alert()->success("Succès", "Locataire filtré par superviseur avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage des locataires payés par superviseur");
         }
-
-        // Session::forget("filteredLocators");
-        // session(["filteredLocators" => $locataires]);
-
-        session()->flash("filteredLocators", $locataires);
-        alert()->success("Succès", "Locataire filtré par superviseur avec succès!");
-        return back()->withInput();
     }
 
     #LOCATAIRES A JOUR PAR MAISON
     function PaidFiltreByHouse(Request $request, $agency)
     {
-        $user = request()->user();
-        $agency = Agency::find($agency);
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        ####____
-        $house = House::find($request->house);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locataires = [];
-        ###____
-
-        $locations = $agency->_Locations;
-
-        $now = strtotime(date("Y/m/d", strtotime(now())));
-
-        foreach ($locations as $location) {
-            ###__la location
-            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
-
-            if ($location_echeance_date > $now) {
-                // on recupere les location de cette maisons
-                if ($location->House->id == $house->id) {
-                    array_push($locataires, $location);
-                }
+            $agency = Agency::find($agency);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
-        if (count($locataires) == 0) {
-            // Session::forget("filteredLocators");
-            alert()->error("Echèc", "Aucun résultat trouvé");
+            $house = House::find($request->house);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            $paidLocations = $this->getLocatorsThatPaidAfterStateStopped($agency, true);
+            $filteredLocations = $this->filterLocationsByHouse($paidLocations, $house->id);
+
+            if ($filteredLocations->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            session()->flash("filteredLocators", $filteredLocations);
+            alert()->success("Succès", "Locataire filtré par maison avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage des locataires payés par maison");
         }
-
-        // Session::forget("filteredLocators");
-        // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators", $locataires);
-
-        alert()->success("Succès", "Locataire filtré par maison avec succès!");
-        return back()->withInput();
     }
 
     #LOCATAIRES NON A JOUR PAR SUPERVISEUR
     function UnPaidFiltreBySupervisor(Request $request, $agency)
     {
-        $user = request()->user();
-        $agency = Agency::find($agency);
+        try {
+            DB::beginTransaction();
 
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        ####____
-        $supervisor = User::find($request->supervisor);
-        if (!$supervisor) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locataires = [];
-        ###____
-
-        $locations = $agency->_Locations;
-
-        $now = strtotime(date("Y/m/d", strtotime(now())));
-
-        foreach ($locations as $location) {
-            ###__la location
-            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
-
-            if ($location_echeance_date < $now) {
-                // on recupere les location de cette maisons
-                if ($location->House->Supervisor->id == $supervisor->id) {
-                    array_push($locataires, $location);
-                }
+            $agency = Agency::find($agency);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
+            $supervisor = User::find($request->supervisor);
+            if (!$supervisor) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
 
-        if (count($locataires) == 0) {
-            // Session::forget("filteredLocators");
-            alert()->error("Echèc", "Aucun résultat trouvé");
+            $unpaidLocations = $this->getLocatorsThatPaidAfterStateStopped($agency, false);
+            $filteredLocations = $this->filterLocationsBySupervisor($unpaidLocations, $supervisor->id);
+
+            if ($filteredLocations->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            session()->flash("filteredLocators", $filteredLocations);
+            alert()->success("Succès", "Locataire impayés filtré par superviseur avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage des locataires impayés par superviseur");
         }
-
-        // Session::forget("filteredLocators");
-        // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators", $locataires);
-
-        alert()->success("Succès", "Locataire impayés filtré par superviseur avec succès!");
-        return back()->withInput();
     }
 
     #LOCATAIRES NON A JOUR PAR MAISON
     function UnPaidFiltreByHouse(Request $request, $agency)
     {
-        $user = request()->user();
-        $agency = Agency::find($agency);
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        ####____
-        $house = House::find($request->house);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locataires = [];
-        ###____
-
-        $locations = $agency->_Locations;
-
-        $now = strtotime(date("Y/m/d", strtotime(now())));
-        foreach ($locations as $location) {
-            ###__la location
-            // $location_previous_echeance_date = strtotime(date("Y/m/d", strtotime($location->previous_echeance_date)));
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
-
-            if ($location_echeance_date < $now) {
-                // on recupere les location de cette maisons
-                if ($location->House->id == $house->id) {
-                    array_push($locataires, $location);
-                }
+            $agency = Agency::find($agency);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
-        if (count($locataires) == 0) {
-            // Session::forget("filteredLocators");
-            alert()->error("Echèc", "Aucun résultat trouvé");
+            $house = House::find($request->house);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            $unpaidLocations = $this->getLocatorsThatPaidAfterStateStopped($agency, false);
+            $filteredLocations = $this->filterLocationsByHouse($unpaidLocations, $house->id);
+
+            if ($filteredLocations->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            session()->flash("filteredLocators", $filteredLocations);
+            alert()->success("Succès", "Locataire impayés filtré par maison avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage des locataires impayés par maison");
         }
-
-        // Session::forget("filteredLocators");
-        // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators", $locataires);
-
-        alert()->success("Succès", "Locataire impayés filtré par maison avec succès!");
-        return back()->withInput();
     }
 
-    #LOCATAIRES DEMENAGES PAR SUPERVISEUR
+    private function getRemovedLocations($agency)
+    {
+        try {
+            return $agency->_Locations->where("status", 3);
+        } catch (\Exception $e) {
+            throw new \Exception("Erreur lors de la récupération des locations supprimées: " . $e->getMessage());
+        }
+    }
+
     function RemovedFiltreBySupervisor(Request $request, $agency)
     {
-        $user = request()->user();
-        $agency = Agency::find($agency);
+        try {
+            DB::beginTransaction();
 
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        ####____
-        $supervisor = User::find($request->supervisor);
-        if (!$supervisor) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locataires = [];
-        ###____
-
-        $locations = $agency->_Locations->where("status", 3);
-
-        foreach ($locations as $location) {
-            // on recupere les location de ce superviseur
-            // dd($location,$location->House->Supervisor->id,$request->supervisor);
-            if ($location->House->Supervisor->id == $supervisor->id) {
-                array_push($locataires, $location);
+            $agency = Agency::find($agency);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
-        if (count($locataires) == 0) {
-            // Session::forget("filteredLocators");
-            alert()->error("Echèc", "Aucun résultat trouvé");
+            $supervisor = User::find($request->supervisor);
+            if (!$supervisor) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
+
+            $removedLocations = $this->getRemovedLocations($agency);
+            $filteredLocations = $this->filterLocationsBySupervisor($removedLocations, $supervisor->id);
+
+            if ($filteredLocations->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            session()->flash("filteredLocators", $filteredLocations);
+            alert()->success("Succès", "Locataire démenagé filtré par superviseur avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage des locataires démenagés par superviseur");
         }
-
-        // Session::forget("filteredLocators");
-        // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators", $locataires);
-
-        alert()->success("Succès", "Locataire démenagé filtré par superviseur avec succès!");
-        return back()->withInput();
     }
 
     #LOCATAIRES DEMENAGES PAR MAISON
     function RemovedFiltreByHouse(Request $request, $agency)
     {
-        $user = request()->user();
-        $agency = Agency::find($agency);
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        ####____
-        $house = House::find($request->house);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        $locataires = [];
-        ###____
-
-        $locations = $agency->_Locations->where("status", 3);
-
-        foreach ($locations as $location) {
-            // on recupere les location de cette maisons
-            if ($location->House->id == $house->id) {
-                array_push($locataires, $location);
+            $agency = Agency::find($agency);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
             }
-        }
 
-        if (count($locataires) == 0) {
-            // Session::forget("filteredLocators");
-            alert()->error("Echèc", "Aucun résultat trouvé");
+            $house = House::find($request->house);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            $removedLocations = $this->getRemovedLocations($agency);
+            $filteredLocations = $this->filterLocationsByHouse($removedLocations, $house->id);
+
+            if ($filteredLocations->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            DB::commit();
+            session()->flash("filteredLocators", $filteredLocations);
+            alert()->success("Succès", "Locataire demenagés filtré par maison avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors du filtrage des locataires démenagés par maison");
         }
-
-        // Session::forget("filteredLocators");
-        // session(["filteredLocators" => $locataires]);
-        session()->flash("filteredLocators", $locataires);
-        alert()->success("Succès", "Locataire demenagés filtré par maison avec succès!");
-        return back()->withInput();
     }
 
-    #####______TAUX 05 AGENCE
+    private function getRecoveryLocations($request, $agencyId, $recoveryType)
+    {
+        try {
+            $agency = $this->validateAgency($agencyId);
+
+            switch ($recoveryType) {
+                case '05':
+                    $recovery_locations = self::_recovery05ToEcheanceDate($request, $agency->id, true);
+                    break;
+                case '10':
+                    $recovery_locations = self::_recovery10ToEcheanceDate($request, $agency->id, true);
+                    break;
+                case 'qualitatif':
+                    $recovery_locations = self::_recoveryQualitatif($request, $agency->id, true);
+                    break;
+                default:
+                    throw new \Exception("Type de récupération invalide");
+            }
+
+
+            return [
+                'agency' => $agency,
+                'locations_that_paid' => $recovery_locations["locations_that_paid"],
+                'locations_that_do_not_paid' => $recovery_locations["locations_that_do_not_paid"],
+                'total_of_both_of_them' => count($recovery_locations["locations_that_paid"]) + count($recovery_locations["locations_that_do_not_paid"])
+            ];
+        } catch (\Exception $e) {
+            throw new \Exception("Erreur lors de la récupération des locations: " . $e->getMessage());
+        }
+    }
+
+    private function renderRecoveryView($locations, $action, $agency, $supervisor, $house, $locations_that_do_not_paid, $total_of_both_of_them, $viewType)
+    {
+        try {
+            $view = match ($viewType) {
+                '05' => 'recovery05_locators',
+                '10' => 'recovery10_locators',
+                'qualitatif' => 'recovery_qualitatif_locators',
+                default => throw new \Exception("Type de vue invalide")
+            };
+
+            return view($view, compact([
+                "locations",
+                "action",
+                "agency",
+                "supervisor",
+                "house",
+                "locations_that_do_not_paid",
+                "total_of_both_of_them"
+            ]));
+        } catch (\Exception $e) {
+            throw new \Exception("Erreur lors du rendu de la vue: " . $e->getMessage());
+        }
+    }
+
     function _ShowAgencyTaux05_Simple(Request $request, $agencyId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, '05');
+
+            $supervisor = null;
+            $house = null;
+            $action = "agency";
+            $locations = $recoveryData['locations_that_paid'];
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                '05'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux 05");
         }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement 05
-        $recovery05_locations = self::_recovery05ToEcheanceDate($request, $agency->id, true);
-
-        $locations_that_paid = $recovery05_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery05_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-
-        $supervisor = null;
-        $house = null;
-        $action = "agency";
-
-        $locations = $locations_that_paid;
-
-        ###__
-        return view("recovery05_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX 05 AGENCE PAR SUPERVISEUR
     function _ShowAgencyTaux05_By_Supervisor(Request $request, $agencyId, $supervisorId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, '05');
+            $supervisor = $this->validateSupervisor($supervisorId);
+
+            $locations = $this->filterLocationsBySupervisor(
+                collect($recoveryData['locations_that_paid']),
+                $supervisor->id
+            );
+
+            $action = "supervisor";
+            $house = null;
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                '05'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux 05 par superviseur");
         }
-
-        ###__
-        $supervisor = User::where("visible", 1)->find(deCrypId($supervisorId));
-        if (!$supervisor) {
-            alert()->error("Echec", "Ce superviseur n'existe pas");
-            return back()->withInput();
-        }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement 10
-        $recovery05_locations = self::_recovery05ToEcheanceDate($request, $agency->id, true);
-
-        $locations_that_paid = $recovery05_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery05_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-        $locations = [];
-
-        foreach ($locations_that_paid as $location) {
-            if ($location->House->Supervisor->id == $supervisor->id) {
-                ###__on recupère les locations dont les maisons sont 
-                ###____attachées à ce superviseur
-
-                array_push($locations, $location);
-            }
-        }
-
-        ####____
-        $action = "supervisor";
-        $house = null;
-
-        ###__
-        return view("recovery05_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX 05 AGENCE PAR HOUSE
     function _ShowAgencyTaux05_By_House(Request $request, $agencyId, $houseId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, '05');
+            $house = $this->validateHouse($houseId);
+
+            $locations = $this->filterLocationsByHouse(
+                collect($recoveryData['locations_that_paid']),
+                $house->id
+            );
+
+            $action = "house";
+            $supervisor = null;
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                '05'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux 05 par maison");
         }
-
-        ###__
-        $house = House::where("visible", 1)->find(deCrypId($houseId));
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas");
-            return back()->withInput();
-        }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement 10
-        $recovery05_locations = self::_recovery05ToEcheanceDate($request, $agency->id, true);
-
-        $locations_that_paid = $recovery05_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery05_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-        $locations = [];
-
-        foreach ($locations_that_paid as $location) {
-            if ($location->House->id == $house->id) {
-                ###__on recupère les locations dont les maisons sont 
-                ###____attachées à ce superviseur
-
-                array_push($locations, $location);
-            }
-        }
-
-        ####____
-        $action = "house";
-        $supervisor = null;
-
-        ###__
-        return view("recovery05_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX 10 AGENCE
     function _ShowAgencyTaux10_Simple(Request $request, $agencyId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, '10');
+
+            $supervisor = null;
+            $house = null;
+            $action = "agency";
+            $locations = $recoveryData['locations_that_paid'];
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                '10'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux 10");
         }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement 05
-        $recovery10_locations = self::_recovery10ToEcheanceDate($request, $agency->id, true);
-
-        $locations_that_paid = $recovery10_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery10_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-
-        $supervisor = null;
-        $house = null;
-        $action = "agency";
-
-        $locations = $locations_that_paid;
-
-        ###__
-        return view("recovery10_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX 10 AGENCE PAR SUPERVISEUR
     function _ShowAgencyTaux10_By_Supervisor(Request $request, $agencyId, $supervisorId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, '10');
+            $supervisor = $this->validateSupervisor($supervisorId);
+
+            $locations = $this->filterLocationsBySupervisor(
+                collect($recoveryData['locations_that_paid']),
+                $supervisor->id
+            );
+
+            $action = "supervisor";
+            $house = null;
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                '10'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux 10 par superviseur");
         }
-
-        ###__
-        $supervisor = User::where("visible", 1)->find(deCrypId($supervisorId));
-        if (!$supervisor) {
-            alert()->error("Echec", "Ce superviseur n'existe pas");
-            return back()->withInput();
-        }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement 10
-        $recovery10_locations = self::_recovery10ToEcheanceDate($request, $agency->id, true);
-
-        $locations_that_paid = $recovery10_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery10_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-        $locations = [];
-
-        foreach ($locations_that_paid as $location) {
-            if ($location->House->Supervisor->id == $supervisor->id) {
-                ###__on recupère les locations dont les maisons sont 
-                ###____attachées à ce superviseur
-
-                array_push($locations, $location);
-            }
-        }
-
-        ####____
-        $action = "supervisor";
-        $house = null;
-
-        ###__
-        return view("recovery10_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX 10 AGENCE PAR HOUSE
     function _ShowAgencyTaux10_By_House(Request $request, $agencyId, $houseId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, '10');
+            $house = $this->validateHouse($houseId);
+
+            $locations = $this->filterLocationsByHouse(
+                collect($recoveryData['locations_that_paid']),
+                $house->id
+            );
+
+            $action = "house";
+            $supervisor = null;
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                '10'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux 10 par maison");
         }
-
-        ###__
-        $house = House::where("visible", 1)->find(deCrypId($houseId));
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas");
-            return back()->withInput();
-        }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement 10
-        $recovery10_locations = self::_recovery10ToEcheanceDate($request, $agency->id, true);
-
-        $locations_that_paid = $recovery10_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery10_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-        $locations = [];
-
-        foreach ($locations_that_paid as $location) {
-            if ($location->House->id == $house->id) {
-                ###__on recupère les locations dont les maisons sont 
-                ###____attachées à ce superviseur
-
-                array_push($locations, $location);
-            }
-        }
-
-        ####____
-        $action = "house";
-        $supervisor = null;
-
-        ###__
-        return view("recovery10_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-
-    #####______TAUX Qualitatif AGENCE
     function _ShowAgencyTauxQualitatif_Simple(Request $request, $agencyId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, 'qualitatif');
+
+            $supervisor = null;
+            $house = null;
+            $action = "agency";
+            $locations = $recoveryData['locations_that_paid'];
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                'qualitatif'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux qualitatifs");
         }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement qualitatif
-        $recovery10_locations = self::_recoveryQualitatif($request, $agency->id, true);
-
-        $locations_that_paid = $recovery10_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery10_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-
-        $supervisor = null;
-        $house = null;
-        $action = "agency";
-
-        $locations = $locations_that_paid;
-
-        ###__
-        return view("recovery_qualitatif_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX Qualitatif AGENCE PAR SUPERVISEUR
     function _ShowAgencyTauxQualitatif_By_Supervisor(Request $request, $agencyId, $supervisorId)
     {
-        $formData = $request->all();
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, 'qualitatif');
+            $supervisor = $this->validateSupervisor($supervisorId);
+
+            $locations = $this->filterLocationsBySupervisor(
+                collect($recoveryData['locations_that_paid']),
+                $supervisor->id
+            );
+
+            $action = "supervisor";
+            $house = null;
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                'qualitatif'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux qualitatifs par superviseur");
         }
-
-        ###__
-        $supervisor = User::where("visible", 1)->find(deCrypId($supervisorId));
-        if (!$supervisor) {
-            alert()->error("Echec", "Ce superviseur n'existe pas");
-            return back()->withInput();
-        }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement qualitatif
-        $recovery10_locations = self::_recoveryQualitatif($request, $agency->id, true);
-
-        $locations_that_paid = $recovery10_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery10_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-        $locations = [];
-
-        foreach ($locations_that_paid as $location) {
-            if ($location->House->Supervisor->id == $supervisor->id) {
-                ###__on recupère les locations dont les maisons sont 
-                ###____attachées à ce superviseur
-
-                array_push($locations, $location);
-            }
-        }
-
-        ####____
-        $action = "supervisor";
-        $house = null;
-
-        ###__
-        return view("recovery_qualitatif_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
-    #####______TAUX Qualitatif AGENCE PAR HOUSE
     function _ShowAgencyTauxQualitatif_By_House(Request $request, $agencyId, $houseId)
     {
-        ###__
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas");
-            return back()->withInput();
+        try {
+            DB::beginTransaction();
+
+            $recoveryData = $this->getRecoveryLocations($request, $agencyId, 'qualitatif');
+            $house = $this->validateHouse($houseId);
+
+            $locations = $this->filterLocationsByHouse(
+                collect($recoveryData['locations_that_paid']),
+                $house->id
+            );
+
+            $action = "house";
+            $supervisor = null;
+
+            DB::commit();
+            return $this->renderRecoveryView(
+                $locations,
+                $action,
+                $recoveryData['agency'],
+                $supervisor,
+                $house,
+                $recoveryData['locations_that_do_not_paid'],
+                $recoveryData['total_of_both_of_them'],
+                'qualitatif'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->handleException($e, "Erreur lors de l'affichage des taux qualitatifs par maison");
         }
-
-        ###__
-        $house = House::where("visible", 1)->find(deCrypId($houseId));
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas");
-            return back()->withInput();
-        }
-
-        ###____ça revient aux locataires se trouvant dans le recouvrement Qualitatif
-        $recovery10_locations = self::_recoveryQualitatif($request, $agency->id, true);
-
-        $locations_that_paid = $recovery10_locations["locations_that_paid"];
-        $locations_that_do_not_paid = $recovery10_locations["locations_that_do_not_paid"];
-        $total_of_both_of_them = count($locations_that_paid) + count($locations_that_do_not_paid);
-
-        ###___
-        $locations = [];
-
-        foreach ($locations_that_paid as $location) {
-            if ($location->House->id == $house->id) {
-                ###__on recupère les locations dont les maisons sont 
-                ###____attachées à ce superviseur
-
-                array_push($locations, $location);
-            }
-        }
-
-        ####____
-        $action = "house";
-        $supervisor = null;
-
-        ###__
-        return view("recovery_qualitatif_locators", compact(["locations", "action", "agency", "supervisor", "house", "locations_that_do_not_paid", "total_of_both_of_them"]));
     }
 
     // #####
@@ -1180,5 +1109,27 @@ class LocataireController extends Controller
     function RecoveryQualitatif(Request $request, $agencyId)
     {
         return $this->_recoveryQualitatif($request, $agencyId);
+    }
+
+    private function filterLocationsBySupervisor($locations, $supervisorId)
+    {
+        try {
+            return $locations->filter(function ($location) use ($supervisorId) {
+                return $location->House->Supervisor->id === $supervisorId;
+            })->values();
+        } catch (\Exception $e) {
+            throw new \Exception("Erreur lors du filtrage des locations par superviseur: " . $e->getMessage());
+        }
+    }
+
+    private function filterLocationsByHouse($locations, $houseId)
+    {
+        try {
+            return $locations->filter(function ($location) use ($houseId) {
+                return $location->House->id === $houseId;
+            })->values();
+        } catch (\Exception $e) {
+            throw new \Exception("Erreur lors du filtrage des locations par maison: " . $e->getMessage());
+        }
     }
 }

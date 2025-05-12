@@ -4,73 +4,69 @@ namespace App\Livewire;
 
 use App\Models\Agency;
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
-
-use Illuminate\Support\Str;
-
 use Livewire\Component;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class UnPaidLocators extends Component
 {
-    public $current_agency;
-    public $agency;
+    public Agency $current_agency;
+    public ?Agency $agency = null;
 
-    public $locators_old = [];
-    public $locators = [];
-    public $locators_count = [];
-    public $supervisor;
+    public Collection $locators;
+    public int $locators_count = 0;
+    public ?User $supervisor = null;
 
-    public $houses = [];
-    public $house;
+    public Collection $houses;
+    public ?object $house = null;
 
-    public $display_filtre_options = [];
-
-    ###___HOUSES
-    function refreshThisAgencyHouses()
+    /**
+     * Refresh the houses list for the current agency
+     */
+    public function refreshThisAgencyHouses(): void
     {
         $this->houses = $this->current_agency->_Houses;
     }
 
-
-    function refreshThisAgencyLocators()
+    /**
+     * Refresh the list of unpaid locators for the current agency
+     * 
+     * @return void
+     */
+    public function refreshThisAgencyLocators(): void
     {
-        $agency = Agency::find($this->current_agency->id);
-        if (!$agency) {
-            return self::sendError("Cette agence n'existe pas!", 404);
-        }
+        $now = Carbon::now()->startOfDay();
 
-        ###___
-        $locataires = [];
-        ###____
-        $locations = $agency->_Locations;
-        $now = strtotime(date("Y/m/d", strtotime(now())));
+        $now = Carbon::now()->startOfDay();
+        $this->locators = $this->current_agency->_Locations
+            ->filter(function ($location) use ($now) {
+                return $now > Carbon::parse($location->echeance_date);
+            })
+            ->values();
 
-        foreach ($locations as $location) {
-            ###__la location
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
-            
-            if ($location_echeance_date < $now) {
-                array_push($locataires, $location);
-            }
-        }
-
-        ##___
-        $this->locators_count = count($locataires);
-        $this->locators = $locataires;
+        $this->locators_count = count($this->locators);
     }
 
-    function mount($agency)
+    /**
+     * Initialize the component with the given agency
+     * 
+     * @param Agency $agency
+     * @return void
+     */
+    public function mount(Agency $agency): void
     {
         set_time_limit(0);
         $this->current_agency = $agency;
 
-        ###___LOCATORS
         $this->refreshThisAgencyLocators();
-
-        ###___HOUSES
         $this->refreshThisAgencyHouses();
     }
 
+    /**
+     * Render the component
+     * 
+     * @return \Illuminate\View\View
+     */
     public function render()
     {
         return view('livewire.un-paid-locators');
