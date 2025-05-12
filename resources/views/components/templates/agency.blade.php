@@ -7,6 +7,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="">
         <meta name="author" content="">
+        <meta name="api-base-url" content="{{ env('API_BASE_URL') }}">
+
         <link rel="shortcut icon" href="{{ asset('images/edou_logo.png') }}" type="image/x-icon">
         <link rel="stylesheet" href="{{ asset('fichiers/icon-font.min.css') }}">
         <link rel="stylesheet" href="{{ asset('fichiers/animate.min.css') }}" />
@@ -376,22 +378,9 @@
     </script>
     <script src="{{ asset('fichiers/axios.min.js') }}"></script>
 
-    <!-- <script src="https://cdn.datatables.net/2.1.3/js/dataTables.js"></script> -->
-    <!-- <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script> -->
     <script src="https://cdn.datatables.net/1.13.10/js/jquery.dataTables.js"></script>
     <!-- API DE GESTION DES SUM DES COLUMS DES DATATABLES -->
     <script src="https://cdn.datatables.net/plug-ins/2.1.8/api/sum().js"></script>
-
-    <!-- <script type="text/javascript">
-        // alert("{{env('VITE_API_BASE_URL')}}")
-        window.appConfig = {
-            apiUrl: "{{env('VITE_API_BASE_URL')}}"
-        };
-
-        const API_BASE_URL =  window.appConfig.apiUrl;
-        alert(API_BASE_URL)
-    </script> -->
-
 
 
     <!-- #### DATA TABLES -->

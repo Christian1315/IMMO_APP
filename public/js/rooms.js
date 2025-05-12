@@ -1,5 +1,5 @@
 
-const API_BASE_URL = "https://immo.kadjivsarl.com/api/v1/immo/";
+const API_BASE_URL = document.querySelector('meta[name="api-base-url"]').content;
 
 function showLocators(id) {
     $("#room_locators").empty();
