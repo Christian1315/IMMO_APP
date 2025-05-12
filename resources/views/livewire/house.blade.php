@@ -406,9 +406,13 @@
                                     <ul class="dropdown-menu p-2">
                                         @can("house.delete")
                                         <li>
-                                            <a href="{{ route('house.DeleteHouse', crypId($house['id'])) }}"
-                                                data-confirm-delete="true" class="w-100 btn btn-sm bg-red"><i
-                                                    class="bi bi-archive-fill"></i> Supprimer</a>
+                                            <form action="{{route('house.DeleteHouse', crypId($house['id'])) }}" method="post">
+                                                @csrf
+                                                @method("DELETE")
+
+                                                <button onclick="return confirm('Voulez-vous vraiment supprimer cette maison??')" type="submit" class="w-100 btn btn-sm bg-red"><i
+                                                        class="bi bi-archive-fill"></i> Supprimer</button>
+                                            </form>
                                         </li>
                                         @endcan
 

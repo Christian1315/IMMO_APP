@@ -93,8 +93,8 @@
 
             @php
             $recovery_date = $house->post_paid?
-            date("Y/m/d", strtotime("-1 month", strtotime($house->house_last_state->created_at))):
-            $house->house_last_state->created_at;
+            date("Y/m/d", strtotime("-1 month", strtotime($state->created_at))):
+            $state->created_at;
             @endphp
 
             <!-- infos liés à la maison -->
@@ -110,11 +110,10 @@
                         <tr>
                             <td class="text">
                                 <div class="mt-3">
-                                    <h6 class="">Mois de recouvrement: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->house_last_state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
-                                    <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($recovery_date)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                                    <h6 class="">Mois de recouvrement: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                                    <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($state->recovery_date)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                                     <div class="mr-5 p-1" style="border: 2px solid #000;">
                                         <div class=""><strong class="">Taux = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div>
-                                        <!-- <div class=""><strong class="">Taux = </strong> [ Nbre de locataires ayant payés ( <em class="text-red"> {{count($paid_locataires)}} </em> )] / [ Nbre de locataires total ( <em class="text-red"> {{count($un_paid_locataires)}} </em> )] = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div> -->
                                     </div>
                                 </div>
                             </td>
@@ -154,23 +153,23 @@
                     <tr class="align-items-center">
                         <td class="text-center"> {{$house["name"]}}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($house["total_amount_paid"],2,","," ") }} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($total_revenue,2,","," ") }} fcfa </strong> </button>
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["commission"],2,","," ")}} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($total_commission,2,","," ")}} fcfa </strong> </button>
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["last_depenses"],2,","," ")}} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($total_expenses,2,","," ")}} fcfa </strong> </button>
                         </td>
 
                         <td class="text-center">
-                            <strong class="text-red">{{number_format($house->LocativeCharge(),2,","," ")}} fcfa</strong>
+                            <strong class="text-red">{{number_format($locativeCharge,2,","," ")}} fcfa</strong>
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($house["net_to_paid"],2,","," ")}} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($net_amount,2,","," ")}} fcfa </strong> </button>
                         </td>
                     </tr>
                 </tbody>
@@ -181,7 +180,7 @@
         <!-- les locataires -->
         <div class="row">
             <table class="table table-striped table-sm" style="margin-inline-end: 50px!important;">
-                @if(count($locations)>0)
+                @if($locations->count()>0)
                 <thead>
                     <tr>
                         <!-- <th class="text-center">N°</th> -->
@@ -205,11 +204,11 @@
                         <td class="text-center">{{$location->Room->number}}</td>
                         <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location->Room->total_amount,2,","," ")}} </span></td>
                         <td class="text-center"><span class="badge bg-light text-red">{{$location->prorata_amount>0?number_format($location->prorata_amount,2,","," "):'--'}} </span></td>
-                        <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'--':$location["_locataire"]["nbr_month_paid"]):00}}</td>
+                        <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'--':$location["nbr_facture_amount_paid"]):00}}</td>
                         <td class="text-center"><span class="badge bg-light text-red">{{number_format($location["_locataire"]?
                                                 ($location->prorata_amount>0?
                                                     $location->prorata_amount:
-                                                    $location["_locataire"]["nbr_facture_amount_paid"]
+                                                    $location["facture_amount_paid"]
                                                 ):00,2,","," ")}}</span></td>
                         <td class="text-left">
                             <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </small>
@@ -221,7 +220,7 @@
                     @endforeach
 
                     <!-- chambres libres -->
-                    @foreach($buszy_rooms as $room)
+                    @foreach($free_rooms as $room)
                     <tr class="align-items-center">
                         <td class="text-center"> <small class="btn-light"> <strong> Vide </strong> </small> </td>
                         <td class="text-center">--</td>
@@ -243,7 +242,7 @@
                         <td colspan="3" class="bg-warning text-center"><strong> Détails des dépenses: </strong></td>
                         <td colspan="5" class="text-left">
                             <ul class="">
-                                @forelse($house->house_depenses as $depense)
+                                @forelse($house->CurrentDepenses as $depense)
                                 <li class=""><strong class="text-red">{{number_format($depense->sold_retrieved,2,","," ")}} fcfa</strong> - {{$depense->description}}</li>
                                 @empty
                                 <li>Aucune dépense éffectuée dans la maison!</li>

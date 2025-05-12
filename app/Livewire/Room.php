@@ -15,9 +15,7 @@ class Room extends Component
 
     private const DELETE_ROOM_TITLE = 'Suppression de la chambre!';
     private const DELETE_ROOM_TEXT = 'Voulez-vous vraiment supprimer cette chambre?';
-    private const DELETE_HOUSE_TITLE = 'Suppression d\'une maison!';
-    private const DELETE_HOUSE_TEXT = 'Voulez-vous vraiment supprimer cette maison?';
-
+   
     public Agency $agency;
     public Agency $current_agency;
 
@@ -76,7 +74,6 @@ class Room extends Component
 
     public function refreshThisAgencyHouses(): void
     {
-        confirmDelete(self::DELETE_HOUSE_TITLE, self::DELETE_HOUSE_TEXT);
 
         $this->houses = $this->current_agency->_Proprietors
             ->flatMap(fn($proprio) => $proprio->Houses);

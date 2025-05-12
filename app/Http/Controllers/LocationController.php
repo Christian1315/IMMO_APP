@@ -1317,7 +1317,9 @@ class LocationController extends Controller
     function _ShowCautionsForHouseByPeriod(Request $request, $houseId, $first_date, $last_date)
     {
         ###___
-        $locations = Location::where(["house" => $houseId])->where('created_at', ">=", $first_date)->where('created_at', ">=", $last_date)->get();
+        $locations = Location::where(["house" => $houseId])
+            ->whereBetween("created_at", [$first_date, $last_date])
+            ->get();
 
         ###_____
         $cautions_eau = [];

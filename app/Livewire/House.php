@@ -6,123 +6,104 @@ use App\Models\Agency;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Departement;
-use App\Models\House as ModelsHouse;
 use App\Models\HouseType;
 use App\Models\Quarter;
-use App\Models\Role;
-use App\Models\User;
 use App\Models\Zone;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-
 
 class House extends Component
 {
     use WithFileUploads;
 
-    public $agency;
-    public $current_agency;
-    public $houses = [];
-    public $currentHouseId = null;
-    public $houses_count = [];
+    public Agency $current_agency;
+    public Collection $houses;
+    public ?int $currentHouseId = null;
+    public int $houses_count = 0;
 
-    // 
-    public $countries = [];
-    public $proprietors = [];
-    public $cities = [];
-    public $house_types = [];
-    public $departements = [];
-    public $quartiers = [];
-    public $zones = [];
-    
-    ###___PROPRIETORS
-    function refreshThisAgencyProprietors()
+    public Collection $countries;
+    public Collection $proprietors;
+    public Collection $cities;
+    public Collection $house_types;
+    public Collection $departements;
+    public Collection $quartiers;
+    public Collection $zones;
+
+    private const DELETE_HOUSE_TITLE = 'Suppression d\'une maison!';
+    private const DELETE_HOUSE_TEXT = 'Voulez-vous vraiment supprimer cette maison?';
+
+    /**
+     * Initialize the component with the given agency
+     */
+    public function mount(Agency $agency): void
+    {
+        $this->current_agency = $agency;
+        $this->loadAllData();
+    }
+
+    /**
+     * Load all required data for the component
+     */
+    private function loadAllData(): void
+    {
+        $this->loadAgencyData();
+        $this->loadGeographicData();
+        $this->loadPropertyData();
+    }
+
+    /**
+     * Load agency-specific data
+     */
+    private function loadAgencyData(): void
+    {
+        $this->proprietors = $this->current_agency->_Proprietors;
+        $this->houses = $this->current_agency->_Houses;
+        $this->houses_count = $this->houses->count();
+    }
+
+    /**
+     * Load geographic data (countries, cities, departments, etc.)
+     */
+    private function loadGeographicData(): void
+    {
+        $this->countries = Country::all();
+        $this->cities = City::all();
+        $this->departements = Departement::all();
+        $this->quartiers = Quarter::all();
+        $this->zones = Zone::all();
+    }
+
+    /**
+     * Load property-related data
+     */
+    private function loadPropertyData(): void
+    {
+        $this->house_types = HouseType::all();
+    }
+
+    /**
+     * Refresh agency proprietors
+     */
+    public function refreshThisAgencyProprietors(): void
     {
         $this->proprietors = $this->current_agency->_Proprietors;
     }
 
-    ###___HOUSES
-    function refreshThisAgencyHouses()
+    /**
+     * Refresh agency houses with confirmation dialog
+     */
+    public function refreshThisAgencyHouses(): void
     {
-        $title = 'Suppression d\'une maison!';
-        $text = "Voulez-vous vraiment supprimer cette maison?";
-        confirmDelete($title, $text);
+        confirmDelete(self::DELETE_HOUSE_TITLE, self::DELETE_HOUSE_TEXT);
 
         $this->houses = $this->current_agency->_Houses;
-        $this->houses_count = count($this->houses);
+        $this->houses_count = $this->houses->count();
     }
 
-    // COUNTRIES
-    function refreshCountries()
-    {
-        $countries = Country::all();
-        $this->countries = $countries;
-    }
-
-    // COUNTRIES
-    function refreshCities()
-    {
-        $cities = City::all();
-        $this->cities = $cities;
-    }
-
-    // TYPES DE MAISON
-    function refreshTypes()
-    {
-        $house_types = HouseType::all();
-        $this->house_types = $house_types;
-    }
-
-    // REFRESH DEPARTEMENT
-    function refreshDepartements()
-    {
-        $departements = Departement::all();
-        $this->departements = $departements;
-    }
-
-    // QUARTIERS
-    function refreshQuartiers()
-    {
-        $quartiers = Quarter::all();
-        $this->quartiers = $quartiers;
-    }
-
-    // REFRESH ZONE
-    function refreshZones()
-    {
-        $zones = Zone::all();
-        $this->zones = $zones;
-    }
-
-    function mount($agency)
-    {
-        $this->current_agency = $agency;
-        ###___PROPRIETORS
-        $this->refreshThisAgencyProprietors();
-
-        // MAISONS
-        $this->refreshThisAgencyHouses();
-
-        // PAYS
-        $this->refreshCountries();
-
-        // CITIES
-        $this->refreshCities();
-
-        // HOUSES TYPES
-        $this->refreshTypes();
-
-        // DEPARTEMENTS
-        $this->refreshDepartements();
-
-        // QUARTIER
-        $this->refreshQuartiers();
-
-        // ZONE
-        $this->refreshZones();
-    }
-
+    /**
+     * Render the component
+     */
     public function render()
     {
         return view('livewire.house');

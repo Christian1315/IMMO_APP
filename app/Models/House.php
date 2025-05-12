@@ -8,10 +8,42 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $agency
+ * @property string $name
+ * @property float $latitude
+ * @property float $longitude
+ * @property string|null $comments
+ * @property int $proprietor
+ * @property int $type
+ * @property int $supervisor
+ * @property int $city
+ * @property int $country
+ * @property int $departement
+ * @property int $quartier
+ * @property int $zone
+ * @property int $owner
+ * @property string|null $proprio_payement_echeance_date
+ * @property string|null $geolocalisation
+ * @property float $commission_percent
+ * @property string|null $image
+ * @property float $locative_commission
+ * @property float $pre_paid
+ * @property float $post_paid
+ * @property string|null $recovery_date
+ * @property \Carbon\Carbon|null $delete_at
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ */
 class House extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_INACTIVE = 2;
+    public const STATUS_DELETED = 3;
 
     protected $fillable = [
         "agency",
@@ -39,101 +71,131 @@ class House extends Model
         "delete_at"
     ];
 
-    function LocativeCharge()
-    {
-        $locatives =  $this->Locations->where("status", "!=", 3)->sum(function ($location) {
-            return $location->Room->LocativeCharge();
-        });
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'commission_percent' => 'float',
+        'locative_commission' => 'float',
+        'pre_paid' => 'float',
+        'post_paid' => 'float',
+        'delete_at' => 'datetime',
+    ];
 
-        return $locatives;
+    /**
+     * Calculate total locative charges for active locations
+     */
+    public function LocativeCharge(): float
+    {
+        return $this->Locations()
+            ->where('status', '!=', self::STATUS_DELETED)
+            ->get()
+            ->sum(fn($location) => $location->Room->LocativeCharge());
     }
 
-    function _Agency(): BelongsTo
+    public function _Agency(): BelongsTo
     {
-        return $this->belongsTo(Agency::class, "agency");
+        return $this->belongsTo(Agency::class, "agency")->withDefault();
     }
 
-    function Owner(): BelongsTo
+    public function Owner(): BelongsTo
     {
-        return $this->belongsTo(User::class, "owner");
+        return $this->belongsTo(User::class, "owner")->withDefault();
     }
 
-    function Proprietor(): BelongsTo
+    public function Proprietor(): BelongsTo
     {
-        return $this->belongsTo(Proprietor::class, "proprietor")->with(["Agency"]);
+        return $this->belongsTo(Proprietor::class, "proprietor")
+            ->with(["Agency"])
+            ->withDefault();
     }
 
-    function Type(): BelongsTo
+    public function Type(): BelongsTo
     {
-        return $this->belongsTo(HouseType::class, "type");
+        return $this->belongsTo(HouseType::class, "type")->withDefault();
     }
 
-    function Supervisor(): BelongsTo
+    public function Supervisor(): BelongsTo
     {
-        return $this->belongsTo(User::class, "supervisor");
+        return $this->belongsTo(User::class, "supervisor")->withDefault();
     }
 
-    function City(): BelongsTo
+    public function City(): BelongsTo
     {
-        return $this->belongsTo(City::class, "city");
+        return $this->belongsTo(City::class, "city")->withDefault();
     }
 
-    function Country(): BelongsTo
+    public function Country(): BelongsTo
     {
-        return $this->belongsTo(Country::class, "country");
+        return $this->belongsTo(Country::class, "country")->withDefault();
     }
 
-    function Departement(): BelongsTo
+    public function Departement(): BelongsTo
     {
-        return $this->belongsTo(Departement::class, "departement");
+        return $this->belongsTo(Departement::class, "departement")->withDefault();
     }
 
-    function Quartier(): BelongsTo
+    public function Quartier(): BelongsTo
     {
-        return $this->belongsTo(Quarter::class, "quartier");
+        return $this->belongsTo(Quarter::class, "quartier")->withDefault();
     }
 
-    function Zone(): BelongsTo
+    public function Zone(): BelongsTo
     {
-        return $this->belongsTo(Zone::class, "proprietor");
+        return $this->belongsTo(Zone::class, "proprietor")->withDefault();
     }
 
-    function Rooms(): HasMany
+    public function Rooms(): HasMany
     {
-        return $this->hasMany(Room::class, "house")->where(["visible" => 1])->with(["Owner", "Nature", "Type", "House"]);
+        return $this->hasMany(Room::class, "house")
+            ->where(["visible" => 1])
+            ->with(["Owner", "Nature", "Type", "House"]);
     }
 
-    function Locations(): HasMany
+    public function Locations(): HasMany
     {
-        return $this->hasMany(Location::class, "house")->where(["visible" => 1])->with(["Locataire", "Type", "Status", "Room", "Factures", "AllFactures", "WaterFactures", "ElectricityFactures"]);
+        return $this->hasMany(Location::class, "house")
+            ->where(["visible" => 1])
+            ->with([
+                "Locataire",
+                "Type",
+                "Status",
+                "Room",
+                "Factures",
+                "AllFactures",
+                "WaterFactures",
+                "ElectricityFactures"
+            ]);
     }
 
-    function States(): HasMany
+    public function States(): HasMany
     {
-        return $this->hasMany(HomeStopState::class, "house")->with(["Owner", "CdrAccountSolds", "Factures"]);
+        return $this->hasMany(HomeStopState::class, "house")
+            ->with(["Owner", "CdrAccountSolds", "Factures"]);
     }
 
-    function CurrentDepenses(): HasMany
+    public function CurrentDepenses(): HasMany
     {
-        return $this->hasMany(AgencyAccountSold::class, "house")->whereNull("state");
+        return $this->hasMany(AgencyAccountSold::class, "house")
+            ->whereNull("state");
     }
 
-    function AllStatesDepenses(): HasMany
+    public function AllStatesDepenses(): HasMany
     {
         return $this->hasMany(AgencyAccountSold::class, "house");
     }
 
-    function PayementInitiations(): HasMany
+    public function PayementInitiations(): HasMany
     {
         return $this->hasMany(PaiementInitiation::class, "house");
     }
 
-    function ElectricityFacturesStates(): HasMany
+    public function ElectricityFacturesStates(): HasMany
     {
-        return $this->hasMany(StopHouseElectricityState::class, "house")->orderBy("id", "desc");
+        return $this->hasMany(StopHouseElectricityState::class, "house")
+            ->orderBy("id", "desc");
     }
 
-    function WaterFacturesStates(): HasMany
+    public function WaterFacturesStates(): HasMany
     {
         return $this->hasMany(StopHouseWaterState::class, "house");
     }
