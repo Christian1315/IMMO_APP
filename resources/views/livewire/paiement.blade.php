@@ -4,7 +4,7 @@
         <div class="col-12">
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
-                    <h4 class="">Total: <strong class="text-red"> {{count($Houses)}} </strong> </h4>
+                    <h4 class="">Total: <strong class="text-red"> {{count($houses)}} </strong> </h4>
                     <thead class="bg_dark">
                         <tr>
                             <th class="text-center">N°</th>
@@ -20,9 +20,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($Houses as $house)
+                        @foreach($houses as $house)
                         <tr class="align-items-center">
-                            <td class="text-center">{{$loop->index + 1}}</td>
+                            <td class="text-center">{{$loop->index + 1}} </td>
                             <td class="text-center"> <span class="badge bg-light text-dark"> {{$house["name"]}}</span> </td>
                             <td class="text-center">
                                 <strong class="badge bg-light text-success"><i class="bi bi-currency-exchange"></i> {{number_format($house["total_amount_paid"],2,","," ")}} fcfa </strong>
@@ -43,8 +43,8 @@
                                 <strong class="badge bg-light text-dark"> <i class="bi bi-calendar-check"></i>
                                     {{$house["house_last_state"]?
                                         \Carbon\Carbon::parse(date($house["house_last_state"]["stats_stoped_day"]))->locale('fr')->isoFormat('D MMMM YYYY') : 
-                                        ($house->PayementInitiations->last()? 
-                                            \Carbon\Carbon::parse(date($house->PayementInitiations->last()->stats_stoped_day))->locale('fr')->isoFormat('D MMMM YYYY'):
+                                        ($house["payement_initiations_last"]? 
+                                            \Carbon\Carbon::parse(date($house["payement_initiations_last"]->stats_stoped_day))->locale('fr')->isoFormat('D MMMM YYYY'):
                                             "---"
                                             )
                                     }}
@@ -52,15 +52,15 @@
                             </td>
                             <td class="text-center d-flex">
                                 @if($house['house_last_state'])
-                                @if($house->house_last_state->proprietor_paid)
+                                @if($house["house_last_state"]->proprietor_paid)
                                 <span aria-disabled="true" class="badge bg-light text-success">Payé</span>
                                 @else
-                                <span aria-disabled="" class="badge bg-light text-red"> Non payé</span>
+                                <span class="badge bg-light text-red"> Non payé</span>
                                 @endif
                                 @endif
 
-                                @if($house->PayementInitiations->last())
-                                @if($house->PayementInitiations->last()->status==3)
+                                @if($house["payement_initiations_last"])
+                                @if($house["payement_initiations_last"]->status==3)
                                 <span aria-disabled="true" class="badge bg-light text-red">mais Rejeté</span>
                                 @endif
                                 @endif
@@ -69,7 +69,10 @@
                                 @if($house['house_last_state'])
                                 @if(!$house['house_last_state']["proprietor_paid"])
                                 @can("proprio.payement")
-                                <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid" onclick="paiement({{$house}})"><i class="bi bi-currency-exchange"></i>Payer</button>
+                                <button class="btn btn-sm bg-red" data-bs-toggle="modal" data-bs-target="#paid"
+                                    data-house-id="{{$house['id']}}"
+                                    data-house-name="{{$house['name']}}"
+                                    data-house-amount="{{$house['_amount']}}"><i class="bi bi-currency-exchange"></i>Payer</button>
                                 @endcan
                                 @endif
                                 @endif
@@ -120,11 +123,20 @@
     </div>
 
     <script type="text/javascript">
-        function paiement(house) {
-            $(".house_name").html(house.name)
-            $(".house").val(house.id)
+        document.querySelectorAll('[data-bs-target="#paid"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const houseId = this.dataset.houseId;
+                const houseName = this.dataset.houseName;
+                const houseAmount = this.dataset.houseAmount;
+                paiement(houseId, houseName, houseAmount);
+            });
+        });
 
-            $(".amount").val(house._amount)
+        async function paiement(houseId, houseName, houseAmount) {
+            $(".house_name").html(houseName)
+            $(".house").val(houseId)
+
+            $(".amount").val(houseAmount)
             $("#paimentForm").attr("action", `/payement_initiation/initiateToProprio`)
         }
     </script>

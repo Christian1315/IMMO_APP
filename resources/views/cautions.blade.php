@@ -90,7 +90,7 @@
             </div>
             <br>
 
-            @if(count($locations)>0)
+            @if($locations->count()> 0)
             <table class="table">
                 <thead class="table-dark">
                     <tr>
@@ -108,7 +108,7 @@
                     @foreach($locations as $location)
                     <tr>
                         <td class="text-center">{{$location->House->name}}</td>
-                        <td class="text-center">{{$location->Room->number}}</td>
+                        <td class="text-center">{{$location->Room?->number}}</td>
                         <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
                         <td class="text-center text-red"><small class="text-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location->integration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</small> </td>
                         <td class="text-center"> <strong class="d-block">{{number_format($location->caution_number*$location->loyer,0," "," ")}} </strong> ({{$location->caution_number}}X{{$location->loyer}})</td>
@@ -122,9 +122,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="bg-warning"> <strong>{{number_format(array_sum($cautions_loyer),0," "," ") }} </strong> </td>
-                        <td class="bg-warning"> <strong>{{number_format(array_sum($cautions_electricity)+array_sum($cautions_eau),0," "," ") }} </strong> </td>
-                        <td class="bg-warning"> <strong>{{number_format(array_sum($cautions_eau),0," "," ") }} </strong> </td>
+                        <td class="bg-warning"> <strong>{{number_format($totals["cautionLoyer"],0," "," ") }} </strong> </td>
+                        <td class="bg-warning"> <strong>{{number_format($totals["waterPluselectricity"],0," "," ") }} </strong> </td>
+                        <td class="bg-warning"> <strong>{{number_format($totals["water"],0," "," ") }} </strong> </td>
                     </tr>
                 </tbody>
             </table>
@@ -134,7 +134,7 @@
 
             <br>
             <p class="text-center">
-                Arrêté le présent état à la somme de <em class="text-red">{{number_format(array_sum($cautions_electricity) + array_sum($cautions_eau) + array_sum($cautions_loyer),0," "," ")}} cfa</em>
+                Arrêté le présent état à la somme de <em class="text-red">{{number_format($totals["waterPluselectricity"] + $totals["cautionLoyer"],0," "," ")}} cfa</em>
             </p>
 
             <br>

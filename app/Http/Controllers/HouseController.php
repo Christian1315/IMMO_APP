@@ -555,7 +555,6 @@ class HouseController extends Controller
             }
 
             $data = $this->prepareHouseStateData($house);
-            // dd($data);
 
             $pdf = Pdf::loadView('house-state', array_merge($data, [
                 "house" => $data["house"],

@@ -74,6 +74,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <h5> <strong class="title">Superviseur</strong> :&nbsp; <strong class="text-red">{{$superviseur->name}}</strong></h5>
+                        <h6> <strong class="">Total</strong> :&nbsp; <strong class="text-red">{{$locations->count()}}</strong></h6>
                     </div>
                 </div>
                 <br><br>
@@ -105,7 +106,7 @@
                                         <!-- <td class="text-center">{{$loop->index+1}} </td> -->
                                         <td class="text-center"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
                                         <!-- <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span> </td> -->
-                                        <td class="text-center"><span class="badge bg-red">{{$location["Room"]["number"]}} </span> </td>
+                                        <td class="text-center"><span class="badge {{$location->Room? 'bg-red' : 'text-dark bg-light'}}">{{$location->Room?$location->Room->number:"demenagé"}} </span> </td>
                                         <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
                                         <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <span class="badge bg-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </span></small> </td>

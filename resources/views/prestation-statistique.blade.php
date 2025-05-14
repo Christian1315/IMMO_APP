@@ -84,9 +84,9 @@
                     </thead>
                     <tbody>
                         @foreach($locations as $location)
-                        <tr>
+                        <tr >
                             <td class="text-center">{{$location->House->name}}</td>
-                            <td class="text-center">{{$location->Room->number}}</td>
+                            <td class="text-center">{{$location->Room?$location->Room->number:"demenagé"}}</td>
                             <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
                             <td class="text-center bg-warning">{{$location->prestation}}</td>
                         </tr>
@@ -95,7 +95,7 @@
                             <td class="bg-red shadow-lg">Totaux: </td>
                             <td></td>
                             <td></td>
-                            <td class="bg-warning text-center">= &nbsp; <strong>{{array_sum($prestations)}} fcfa</strong> </td>
+                            <td class="bg-warning text-center">= &nbsp; <strong>{{$locations->sum('prestation')}} fcfa</strong> </td>
                         </tr>
                     </tbody>
                 </table>

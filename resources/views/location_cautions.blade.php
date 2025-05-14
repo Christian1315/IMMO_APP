@@ -66,12 +66,6 @@
                     </div>
                 </div>
                 <br>
-
-                <div class="text-center">
-                    <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="img-fluid">
-                </div>
-
-                <br>
                 <table class="table">
                     <thead class="table-dark">
                         <tr>
@@ -91,10 +85,10 @@
                             <td class="text-center">{{$location->Room->number}}</td>
                             <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
                             <td class="text-center text-red"><small class="text-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location->integration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</small> </td>
-                            <td class="text-center"> <strong class="d-block">{{number_format($location->caution_number*$location->loyer,0," "," ")}} </strong> ({{$location->caution_number}}X{{$location->loyer}})</td>
-                            <td class="text-center">{{number_format($location->caution_water+$location->caution_electric,0," "," ")}} ({{$location->caution_water}}+{{$location->caution_electric}})</td>
+                            <td class="text-center"> <strong class="d-block">{{number_format($cautions['loyer'],0," "," ")}} </strong> ({{$location->caution_number}}X{{$location->loyer}})</td>
+                            <td class="text-center">{{number_format($cautions['eau'] + $cautions['electricite'],0," "," ")}} ({{$cautions['eau']}}+{{$cautions['electricite']}})</td>
                             <td class="text-center bg-warning">{{number_format($location->frais_peiture,0," "," ") }}</td>
-                            <td class="text-center bg-warning"> <strong> {{number_format($location->caution_number*$location->loyer + $location->caution_water+$location->caution_electric + $location->frais_peiture,0,""," ") }} </strong> </td>
+                            <td class="text-center bg-warning"> <strong> {{number_format($total_cautions + $location->frais_peiture,0,""," ") }} </strong> </td>
                         </tr>
 
                         <tr>
@@ -102,8 +96,8 @@
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td class="bg-warning text-center"> <strong>{{number_format($location->caution_number*$location->loyer,0," "," ")}} </strong> </td>
-                            <td class="bg-warning text-center"> <strong>{{number_format($cautions_eau + $cautions_electricity,0," "," ")}} </strong> </td>
+                            <td class="bg-warning text-center"> <strong>{{number_format($cautions['loyer'],0," "," ")}} </strong> </td>
+                            <td class="bg-warning text-center"> <strong>{{number_format($cautions['eau'] + $cautions['electricite'],0," "," ")}} </strong> </td>
                             <td class="bg-warning text-center"> <strong>{{number_format($location->frais_peiture,0," "," ")}} </strong> </td>
                         </tr>
 
@@ -112,15 +106,15 @@
 
                 <br>
                 <!-- BORDEREAU DE CAUTION -->
-                <div class="row">
+                <div class="row" class="@if(!$location->caution_bordereau) d-none @endif">
                     <div class="col-12 text-center">
-                        <img src="{{$location->caution_bordereau}}" class="shadow" style="border:none;border-radius:10px" width="500px" height="500px" alt="" srcset="">
+                        <img src="{{$location->caution_bordereau}}" title="Bordereau caution" class="shadow" style="border:none;border-radius:10px" width="500px" height="500px" alt="" srcset="">
                     </div>
                 </div>
 
                 <br>
                 <p class="text-center">
-                    Arrêté le présent état à la somme de <em class="text-red">{{number_format($location->caution_number*$location->loyer + $location->caution_water+$location->caution_electric + $location->frais_peiture,0,""," ") }} cfa</em>
+                    Arrêté le présent état à la somme de <em class="text-red">{{number_format($total_cautions + $location->frais_peiture,0,""," ") }} cfa</em>
                 </p>
 
                 <br>

@@ -102,7 +102,6 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">N°</th>
                                 <th scope="col">Nom</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Superviseur</th>
@@ -111,7 +110,6 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row">{{$location["House"]["id"]}}</th>
                                 <td>{{$location["House"]["name"]}}</td>
                                 <td>{{$location["House"]["Type"]["name"]}}</td>
                                 <td>{{$location["House"]["Supervisor"]["name"]}}</td>
@@ -132,7 +130,6 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">N°</th>
                                 <th scope="col">Numéro</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Loyer</th>
@@ -140,7 +137,6 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row">{{$location["Room"]["id"]}}</th>
                                 <td>{{$location["Room"]["number"]}}</td>
                                 <td>{{$location["Room"]["Type"]["name"]}}</td>
                                 <td>{{$location["Room"]["loyer"]}}</td>
@@ -160,7 +156,6 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">N°</th>
                                 <th scope="col">Nom</th>
                                 <th scope="col">Prénom</th>
                                 <th scope="col">Téléphone</th>
@@ -170,7 +165,6 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row">{{$location["Locataire"]["id"]}}</th>
                                 <td>{{$location["Locataire"]["name"]}}</td>
                                 <td>{{$location["Locataire"]["prenom"]}}</td>
                                 <td>{{$location["Locataire"]["phone"]}}</td>
@@ -192,7 +186,6 @@
                     <table class="table">
                         <thead>
                             <tr class="text-center">
-                                <th scope="col">ID</th>
                                 <th scope="col">Prestation</th>
                                 <th scope="col">Peiture</th>
                                 <th scope="col">Caution Eau/Electricité</th>
@@ -205,7 +198,6 @@
                         </thead>
                         <tbody>
                             <tr class="text-center">
-                                <th scope="row">{{$location["id"]}}</th>
                                 <td> <strong class="text-red">{{$location["prestation"]}} fcfa</strong> </td>
                                 <td> <strong>{{$location["frais_peiture"]}} </strong> </td>
                                 <td> <button class="btn btn-sm bg-light"> <strong> {{$location["caution_water"]}} / {{$location["caution_electric"]}}</strong> </button> </td>
@@ -219,7 +211,6 @@
                     </table>
                 </div>
             </div>
-
 
             <br><br>
             <!-- SIGNATURE -->

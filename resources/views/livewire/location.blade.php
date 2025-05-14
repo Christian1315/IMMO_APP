@@ -510,21 +510,10 @@
                                             <ul class="list-group">
                                                 @foreach($location->Factures as $facture)
                                                 <li class="list-group-item mb-3 "> <strong>Code :</strong> {{$facture->facture_code}};
-                                                    <strong>Statut :</strong> <span class="@if($facture->status==2) bg-success @elseif($facture->status==3 || $facture->status==4)  bg-danger @else bg-warning @endif">{{$facture->Status->name}} </span> ;
                                                     <strong>Montant: </strong> {{$facture->amount}};
                                                     <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
                                                     <strong>Date d'écheance: </strong> {{Change_date_to_text($facture->echeance_date)}};
-                                                    <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> ;
-                                                    <strong>Traitement: </strong><br>
-                                                    <form action="{{route('location.UpdateFactureStatus',crypId($facture->status))}}" method="post">
-                                                        @csrf
-                                                        <select required name="status" class="form-select form-control" aria-label="Default select example">
-                                                            @foreach($factures_status as $status)
-                                                            <option value="{{$status['id']}}" @if($status['id']==$facture->id) selected @endif>{{$status["name"]}}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        <button type="submit" class="w-100 btn btn-sm bg-red"> <i class="bi bi-check-all"></i> Traiter</button>
-                                                    </form>
+                                                    <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> 
                                                 </li>
                                                 @endforeach
                                             </ul>
@@ -692,8 +681,8 @@
                                 <div class="mb-3">
                                     <label class="d-block" for="">Locataire</label>
                                     <select class="form-select form-control locataire" name="locataire" aria-label="Default select example">
-                                        @foreach($locators as $locator)
-                                        <option value="{{$locator['id']}}">{{$locator['name']}} {{$locator['prenom']}}</option>
+                                       @foreach($locators as $locator)
+                                        <option value="{{$locator['id']}}">{{$locator->name}} {{$locator->prenom}}</option>
                                         @endforeach
                                     </select>
                                 </div>

@@ -1,137 +1,141 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\FactureStatus;
 use App\Models\Location as ModelsLocation;
 use App\Models\LocationType;
 use App\Models\PaiementType;
+use App\Models\Agency;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
 class Location extends Component
 {
+    public Agency $current_agency;
 
-    public $current_agency;
+    /** @var Collection<ModelsLocation> */
+    public Collection $locations;
+    public int $locations_count = 0;
 
-    public $locations = [];
-    public $locations_count = 0;
+    // /** @var Collection */
+    public $rooms;
 
-    public $rooms = [];
+    /** @var Collection */
+    public Collection $card_types;
 
-    public $card_types = [];
-    public $countries = [];
-    public $departements = [];
+    /** @var Collection */
+    public Collection $countries;
 
-    public $proprietors = [];
-    public $houses = [];
-    public $locators = [];
-    public $locator_types = [];
+    /** @var Collection */
+    public Collection $departements;
 
-    public $cities = [];
-    public $location_types = [];
-    public $location_natures = [];
-    public $quartiers = [];
-    public $zones = [];
+    /** @var Collection */
+    public Collection $proprietors;
 
-    public $location_factures = [];
-    public $location_rooms = [];
-    public $current_location = [];
-    public $current_location_for_room = [];
+    /** @var Collection */
+    public Collection $houses;
 
-    public $paiements_types = [];
-    public $factures_status = [];
+    /** @var Collection */
+    public Collection $locators;
 
-    ###___HOUSES
-    function refreshThisAgencyHouses()
+    /** @var Collection */
+    public Collection $locator_types;
+
+    /** @var Collection */
+    public Collection $cities;
+
+    /** @var Collection */
+    public Collection $location_types;
+
+    /** @var Collection */
+    public Collection $location_natures;
+
+    /** @var Collection */
+    public Collection $quartiers;
+
+    /** @var Collection */
+    public Collection $zones;
+
+    /** @var Collection */
+    public Collection $location_factures;
+
+    /** @var Collection */
+    public Collection $location_rooms;
+
+    /** @var array */
+    public Collection $current_location;
+
+    /** @var Collection */
+    public Collection $paiements_types;
+
+    /** @var Collection */
+    public Collection $factures_status;
+
+    public function refreshThisAgencyHouses(): void
     {
         $this->houses = $this->current_agency->_Houses;
     }
 
-    function refreshThisAgencyLocators()
+    public function refreshThisAgencyLocators(): void
     {
         $title = 'Suppression de location';
-        $text = "Voullez-vous vraiment supprimer ce locataire";
+        $text = "Voulez-vous vraiment supprimer ce locataire";
         confirmDelete($title, $text);
 
-        ###___LOCATORS
-        $agency_locators = $this->current_agency->_Locataires;
-
-        ##___
-        $this->locators = $agency_locators;
+        $this->locators = $this->current_agency->_Locataires;
     }
 
-    ###___ROOMS
-    function refreshThisAgencyRooms()
+    public function refreshThisAgencyRooms(): void
     {
-        $agency_rooms = [];
-
-        foreach ($this->current_agency->_Proprietors as $proprio) {
-            foreach ($proprio->Houses as $house) {
-                foreach ($house->Rooms as $room) {
-                    array_push($agency_rooms, $room);
-                }
-            }
-        }
-        $this->rooms = $agency_rooms;
+        $this->rooms = $this->current_agency->_Proprietors
+            ->flatMap(fn($proprio) => $proprio->Houses)
+            ->flatMap(fn($house) => $house->Rooms);
     }
 
-
-    ###__LOCATIONS
-    function refreshThisAgencyLocations()
+    public function refreshThisAgencyLocations(): void
     {
+        $user = auth()->user();
+        /**
+         * un superviseur ne vera que ces 
+         * locations à lui
+         */
+        $this->locations = $user->hasRole("Superviseur") ?
+            $this->current_agency->_Locations->filter(fn($location) => $location->House->supervisor == $user->id) :
+            $this->current_agency->_Locations;
 
-        $locations = $this->current_agency->_Locations;
-        // dd($locations[0]);
-        ##___
-        $this->locations = $locations;
-        // dd(ModelsLocation::find(206)->Room);
-        $this->locations_count = count($locations);
+        $this->locations_count = $this->locations->count();
     }
 
-    ###___LOCATION TYPE
-    function refreshLocationTypes()
+    public function refreshLocationTypes(): void
     {
         $this->location_types = LocationType::all();
     }
 
-    ###___PAIEMENT TYPE
-    function refreshPaiementTypes()
+    public function refreshPaiementTypes(): void
     {
         $this->paiements_types = PaiementType::all();
     }
 
-    ###___FACTURES STATUS
-    function refreshFactureStatus()
+    public function refreshFactureStatus(): void
     {
         $this->factures_status = FactureStatus::all();
     }
 
-    function mount($agency)
+    public function mount(Agency $agency): void
     {
         set_time_limit(0);
         $this->current_agency = $agency;
 
-        // LOCATIONS
         $this->refreshThisAgencyLocations();
-
-        // ROOMS
         $this->refreshThisAgencyRooms();
-
-        // MAISONS
         $this->refreshThisAgencyHouses();
-
-        // LOCATAIRES
         $this->refreshThisAgencyLocators();
-
-        // CARD TYPES
         $this->refreshPaiementTypes();
-
-        // LOCATION TYPES
         $this->refreshLocationTypes();
-
-        // FACTURES STATUS
         $this->refreshFactureStatus();
-
     }
 
     public function render()

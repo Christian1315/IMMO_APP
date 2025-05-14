@@ -8,154 +8,242 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Class Location
+ * @package App\Models
+ * 
+ * @property int $id
+ * @property string $agency
+ * @property int $house
+ * @property int $room
+ * @property int $locataire
+ * @property int $type
+ * @property int $status
+ * @property string $payment_mode
+ * @property int $moved_by
+ * @property string $move_date
+ * @property string $move_comments
+ * @property int $suspend_by
+ * @property string $suspend_date
+ * @property string $suspend_comments
+ * @property string $next_loyer_date
+ * @property float $caution_bordereau
+ * @property float $loyer
+ * @property float $pre_paid
+ * @property float $post_paid
+ * @property float $water_counter
+ * @property float $electric_counter
+ * @property float $frais_peiture
+ * @property float $prestation
+ * @property string $numero_contrat
+ * @property string $comments
+ * @property string $img_contrat
+ * @property float $caution_water
+ * @property string $echeance_date
+ * @property string $latest_loyer_date
+ * @property string $effet_date
+ * @property string $img_prestation
+ * @property float $caution_electric
+ * @property string $integration_date
+ * @property int $owner
+ * @property bool $visible
+ * @property string $delete_at
+ * @property string $caution_number
+ * @property float $total_amount
+ * @property float $discounter
+ * @property float $kilowater_price
+ * @property float $water_unpaid
+ * @property float $electric_unpaid
+ * @property string $previous_echeance_date
+ * @property int $prorata_days
+ * @property float $prorata_amount
+ */
 class Location extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = "locationsnew";
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
     protected $fillable = [
-        "agency",
-        'house',
-        'room',
-        'locataire',
-        'type',
-        "status",
-        "payment_mode",
+        // Location basic info
+        'agency', 'house', 'room', 'locataire', 'type', 'status', 'payment_mode',
+        'numero_contrat', 'comments', 'visible',
 
-        "moved_by",
-        "move_date",
-        "move_comments",
+        // Financial information
+        'caution_bordereau', 'loyer', 'pre_paid', 'post_paid', 'prestation',
+        'caution_water', 'caution_electric', 'total_amount', 'discounter',
+        'kilowater_price', 'water_unpaid', 'electric_unpaid', 'prorata_amount',
 
-        "suspend_by",
-        "suspend_date",
-        "suspend_comments",
+        // Dates
+        'next_loyer_date', 'echeance_date', 'latest_loyer_date', 'effet_date',
+        'integration_date', 'previous_echeance_date',
 
-        "next_loyer_date",
+        // Counters and measurements
+        'water_counter', 'electric_counter', 'frais_peiture', 'prorata_days',
 
-        'caution_bordereau',
-        'loyer',
+        // Documents and images
+        'img_contrat', 'img_prestation', 'caution_number',
 
-        'pre_paid',
-        'post_paid',
+        // Move related
+        'moved_by', 'move_date', 'move_comments',
 
-        "water_counter",
-        "electric_counter",
-        "frais_peiture",
+        // Suspension related
+        'suspend_by', 'suspend_date', 'suspend_comments',
 
-        'prestation',
-        'numero_contrat',
-
-        'comments',
-        'img_contrat',
-        'caution_water',
-        'echeance_date',
-        'latest_loyer_date',
-        'effet_date',
-        'img_prestation',
-        'caution_electric',
-        'integration_date',
-        'owner',
-        'visible',
-        "delete_at",
-        "caution_number",
-        "total_amount",
-
-        "discounter",
-        "kilowater_price",
-
-        "water_unpaid",
-        "electric_unpaid",
-
-        "previous_echeance_date",
-        "prorata_days",
-        "prorata_amount"
+        // Other
+        'owner', 'delete_at'
     ];
 
-    // si cette location est en impayé ou pas
-    public function paid()
+    /**
+     * Check if the location is in unpaid status
+     *
+     * @return int 1 if unpaid, 0 if paid
+     */
+    public function paid(): int
     {
-        $now = strtotime(date("Y/m/d", strtotime(now())));
-        $location_echeance_date = strtotime(date("Y/m/d", strtotime($this->echeance_date)));
-        if ($location_echeance_date < $now) {
-            return 1;
-        } else {
-            return 0;
-        };
+        return strtotime($this->echeance_date) < strtotime(now()) ? 1 : 0;
     }
 
-    function _Agency(): BelongsTo
+    /**
+     * Get the agency that owns the location
+     */
+    public function _Agency(): BelongsTo
     {
-        return $this->belongsTo(Agency::class, "agency")->where(["visible" => 1]);
+        return $this->belongsTo(Agency::class, "agency")
+            ->where(["visible" => 1])
+            ->orderBy("id", "desc");
     }
 
-    function Owner(): BelongsTo
+    /**
+     * Get the owner of the location
+     */
+    public function Owner(): BelongsTo
     {
         return $this->belongsTo(User::class, "owner");
     }
 
-    function House(): BelongsTo
+    /**
+     * Get the house associated with the location
+     */
+    public function House(): BelongsTo
     {
-        return $this->belongsTo(House::class, "house")->with(["Owner", "Proprietor", "Type", "Supervisor", "City", "Country", "Departement", "Quartier", "Zone"]);
+        return $this->belongsTo(House::class, "house")
+            ->with([
+                "Owner", "Proprietor", "Type", "Supervisor",
+                "City", "Country", "Departement", "Quartier", "Zone"
+            ]);
     }
 
-    function Locataire(): BelongsTo
+    /**
+     * Get the tenant of the location
+     */
+    public function Locataire(): BelongsTo
     {
-        return $this->belongsTo(Locataire::class, "locataire")->with(["Owner", "CardType", "Departement", "Country"])->where(["visible" => 1]);
+        return $this->belongsTo(Locataire::class, "locataire")
+            ->with(["Owner", "CardType", "Departement", "Country"])
+            ->where(["visible" => 1]);
     }
 
-    function Type(): BelongsTo
+    /**
+     * Get the type of the location
+     */
+    public function Type(): BelongsTo
     {
         return $this->belongsTo(LocationType::class, "type");
     }
 
-    function Status(): BelongsTo
+    /**
+     * Get the status of the location
+     */
+    public function Status(): BelongsTo
     {
         return $this->belongsTo(LocationStatus::class, "status");
     }
 
-    function Room(): BelongsTo
+    /**
+     * Get the room associated with the location
+     */
+    public function Room(): BelongsTo
     {
-        return $this->belongsTo(Room::class, "room")->with(["Owner", "House", "Nature", "Type"])->where(["visible" => 1]);
+        return $this->belongsTo(Room::class, "room")
+            ->with(["Owner", "House", "Nature", "Type"])
+            ->where(["visible" => 1]);
     }
 
-    function Factures(): HasMany
+    /**
+     * Get all unpaid invoices for the location
+     */
+    public function Factures(): HasMany
     {
-        return $this->hasMany(Facture::class, "location")->whereNull("state")->with(["Owner", "Location", "Type", "Status", "State"])->orderBy("id", "desc");
+        return $this->hasMany(Facture::class, "location")
+            ->whereNull("state")
+            ->with(["Owner", "Location", "Type", "Status", "State"])
+            ->orderBy("id", "desc");
     }
 
-    function StateFactures(): HasMany
+    /**
+     * Get all state invoices for the location
+     */
+    public function StateFactures(): HasMany
     {
-        return $this->hasMany(Facture::class, "location")->whereNotNull("state")->whereNull("state_facture")->with(["Owner", "Location", "Type", "Status", "State"])->orderBy("id", "desc");
+        return $this->hasMany(Facture::class, "location")
+            ->whereNotNull("state")
+            ->whereNull("state_facture")
+            ->with(["Owner", "Location", "Type", "Status", "State"])
+            ->orderBy("id", "desc");
     }
 
-    function AllFactures(): HasMany
+    /**
+     * Get all invoices for the location
+     */
+    public function AllFactures(): HasMany
     {
-        return $this->hasMany(Facture::class, "location")->with(["Owner", "Location", "Type", "Status", "State"]);
+        return $this->hasMany(Facture::class, "location")
+            ->with(["Owner", "Location", "Type", "Status", "State"]);
     }
 
-    function Paiements(): HasMany
+    /**
+     * Get all payments for the location
+     */
+    public function Paiements(): HasMany
     {
-        return $this->hasMany(Payement::class, "location")->with(["Module", "Type", "Status", "Facture"]);
+        return $this->hasMany(Payement::class, "location")
+            ->with(["Module", "Type", "Status", "Facture"]);
     }
 
-    function WaterFactures(): HasMany
+    /**
+     * Get all water invoices for the location
+     */
+    public function WaterFactures(): HasMany
     {
-        return $this->hasMany(LocationWaterFacture::class, "location")->with(["Location"])->whereNull(["state"])->where(["state_facture" => 0])->orderBy("id", "desc");
+        return $this->hasMany(LocationWaterFacture::class, "location")
+            ->with(["Location"])
+            ->whereNull(["state"])
+            ->where(["state_facture" => 0])
+            ->orderBy("id", "desc");
     }
 
-    function ElectricityFactures(): HasMany
+    /**
+     * Get all electricity invoices for the location
+     */
+    public function ElectricityFactures(): HasMany
     {
-        return $this->hasMany(LocationElectrictyFacture::class, "location")->with(["Location"])->whereNull(["state"])->where(["state_facture" => 0])->orderBy("id", "desc");
+        return $this->hasMany(LocationElectrictyFacture::class, "location")
+            ->with(["Location"])
+            ->whereNull(["state"])
+            ->where(["state_facture" => 0])
+            ->orderBy("id", "desc");
     }
 
-    function Agency(): BelongsTo
-    {
-        return $this->belongsTo(Agency::class, "agency")->where(["visible" => 1])->orderBy("id", "desc");
-    }
-
-    function MovedBy(): BelongsTo
+    /**
+     * Get the user who moved the location
+     */
+    public function MovedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, "moved_by");
     }

@@ -3,10 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agency;
-use App\Models\AgencyAccount;
-use App\Models\AgencyAccountSold;
-use App\Models\Facture;
-use App\Models\HomeStopState;
 use App\Models\House;
 use App\Models\Locataire;
 use App\Models\Location;
@@ -15,19 +11,27 @@ use App\Models\LocationStatus;
 use App\Models\LocationType;
 use App\Models\LocationWaterFacture;
 use App\Models\PaiementType;
-use App\Models\Payement;
 use App\Models\Proprietor;
 use App\Models\Room;
-use App\Models\StopHouseElectricityState;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use App\Traits\LocationValidationTrait;
+use App\Traits\LocationPaymentTrait;
+use App\Traits\LocationStateTrait;
+use Carbon\Carbon;
 
 class LocationController extends Controller
 {
+    use LocationValidationTrait, LocationPaymentTrait, LocationStateTrait;
+// Constants
+    const STATUS_MOVED = 3;
+    const STATUS_SUSPENDED = 2;
+    const STATUS_ACTIVE = 1;
+    
     #VERIFIONS SI LE USER EST AUTHENTIFIE
     public function __construct()
     {
@@ -129,669 +133,508 @@ class LocationController extends Controller
         ];
     }
 
-    ##======== PAIEMENT VALIDATION =======##
-    static function paiement_rules(): array
-    {
-        return [
-            'location' => ['required', "integer"],
-            'type' => ['required', "integer"],
-            'facture_code' => ['required', "unique:factures,facture_code"],
-        ];
-    }
-
-    static function paiement_messages(): array
-    {
-        return [
-            'location.required' => 'La location  est réquise!',
-            'type.required' => "Le type de paiement est réquis!",
-            'location.integer' => "Ce champ doit être de type entier!",
-            'type.integer' => "Ce champ doit être de type entier!",
-
-            'facture_code.required' => "Veillez préciser le code de la facture!",
-            'facture_code.unique' => "Ce code de facture existe déjà!",
-        ];
-    }
-
-    ########################===================== FIN DES VALIDATIONS ======================###############
-
     ########################===================== DEBUT DES METHODES ======================###############
 
     ####____AJOUT D'UN TYPE DE LOCATION
     static function _AddType(Request $request)
     {
-        // validation
-        $formData = $request->all();
-        Validator::make($request->all(), self::room_type_rules(), self::room_type_messages())->validate();
+        try {
+            DB::beginTransaction();
 
+            // validation
+            $formData = $request->all();
+            Validator::make($request->all(), self::room_type_rules(), self::room_type_messages())->validate();
 
-        $type = LocationType::create($formData);
-        alert()->success("Succès", "Type de location ajouté avec succès!");
-        return back();
+            $type = LocationType::create($formData);
+
+            DB::commit();
+
+            alert()->success("Succès", "Type de location ajouté avec succès!");
+            return back();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
+            return back();
+        }
     }
 
-    // AGENCY CAUTION MANAGEMENT
+    /**
+     * Gère les cautions pour une agence spécifique
+     * 
+     * @param Request $request
+     * @param string $agencyId
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
     function _ManageCautions(Request $request, $agencyId)
     {
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
+        try {
+            // Validation de l'agence
+            $agency = Agency::where("visible", 1)
+                ->find(deCrypId($agencyId));
+
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading pour optimiser les performances
+            $locations = $agency->_Locations()
+                ->with(['Room', 'Locataire', 'House'])
+                ->get();
+
+            if ($locations->isEmpty()) {
+                throw new \Exception("Aucune location trouvée pour cette agence!");
+            }
+
+            // Calcul des cautions en utilisant les collections
+            $cautions = $locations->map(function ($location) {
+                return [
+                    'electricity' => $location->caution_electric,
+                    'water' => $location->caution_water,
+                    'waterPluselectricity' => $location->caution_water + $location->caution_water,
+                    'cautionLoyer' => $location->caution_number * $location->loyer
+                ];
+            });
+
+            // Calcul des totaux
+            $totals = [
+                'electricity' => $cautions->sum('electricity'),
+                'water' => $cautions->sum('water'),
+                'waterPluselectricity' => $cautions->sum("waterPluselectricity"),
+                'cautionLoyer' => $cautions->sum('cautionLoyer')
+            ];
+
+            return view("cautions", compact("locations", "cautions", "totals"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
             return back();
         }
-        $locations = $agency->_Locations;
-
-        $cautions_eau = [];
-        $cautions_electricity = [];
-        $cautions_loyer = [];
-
-        foreach ($locations as $location) {
-            array_push($cautions_electricity, $location->caution_electric);
-            array_push($cautions_eau, $location->caution_water);
-            array_push($cautions_loyer, ($location->caution_number * $location->loyer));
-        }
-
-        alert()->success('Succès', "Caution générées avec succès!");
-        return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
-    // LOCATIONS CAUTION MANAGEMENT
+    /**
+     * Gère les cautions pour une location spécifique
+     * 
+     * @param Request $request
+     * @param int $locationId
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
     function _ManageLocationCautions(Request $request, $locationId)
     {
-        $location = Location::where("visible", 1)->find($locationId);
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
+        try {
+            // Validation de la location
+            $location = Location::where("visible", 1)->find($locationId);
+            if (!$location) {
+                throw new \Exception("Cette location n'existe pas!");
+            }
+
+            // Calcul des différentes cautions
+            $cautions = [
+                'eau' => $location->caution_water,
+                'electricite' => $location->caution_electric,
+                'loyer' => $location->caution_number * $location->loyer
+            ];
+
+            // Vérification des valeurs négatives
+            foreach ($cautions as $type => $montant) {
+                if ($montant < 0) {
+                    throw new \Exception("La caution {$type} ne peut pas être négative!");
+                }
+            }
+
+            // Calcul du total des cautions
+            $total_cautions = array_sum($cautions);
+
+            alert()->success('Succès', "Cautions générées avec succès!");
+            return view("location_cautions", compact("location", "cautions", "total_cautions"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
             return back();
         }
-
-        $cautions_eau = $location->caution_electric;
-        $cautions_electricity = $location->caution_water;
-        $cautions_loyer = $location->caution_number * $location->loyer;
-
-        alert()->success('Succès', "Caution générées avec succès!");
-        return view("location_cautions", compact(["location", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-
-        // $pdf = Pdf::loadView('location_cautions', compact(["location", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-        // return $pdf->stream();
     }
 
     // LOCATIONS ETATS PRORATA
     function _ManageLocationProrata(Request $request, $locationId)
     {
-        $location = Location::where("visible", 1)->find($locationId);
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
+        try {
+            // Validate location exists and is active
+            $location = Location::with(['Room', 'Locataire', 'House'])
+                ->where('visible', 1)
+                ->find($locationId);
+
+            if (!$location) {
+                throw new \Exception("Cette location n'existe pas ou n'est plus active!");
+            }
+
+            // Check if location has required relationships
+            if (!$location->Room || !$location->Locataire || !$location->House) {
+                throw new \Exception("Données de location incomplètes!");
+            }
+
+            // Calculate prorata if needed
+            $prorataData = [
+                'location' => $location,
+                'prorata_amount' => $this->calculateProrataAmount($location),
+                'calculation_date' => now()->format('Y-m-d')
+            ];
+
+            return view("etat_prorata", compact("prorataData"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
             return back();
         }
+    }
 
-        alert()->success('Succès', "Caution générées avec succès!");
-        return view("etat_prorata", compact(["location"]));
+    /**
+     * Calculate prorata amount for a location
+     * 
+     * @param Location $location
+     * @return float
+     */
+    private function calculateProrataAmount(Location $location): float
+    {
+        // Get the number of days in the current month
+        $daysInMonth = now()->daysInMonth;
+
+        // Get the day of the month when the location started
+        $startDay = $location->effet_date->day;
+
+        // Calculate the number of days the location is active this month
+        $activeDays = $daysInMonth - $startDay + 1;
+
+        // Calculate daily rate
+        $dailyRate = $location->loyer / $daysInMonth;
+
+        // Calculate prorata amount
+        return round($dailyRate * $activeDays, 2);
     }
 
     #####___GENERATION DES PRESTATION PAR PERIODE
     function _ManagePrestationStatistiqueForAgencyByPeriod(Request $request, $agencyId)
     {
-        ##__
-        $formData = $request->all();
+        try {
+            // Validation des dates
+            $validator = Validator::make($request->all(), [
+                'first_date' => 'required|date',
+                'last_date' => 'required|date|after_or_equal:first_date'
+            ], [
+                'first_date.required' => 'La date de début est requise',
+                'first_date.date' => 'La date de début doit être une date valide',
+                'last_date.required' => 'La date de fin est requise',
+                'last_date.date' => 'La date de fin doit être une date valide',
+                'last_date.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début'
+            ]);
 
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echec", "Désolé! Cette Agence n'existe pas!");
-            return back();
+            if ($validator->fails()) {
+                throw new \Exception($validator->errors()->first());
+            }
+
+            // Récupération de l'agence avec eager loading
+            $agency = Agency::where("visible", 1)
+                ->find(deCrypId($agencyId));
+
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading
+            $locations = $agency->_Locations()
+                ->with(['Room', 'Locataire', 'House'])
+                ->whereBetween("created_at", [
+                    $request->first_date,
+                    $request->last_date
+                ])
+                ->get();
+
+            if ($locations->isEmpty()) {
+                throw new \Exception("Aucune location trouvée pour cette période!");
+            }
+
+            return view("prestation-statistique", compact("locations", "agency"));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-
-        $prestations = [];
-
-        ####____
-        $locations = $agency->_Locations->whereBetween("created_at", [$request->first_date, $request->last_date]);
-        foreach ($locations as $location) {
-            array_push($prestations, $location->prestation);
-        }
-
-        return view("prestation-statistique", compact(["locations", "prestations", "agency"]));
     }
 
     function _AddLocation(Request $request)
     {
-        $formData = $request->all();
-        #VERIFICATION DE LA METHOD
-        Validator::make($formData, self::location_rules(), self::location_messages())->validate();
+        try {
+            DB::beginTransaction();
 
-        $user = request()->user();
+            $formData = $request->all();
+            $this->validateLocationData($formData);
 
-        ###___TRAITEMENT DES DATAS
-        $house = House::find($formData["house"]);
-        $room = Room::find($formData["room"]);
-        $locataire = Locataire::find($formData["locataire"]);
-        $type = LocationType::find($formData["type"]);
-        $agency = Agency::find($formData["agency"]);
+            $user = request()->user();
+            $locationData = $this->prepareLocationData($request, $formData, $user);
 
-        ##__LES INFOS LIEES AU COMPTEUEr LECTRIQUE D'UNE LOCATION REVIENNENT AUX INFOS ELECYTRICQUE DE LMA CHAMBRE CHOISIE
+            $location = Location::create($locationData);
+
+            $this->updateLocationDates($request, $locationData, $location);
+
+            DB::commit();
+
+            alert()->success("Succès", "Location ajoutée avec succès!!");
+            return back()->withInput();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Prépare les données de location pour la création
+     * 
+     * @param array $formData Les données du formulaire
+     * @param User $user L'utilisateur qui crée la location
+     * @return array Les données préparées pour la création
+     */
+    private function prepareLocationData($request, array $formData, User $user): array
+    {
+        $room = Room::findOrFail($request->room);
         $formData["discounter"] = $room->electricity ? true : false;
-        $formData["kilowater_price"] = $room->electricity ? ($room->electricity_unit_price ? $room->electricity_unit_price : 0) : 0;
+        $formData["kilowater_price"] = $room->electricity ? ($room->electricity_unit_price ?? 0) : 0;
         ###___
 
         if ($request->pre_paid == $request->post_paid) {
-            alert()->error("Echec", "Veuillez choisir soit l'option pré-payé, soit le post-payé!");
-            return back()->withInput();
+            throw new \Exception("Veuillez choisir soit l'option pré-payé, soit le post-payé!");
         }
 
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$room) {
-            alert()->error("Echec", "Cette chambre n'existe pas!");
-            return back()->withInput();
-        } else {
-            if ($room->House->id != $request->house) {
-                alert()->error("Echec", "Cette chambre n'appartient pas à la maison " . House::find($request->house)->name);
-                return back()->withInput();
-            }
-
-            if (Location::where(["house" => $house->id, "room" => $room->id])->first()) {
-                alert()->error("Echec", "La chambre $room->number existe déjà dans la maison $house->name");
-            }
-        }
-
-        if (!$locataire) {
-            alert()->error("Echec", "Ce locataire n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$type) {
-            alert()->error("Echec", "Ce type de location n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!$agency) {
-            alert()->error("Echec", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        ####___ TRAITEMENT DE LA CHAMBRE
-        if (!$room) {
-            alert()->error("Echec", "Cette chambre n'existe pas!");
-            return back()->withInput();
-        }
-
-        $room_locations = Location::where(["room" => $formData["room"], "house" => $formData["house"]])->get()->filter(function ($location) {
-            // location non demenagéss
-            return $location->status != 3;
-        });
-        if (count($room_locations) > 0) {
-            alert()->error("Echec", "Cette chambre est déjà occupée!");
-            return back()->withInput();
-        }
-
-        ##___TRAITEMENT DES IMAGES
-        if ($request->file("caution_bordereau")) {
-            $caution_bordereau = $request->file("caution_bordereau");
+        // Traitement des fichiers
+        if (isset($formData['caution_bordereau']) && $formData['caution_bordereau']) {
+            $caution_bordereau = $formData['caution_bordereau'];
             $caution_bordereauName = $caution_bordereau->getClientOriginalName();
             $caution_bordereau->move("caution_bordereaus", $caution_bordereauName);
             $formData["caution_bordereau"] = asset("caution_bordereaus/" . $caution_bordereauName);
         }
 
-        if ($request->file("img_contrat")) {
-            $img_contrat = $request->file("img_contrat");
+        if (isset($formData['img_contrat']) && $formData['img_contrat']) {
+            $img_contrat = $formData['img_contrat'];
             $img_contratName = $img_contrat->getClientOriginalName();
             $img_contrat->move("img_contrats", $img_contratName);
             $formData["img_contrat"] = asset("img_contrats/" . $img_contratName);
         }
 
-        if ($request->file("img_prestation")) {
-            $img_prestation = $request->file("img_prestation");
+        if (isset($formData['img_prestation']) && $formData['img_prestation']) {
+            $img_prestation = $formData['img_prestation'];
             $img_prestationName = $img_contrat->getClientOriginalName();
             $img_prestation->move("img_prestations", $img_prestationName);
             $formData["img_prestation"] = asset("img_prestations/" . $img_prestationName);
         }
 
-        #ENREGISTREMENT DU LOCATION DANS LA DB
-        $formData["owner"] = $user->id;
-
-        ##__
+        // Ajout des informations supplémentaires
+        $formData['owner'] = $user->id;
         $formData["loyer"] = $room->total_amount;
-
         $formData["pre_paid"] = $request->pre_paid ? true : false;
         $formData["post_paid"] = $request->post_paid ? true : false;
         $formData["comments"] = $request->comments ? $request->comments : "---";
         $formData["frais_peiture"] = $request->frais_peiture ? $request->frais_peiture : 0;
+        $formData['status'] = self::STATUS_ACTIVE;
 
-        if ($formData["pre_paid"] == $formData["post_paid"]) {
-            alert()->error("Echec", "Veuillez choisir soit l'option *prepayée* ou *postpayée*");
-            return back()->withInput();
+        // Nettoyage des données
+        $formData = array_filter($formData, function ($value) {
+            return $value !== null && $value !== '';
+        });
+
+        return $formData;
+    }
+
+    /**
+     * Met à jour les dates importantes d'une location
+     * 
+     * @param Request $request
+     * @param Location $location
+     * @return void
+     */
+    private function updateLocationDates($request, $locationData, Location $location)
+    {
+        try {
+            DB::beginTransaction();
+
+            $effetDate = Carbon::parse($request->effet_date);
+
+            // Calcul de la date d'échéance selon le type de paiement
+            $echeanceDate = $this->calculateEcheanceDate($effetDate, $locationData["pre_paid"]);
+
+            // Calcul de la prochaine date de loyer
+            $nextLoyerDate = $this->calculateNextLoyerDate($effetDate);
+
+            // Mise à jour des dates dans la location
+            $location->update([
+                'effet_date' => $effetDate,
+                'echeance_date' => $echeanceDate,
+                'integration_date' => $effetDate,
+                'previous_echeance_date' => $echeanceDate,
+                'latest_loyer_date' => $effetDate,
+                'next_loyer_date' => $nextLoyerDate,
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return alert()->error("Erreure lors de la mise à jour des dates", $e->getMessage());
         }
+    }
 
-        ###__DETERMIONONS LA DATE D'ECHEANCE
-        $echeance_date = "";
-        // $effet_date = $formData["integration_date"]; ##__ date d'effet n'est rien d'autre que la date d'intégration
-
-        // dd($formData);
-        if ($formData["pre_paid"]) {
-            ##__En pre-payé, la date d'echeance revient à la date
-            ##__de prise d'effet + 1 mois (date d'intégration)
-            $integration_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($formData["effet_date"]));
-            $echeance_date = date("Y/m/d", $integration_date_timestamp_plus_one_month);
-        } elseif ($formData["post_paid"]) {
-            ##__En post-payé, la date d'echeance revient à la date
-            ##__de prise d'effet (date d'intégration) + 2 mois
-            $integration_date_timestamp_plus_one_month = strtotime("+2 month", strtotime($formData["effet_date"]));
-            $echeance_date = date("Y/m/d", $integration_date_timestamp_plus_one_month);
+    /**
+     * Calcule la date d'échéance selon le type de paiement
+     * 
+     * @param Carbon $effetDate
+     * @param bool $isPrePaid
+     * @return Carbon
+     */
+    private function calculateEcheanceDate(Carbon $effetDate, bool $isPrePaid): Carbon
+    {
+        try {
+            return $isPrePaid
+                ? $effetDate->copy()->addMonth()  // Pre-payé: échéance = date d'effet + 1 mois
+                : $effetDate->copy()->addMonths(2); // Post-payé: échéance = date d'effet + 2 mois
+        } catch (\Exception $e) {
+            return alert()->error("Erreure", $e->getMessage());
         }
+    }
 
-        $formData["integration_date"] = $formData["effet_date"];
-
-        $formData["previous_echeance_date"] = $echeance_date;
-        $formData["echeance_date"] = $echeance_date;
-        $formData["latest_loyer_date"] = $formData["effet_date"];
-
-        ####___DESORMAIS LA DATE DU PROCHAIN REVIENT A LA DATE PAIEMENT D'ECHEANCE 
-        $formData["next_loyer_date"] = date("Y/m/d", strtotime("+1 month", strtotime($formData["latest_loyer_date"])));
-        $location = Location::create($formData);
-
-        ###___FORMATION DE LA PROCHAINE DATE DE LOYER
-        // ça revient à la précedente date de loyer + 1 mois
-
-        // $location_latest_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->latest_loyer_date));
-        // $location_next_loyer_date = date("Y/m/d", $location_latest_loyer_timestamp_plus_one_month);
-        // $location->next_loyer_date = $location_next_loyer_date;
-
-        ###__DETERMIONONS LA DATE DU DERNIER LOYE PAYE (ça revient à la date d'effet aui n'est rien d'autre que la date d'intégration)
-        $location->latest_loyer_date = $location->integration_date; ##(date d'effet)
-
-        $location->save();
-        ###___
-        alert()->success("Succès", "Location ajoutée avec succès!!");
-        return back()->withInput();
+    /**
+     * Calcule la prochaine date de loyer
+     * 
+     * @param Carbon $effetDate
+     * @return Carbon
+     */
+    private function calculateNextLoyerDate(Carbon $effetDate): Carbon
+    {
+        return $effetDate->copy()->addMonth();
     }
 
     ###___MODIFIER UNE LOCATION
     function UpdateLocation(Request $request, $id)
     {
-        $user = request()->user();
+        try {
+            DB::beginTransaction();
 
-        $formData = $request->all();
+            $user = request()->user();
+            $formData = $request->all();
+            $location = Location::find($id);
 
-        $location = Location::find($id);
-
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
-            return back()->withInput();
-        };
-
-
-        if (!auth()->user()->is_master && !auth()->user()->is_admin) {
-            if ($location->owner != $user->id) {
-                alert()->error("Echec", "Cette location ne vous appartient pas!");
-                return back()->withInput();
-            }
-        }
-
-        ####____TRAITEMENT DU HOUSE
-        if ($request->get("house")) {
-            $house = House::find($request->get("house"));
-            if (!$house) {
-                alert()->error("Echec", "Cette location maison n'existe pas!");
-                return back()->withInput();
-            }
-        }
-
-        ####____TRAITEMENT DE LA CHAMBRE
-        if ($request->get("room")) {
-            $room = Room::find($request->get("room"));
-
-            if (!$room) {
-                alert()->error("Echec", "Cette chambre n'existe pas!");
-                return back()->withInput();
-            }
-        }
-
-        ####____TRAITEMENT DU LOCATAIRE
-        if ($request->get("locataire")) {
-            $locataire = Locataire::find($request->get("locataire"));
-            if (!$locataire) {
-                alert()->error("Echec", "Ce locataire n'existe pas!");
-                return back()->withInput();
-            }
-        }
-
-        ####____TRAITEMENT DU TYPE DE LOCATION
-        if ($request->get("type")) {
-            $type = LocationType::find($request->get("type"));
-            if (!$type) {
-                alert()->error("Echec", "Ce type de location n'existe pas!");
-                return back()->withInput();
-            }
-        }
-        ####____TRAITEMENT DU CAUTION BORDEREAU
-        if ($request->file("caution_bordereau")) {
-            $caution_bordereau = $request->file("caution_bordereau");
-            $caution_bordereauName = $caution_bordereau->getClientOriginalName();
-            $caution_bordereau->move("caution_bordereaus", $caution_bordereauName);
-            $formData["caution_bordereau"] = asset("caution_bordereaus/" . $caution_bordereauName);
-        } else {
-            $formData["caution_bordereau"] = $location->caution_bordereau;
-        }
-
-        ####____TRAITEMENT DE L'IMAGE DU CONTRAT
-        if ($request->file("img_contrat")) {
-            $img_contrat = $request->file("img_contrat");
-            $img_contratName = $img_contrat->getClientOriginalName();
-            $img_contrat->move("img_contrats", $img_contratName);
-            $formData["img_contrat"] = asset("img_contrats/" . $img_contratName);
-        } else {
-            $formData["img_contrat"] = $location->img_contrat;
-        }
-
-
-        ####____TRAITEMENT DE L'IMAGE DE LA PRESTATION
-        if ($request->file("img_prestation")) {
-            $img_prestation = $request->file("img_prestation");
-            $img_prestationName = $img_contrat->getClientOriginalName();
-            $img_prestation->move("img_prestations", $img_prestationName);
-            $formData["img_prestation"] = asset("img_prestations/" . $img_prestationName);
-        } else {
-            $formData["img_prestation"] = $location->img_prestation;
-        }
-
-
-        ####____TRAITEMENT DU STATUS DE LOCATION
-        if ($request->get("status")) {
-            $status = LocationStatus::find($request->get("status"));
-            if (!$status) {
-                alert()->error("Echec", "Ce status de location n'existe pas!");
-                return back()->withInput();
+            if (!$location) {
+                throw new \Exception("Cette location n'existe pas!");
             }
 
-            #===SI LE STATUS EST **SUSPEND**=====#
-            if ($request->get("status") == 2) {
-                if (!$request->get("suspend_comments")) {
-                    alert()->error("Echec", "Veuillez préciser la raison de suspenssion de cette location!");
-                    return back()->withInput();
-                }
-                $formData["suspend_date"] = now();
-                $formData["suspend_by"] = $user->id;
-            }
-
-            #===SI LE STATUS EST **MOVED**=====#
-            if ($request->get("status") == 3) {
-                if (!$request->get("move_comments")) {
-                    alert()->error("Echec", "Veuillez préciser la raison de demenagement de cette location!");
-                    return back()->withInput();
-                }
-                $formData["move_date"] = now();
-                $formData["visible"] = 0;
-                $formData["delete_at"] = now();
-            }
-        }
-        $data = array_merge($request->all(), $formData);
-        $location->update($data);
-
-        ####____
-        alert()->success("Succès", "Location modifiée avec succès!");
-        return back()->withInput();
-    }
-
-    ###___ MODIFIER END_INDEX FACTURE ELECTICITE
-    function ElectricityUpdateEndIndex(Request $request, $factureId)
-    {
-        $facture = LocationElectrictyFacture::find($factureId);
-        if (!$facture) {
-            alert()->error("Echec", "Cette facture n'existe pas!");
-            return back()->withInput();
-        }
-
-        $facture->update([
-            "end_index" => $request->end_index,
-            "consomation" => $request->end_index - $request->start_index,
-            "amount" => ($request->end_index - $request->start_index) * ((int) $facture->Location->Room->electricity_unit_price)
-        ]);
-
-        alert()->success("Success", "Index de fin modifié avec succès!");
-        return back()->withInput();
-    }
-
-    ###___ MODIFIER END_INDEX FACTURE EAU
-    function WaterUpdateEndIndex(Request $request, $factureId)
-    {
-        $facture = LocationWaterFacture::find($factureId);
-        if (!$facture) {
-            alert()->error("Echec", "Cette facture n'existe pas!");
-            return back()->withInput();
-        }
-
-        $facture->update([
-            "end_index" => $request->end_index,
-            "consomation" => $request->end_index - $request->start_index,
-            "amount" => ($request->end_index - $request->start_index) * ((int) $facture->Location->Room->unit_price)
-        ]);
-
-        alert()->success("Success", "Index de fin modifié avec succès!");
-        return back()->withInput();
-    }
-
-    #####___FILTRE PAR SUPERVISEUR
-    function FiltreBySupervisor(Request $request, Agency $agency)
-    {
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!User::find($request->supervisor)) {
-            alert()->error("Echèc", "Ce superviseur n'existe pas!");
-            return back()->withInput();
-        }
-
-        ###___LOCATIONS
-        $locations_filtred = $agency->_Locations->where("statut", "!=", 3)->filter(function ($location) use ($request) {
-            if ($location->House->Supervisor->id == $request->supervisor) {
-                return $location;
-            }
-        });
-
-        if (count($locations_filtred) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            return back()->withInput();
-        }
-        ####____
-        alert()->success("Succès", "Location filtrés par superviseur avec succès!");
-        return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
-    }
-
-    #####___FILTRE PAR MAISON
-    function FiltreByHouse(Request $request, Agency $agency)
-    {
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        if (!User::find($request->house)) {
-            alert()->error("Echèc", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
-
-        ###___LOCATIONS
-        $locations_filtred = $agency->_Locations->where("statut", "!=", 3)->filter(function ($location) use ($request) {
-            if ($location->House->id == $request->house) {
-                return $location;
-            }
-        });
-
-        if (count($locations_filtred) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            return back()->withInput();
-        }
-        ####____
-        alert()->success("Succès", "Locations filtrés par maison avec succès!");
-        return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
-    }
-
-    #####___FILTRE PAR PROPRIETAIRE
-    function FiltreByProprio(Request $request, Agency $agency)
-    {
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-
-        // dd($request->proprio);
-        $proprietor = Proprietor::find($request->proprio);
-        if (!$proprietor) {
-            alert()->error("Echèc", "Cet propriétaire n'existe pas!");
-            return back()->withInput();
-        }
-
-        // dd($proprietor);
-
-        ###___LOCATIONS
-        $locations_filtred = $agency->_Locations->where("statut", "!=", 3)->filter(function ($location) use ($request) {
-            if ($location->House->Proprietor->id == $request->proprio) {
-                return $location;
-            }
-        });
-
-        // dd($locations_filtred);
-
-        if (count($locations_filtred) == 0) {
-            alert()->error("Echèc", "Aucun résultat trouvé");
-            return back()->withInput();
-        }
-        ####____
-        alert()->success("Succès", "Locations filtrés par propriétaire avec succès!");
-        return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
-    }
-
-    // IMPRESSION
-    function Imprimer(Request $request, $locationId)
-    {
-        $location = Location::where("visible", 1)->find(deCrypId($locationId));
-        // return view("imprimer_location", compact("location"));
-        // dd($location);
-        $pdf = Pdf::loadView('imprimer_location', compact("location"));
-
-        return $pdf->stream();
-    }
-
-    // IMPRESSION DE TOUTES LES LOCATIONS PAR SUPERVISUER
-    function PrintAllLocationBySupervisor(Request $request, $agencyId)
-    {
-        Session::forget("imprimUnPaidLocations");
-        $agency =  Agency::find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-        $superviseur = User::find($request->supervisor);
-
-        $locations = Location::where("visible", 1)->get()->filter(function ($location) use ($request) {
-            if ($location->House->Supervisor->id == $request->supervisor) {
-                return $location;
-            }
-        });
-
-        return view("imprimer_locations", compact("locations", "superviseur"));
-    }
-
-    // IMPRESSION DE TOUTES LES LOCATIONS IMPAYES PAR SUPERVISUER
-    function PrintUnPaidLocationBySupervisor(Request $request, $agencyId)
-    {
-        $agency =  Agency::find(deCrypId($agencyId));
-        if (!$agency) {
-            alert()->error("Echèc", "Cette agence n'existe pas!");
-            return back()->withInput();
-        }
-        $superviseur = User::find($request->supervisor);
-
-        $now = strtotime(date("Y/m/d", strtotime(now())));
-
-        $locations = Location::where("visible", 1)->where("status", '!=', 3)->get()->filter(function ($location) use ($request, $now) {
-            $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
-            if ($location_echeance_date < $now) {
-                if ($location->House->Supervisor->id == $request->supervisor) {
-                    return $location;
+            if (!auth()->user()->is_master && !auth()->user()->is_admin) {
+                if ($location->owner != $user->id) {
+                    throw new \Exception("Cette location ne vous appartient pas!");
                 }
             }
-        });
 
-        Session::put("imprimUnPaidLocations", true);
-        return view("imprimer_locations", compact("locations", "superviseur"));
-    }
+            ####____TRAITEMENT DU HOUSE
+            if ($request->get("house")) {
+                $house = House::find($request->get("house"));
+                if (!$house) {
+                    throw new \Exception("Cette location maison n'existe pas!");
+                }
+            }
 
-    ####____DEMENAGEMENT
-    function DemenageLocation(Request $request, $locationId)
-    {
-        #####____VALIDATION DES DATAS
-        $formData = $request->all();
-        Validator::make($formData, ["move_comments" => "required"], ["move_comments.required" => "Le commentaire est réquis!"])->validate();
+            ####____TRAITEMENT DE LA CHAMBRE
+            if ($request->get("room")) {
+                $room = Room::find($request->get("room"));
+                if (!$room) {
+                    throw new \Exception("Cette chambre n'existe pas!");
+                }
+            }
 
-        $user = request()->user();
-        $location = Location::find($locationId);
+            ####____TRAITEMENT DU LOCATAIRE
+            if ($request->get("locataire")) {
+                $locataire = Locataire::find($request->get("locataire"));
+                if (!$locataire) {
+                    throw new \Exception("Ce locataire n'existe pas!");
+                }
+            }
 
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
-            return back()->withInput();
-        };
+            ####____TRAITEMENT DU TYPE DE LOCATION
+            if ($request->get("type")) {
+                $type = LocationType::find($request->get("type"));
+                if (!$type) {
+                    throw new \Exception("Ce type de location n'existe pas!");
+                }
+            }
 
-        $house = House::find($location->house);
+            ####____TRAITEMENT DU CAUTION BORDEREAU
+            if ($request->file("caution_bordereau")) {
+                $caution_bordereau = $request->file("caution_bordereau");
+                $caution_bordereauName = $caution_bordereau->getClientOriginalName();
+                $caution_bordereau->move("caution_bordereaus", $caution_bordereauName);
+                $formData["caution_bordereau"] = asset("caution_bordereaus/" . $caution_bordereauName);
+            } else {
+                $formData["caution_bordereau"] = $location->caution_bordereau;
+            }
 
-        ###___DERNIERE DATE D'ARRET DES ETATS DE CETTE MAISON ##
-        $state_stop_date_of_this_house = HomeStopState::orderBy("id", "desc")->where(["house" => $location->house])->get();
-        if (count($state_stop_date_of_this_house) != 0) { ##Quand la maison dispose d'une date des arrets des etats
+            ####____TRAITEMENT DE L'IMAGE DU CONTRAT
+            if ($request->file("img_contrat")) {
+                $img_contrat = $request->file("img_contrat");
+                $img_contratName = $img_contrat->getClientOriginalName();
+                $img_contrat->move("img_contrats", $img_contratName);
+                $formData["img_contrat"] = asset("img_contrats/" . $img_contratName);
+            } else {
+                $formData["img_contrat"] = $location->img_contrat;
+            }
 
-            ###__DATE D'ARRET DES ETATS DE CETTE MAISON
-            $state_stop_date_of_this_house = strtotime($state_stop_date_of_this_house[0]->stats_stoped_day);
+            ####____TRAITEMENT DE L'IMAGE DE LA PRESTATION
+            if ($request->file("img_prestation")) {
+                $img_prestation = $request->file("img_prestation");
+                $img_prestationName = $img_contrat->getClientOriginalName();
+                $img_prestation->move("img_prestations", $img_prestationName);
+                $formData["img_prestation"] = asset("img_prestations/" . $img_prestationName);
+            } else {
+                $formData["img_prestation"] = $location->img_prestation;
+            }
 
-            ###__LES LOCATIONS DE CETTE MAISON
-            $this_house_locations = $house->Locations;
+            ####____TRAITEMENT DU STATUS DE LOCATION
+            if ($request->get("status")) {
+                $status = LocationStatus::find($request->get("status"));
+                if (!$status) {
+                    throw new \Exception("Ce status de location n'existe pas!");
+                }
 
-            ###__LES PAIEMENTS LIES A LA LOCATION DE CETTE MAISON
-            $locations_that_paid_before_state_stoped_day = [];
-            $locations_that_paid_after_state_stoped_day = [];
-
-            foreach ($this_house_locations as $this_house_location) {
-                ###__RECUPERONS LES LOCATIONS AYANT PAYES
-                $location_payements = Payement::with(["Status", "Location", "Facture"])->where(["location" => $this_house_location->id])->get();
-
-                ##__TRAITEMENT DE LA DATE DE PAIEMENT( puis filtrer les locations avant et après paiement)
-                foreach ($location_payements as $location_payement) {
-                    $location_payement_date = strtotime($location_payement->created_at);
-
-                    if ($location_payement_date < $state_stop_date_of_this_house) {
-                        array_push($locations_that_paid_before_state_stoped_day, $this_house_location);
-                    } else {
-                        array_push($locations_that_paid_after_state_stoped_day, $this_house_location);
+                #===SI LE STATUS EST **SUSPEND**=====#
+                if ($request->get("status") == 2) {
+                    if (!$request->get("suspend_comments")) {
+                        throw new \Exception("Veuillez préciser la raison de suspenssion de cette location!");
                     }
+                    $formData["suspend_date"] = now();
+                    $formData["suspend_by"] = $user->id;
                 }
-            };
 
-            ###___Verifions si ce locataire fait parti des locataires qui ont payé
-            ###___après arret des etats
-
-            $result = false;
-            foreach ($locations_that_paid_after_state_stoped_day as $locations_that_paid_after_state_stoped_day_) {
-                if ($locations_that_paid_after_state_stoped_day_->locataire == $location->locataire) {
-                    $result = true;
+                #===SI LE STATUS EST **MOVED**=====#
+                if ($request->get("status") == 3) {
+                    if (!$request->get("move_comments")) {
+                        throw new \Exception("Veuillez préciser la raison de demenagement de cette location!");
+                    }
+                    $formData["move_date"] = now();
+                    $formData["visible"] = 0;
+                    $formData["delete_at"] = now();
                 }
             }
 
-            if ($result) {
-                alert()->error("Echec", "Ce locataire a effectué des paiements après l'arrêt des états! Vous ne pouvez pas le démenager!");
-                return back()->withInput();
-            }
+            $data = array_merge($request->all(), $formData);
+            $location->update($data);
+
+            DB::commit();
+
+            alert()->success("Succès", "Location modifiée avec succès!");
+            return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-
-        $formData["move_date"] = now();
-        $formData["status"] = 3;
-        $formData["moved_by"] = auth()->user()->id;
-        $formData["room"] = null;
-        // $formData["visible"] = 1;
-
-        $location->update($formData);
-
-        ####____
-        alert()->success("Succès", "Locataire demenagé avec succès");
-        return back()->withInput();
     }
 
     ###____ENCAISSEMENT
@@ -799,544 +642,675 @@ class LocationController extends Controller
     {
         try {
             DB::beginTransaction();
-            $formData = $request->all();
 
+            $formData = $request->all();
             $user = request()->user();
 
-            #####______VALIDATION DES DATAS 
-            $rules = self::paiement_rules();
-            $messages = self::paiement_messages();
+            // Validation des données de paiement
+            $this->validatePaymentData($formData);
 
-            $validator = Validator::make($formData, $rules, $messages);
+            // Récupération de la location avec ses relations
+            $location = $this->getLocationWithRelations($formData["location"]);
 
-            if ($validator->failed()) {
-                alert()->error("Erreure", $validator->errors());
-                return back()->withInput();
-            }
-
-            ###___TRAITEMENT DES DATAS
-            $location = Location::with(["House", "Locataire", "Room"])->find($formData["location"]);
+            // Vérification du type de paiement
             $type = PaiementType::find($formData["type"]);
-
-            // dd($location->loyer);
-            $formData["module"] = 2;
-            $formData["status"] = 1;
-            $formData["amount"] = $location->loyer;
-            $formData["comments"] = "Encaissement de loyer à la date " . now() . " pour le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " ) par <<" . $user->name . ">> ";
-
-            ###__GESTION DE LA REFERENCE
-            // $payement_count = count(Payement::all());
-            // $formData["reference"] = "REF_" . $payement_count . rand(0, 100) . "/" . substr($type->name, 0, 3); ###__ON RECUPERE LES TROIS PREMIERES LETTRES DE LA CATEGORIE DU DOSSIER QU'ON CONCATENE AVEC LE RAND
-
-            ###__
-            if (!$location) {
-                alert()->error("Echec", "Cette location n'existe pas!");
-                return back()->withInput();
-            }
-
             if (!$type) {
-                alert()->error("Echec", "Ce type de paiement n'existe pas!");
-                return back()->withInput();
+                throw new \Exception("Ce type de paiement n'existe pas!");
             }
 
-            ###___TRAITEMENT DU PAIEMENT SI LE LOCATAIRE EST UN PRORATA
-            if ($location->Locataire->prorata) {
-                Validator::make(
-                    $formData,
-                    [
-                        "prorata_amount" => ["required", "numeric"],
-                        "prorata_days" => ["required", "numeric"],
-                        "prorata_date" => ["required", "date"],
-                    ],
-                    [
-                        "prorata_amount.required" => "Veuillez préciser le montant du prorata",
-                        "prorata_amount.numeric" => "Ce champ doit être de format numérique",
+            // Préparation des données de paiement
+            $paymentData = $this->preparePaymentData($formData, $location, $user);
 
-                        "prorata_days.required" => "Veuillez préciser le nombre de jour du prorata",
-                        "prorata_days.numeric" => "Ce champ doit être de format numérique",
+            // Création de la facture
+            $facture = $this->createFacture($paymentData);
 
-                        "prorata_date.required" => "Veuillez préciser la date de jour du prorata",
-                        "prorata_date.date" => "Ce champ doit être de format date",
-                    ]
-                )->validate();
-            }
+            // Mise à jour du compte de l'agence
+            $this->updateAgencyAccount($paymentData, $location);
 
-            ###__ENREGISTREMENT DE LA FACTURE DE PAIEMENT DANS LA DB
-            if ($request->file("facture")) {
-                $factureFile = $request->file("facture");
-                $fileName = $factureFile->getClientOriginalName();
-                $factureFile->move("factures", $fileName);
-                $formData["facture"] = asset("factures/" . $fileName);
-            } else {
-                $formData["facture"] = $location->facture;
-            }
-            ##___
-
-            $montant = $location->Locataire->prorata ?
-                $request->prorata_amount :
-                $location->loyer;
-
-            $factureDatas = [
-                "owner" => $user->id,
-                "echeance_date" => $location['next_loyer_date'],
-                // "payement" => $Paiement->id,
-                "location" => $formData["location"],
-                "type" => 1,
-                "facture" => $formData["facture"],
-                "begin_date" => null,
-                "end_date" => null,
-                "comments" => $formData["comments"],
-                "amount" => $montant,
-                "facture_code" => $formData["facture_code"],
-                "is_penality" => $request->get("is_penality") ? true : false ##__Préciser si cette facture est liée à une pénalité ou pas
-            ];
-
-            $facture = Facture::create($factureDatas);
-            ###_____
-
-            ###___INCREMENTATION DU COMPTE LOYER
-
-            $agency_rent_account = AgencyAccount::where(["agency" => $location->agency, "account" => env("LOYER_ACCOUNT_ID")])->first();
-
-            if (!$agency_rent_account) {
-                alert()->error("Echec", "Ce compte n'existe pas! Vous ne pouvez pas le créditer!");
-                return back()->withInput();
-            }
-
-            $formData["agency_account"] = $agency_rent_account->id;
-
-            $formData["description"] = "Encaissement de paiement à la date " . $facture->created_at . " par le locataire (" . $location->Locataire->name . " " . $location->Locataire->prenom . " ) habitant la chambre (" . $location->Room->number . ") de la maison (" . $location->House->name . " )";
-            $formData["sold"] = $formData["amount"];
-            $formData["sold_added"] = $formData["amount"];
-
-            ###___VERIFIONS LE SOLD ACTUEL DU COMPTE ET VOYONS SI ça DEPPASE OU PAS LE PLAFOND
-
-            // $accountSold = AccountSold::where(["account" => $id, "visible" => 1])->first();
-            $accountSold = AgencyAccountSold::where(["agency_account" => $agency_rent_account->id, "visible" => 1])->first();
-
-            $account = $agency_rent_account->_Account;
-
-            ###___
-            if ($accountSold) { ##__Si ce compte dispose déjà d'un sold
-                $formData["old_sold"] = $accountSold->sold;
-                // $formData["sold_added"] = $accountSold->sold_added;
-
-
-                ##__voyons si le sold atteint déjà le plafond de ce compte
-                if ($accountSold->sold >= $account->plafond_max) {
-                    alert()->error("Echec", "Le sold de ce compte (" . $account->name . ") a déjà atteint son plafond! Vous ne pouvez plus le créditer");
-                    return back()->withInput();
-                } else {
-                    # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-                    # ça depasserait le plafond maximum du compte
-                    if (($accountSold->sold + $formData["sold"]) > $account->plafond_max) {
-                        alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
-                        return back()->withInput();
-                    }
-                }
-
-                ###__creditation proprement dite du compte
-                #__Deconsiderons l'ancien sold
-                $accountSold->visible = 0;
-                $accountSold->delete_at = now();
-                $accountSold->save();
-
-                #__Construisons un nouveau sold(en se basant sur les datas de l'ancien sold)
-                $formData["account"] = $accountSold->account; ##__ça revient à l'ancien compte
-                $formData["sold"] = $accountSold->sold + $formData["sold"];
-
-                $accountSold = AgencyAccountSold::create($formData);
-            } else {
-                # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-                # ça depasserait le plafond maximum du compte
-                if ($formData["sold"] > $account->plafond_max) {
-                    alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
-                    return back()->withInput();
-                }
-
-                # on le crée
-                $accountSold = AgencyAccountSold::create($formData);
-            }
-
-            ####__ACTUALISATION DE LA LOCATION
-            // AJOUT D'UN MOIS DE PLUS SUR LA DERNIERE DATE DE LOYER
-            $location_next_loyer_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->next_loyer_date));
-            $location_echeance_date_timestamp_plus_one_month = strtotime("+1 month", strtotime($location->echeance_date));
-
-            $location_next_loyer_date = date("Y/m/d", $location_next_loyer_timestamp_plus_one_month);
-            $location_echeance_date = date("Y/m/d", $location_echeance_date_timestamp_plus_one_month);
-
-            $location->latest_loyer_date = $location->next_loyer_date; ##__la dernière date de loyer revient maintenant au next_loyer_date
-            $location->next_loyer_date = $location_next_loyer_date; ##__le next loyer date est donc incrementé de 1 mois
-            $location->echeance_date = $location_echeance_date;
-            $location->prorata_amount = $request->prorata_amount ? $request->prorata_amount : 0;
-            $location->prorata_days = $request->prorata_days;
-            ###__
-
-            ###___CHANGEMENT D'ETAT DU LOCATAIRE(NOTIFIONS Q'IL N'EST PLUS UN PRORATA)
-            $locataire = Locataire::find($location->locataire);
-
-            $locataire->prorata = false;
-            $locataire->save();
-
-            ####___ACTUALISATION MAINTENANT LA LOCATION
-            $location->save();
-            ##___
+            // Mise à jour de la location après le paiement
+            $this->updateLocationAfterPayment($location, $formData);
 
             DB::commit();
-            ###__
-            alert()->success("Succès", "Paiement ajouté avec succès!!");
+
+            alert()->success("Succès", "Paiement ajouté avec succès!");
             return back()->withInput();
-        } catch (\Throwable $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            alert()->success("Error", "Une erreure est survenue! " . $e->getMessage());
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
             return back()->withInput();
         }
     }
 
-    ####_____UpdateFactureStatus
-    function UpdateFactureStatus(Request $request, $id)
+    /**
+     * Met à jour l'index de fin et calcule la consommation pour une facture d'électricité
+     * 
+     * @param Request $request
+     * @param int $factureId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function ElectricityUpdateEndIndex(Request $request, $factureId)
     {
-        if (!$request->get("status")) {
-            return $this->sendError("Veuillez préciser le status de la facture", 505);
-        }
+        try {
+            DB::beginTransaction();
 
-        $facture = Facture::find($id);
+            // Validation des données
+            $validator = Validator::make($request->all(), [
+                'end_index' => 'required|numeric|min:0',
+                'start_index' => 'required|numeric|min:0'
+            ], [
+                'end_index.required' => "L'index de fin est requis",
+                'end_index.numeric' => "L'index de fin doit être un nombre",
+                'end_index.min' => "L'index de fin ne peut pas être négatif",
+                'start_index.required' => "L'index de début est requis",
+                'start_index.numeric' => "L'index de début doit être un nombre",
+                'start_index.min' => "L'index de début ne peut pas être négatif"
+            ]);
 
-        if (!$facture) {
-            alert()->error("Echec", "Désolé! Ctte facture n'existe pas!");
-            return back()->withInput();
-        }
-
-        $facture->status = $request->status;
-        $facture->save();
-
-        ###_______
-        alert()->success("Succès", "Facture traitée avec succès");
-        return back()->withInput();
-    }
-
-    ####____ARRET D'ETAT D'UN E?AISON
-    function _StopStatsOfHouse(Request $request)
-    {
-        $user = request()->user();
-        $formData = $request->all();
-
-        $formData["owner"] = $user->id;
-
-        $house = House::find($formData["house"]);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        };
-
-        if (count($house->Locations) == 0) {
-            alert()->error("Echec", "Cette maison ne dispose d'aucune location! Son arrêt d'état ne peut donc être éffectué");
-            return back()->withInput();
-        }
-
-        ###_____VERIFIONS D'ABORD SI CETTE HOUSE DISPOSAIT DEJA D'UN ETAT
-        $this_house_state = StopHouseElectricityState::orderBy("id", "desc")->where(["house" => $formData["house"]])->first();
-
-        if (!$this_house_state) { ##Si cette maison ne dispose pas d'arrêt d'etat
-            ##__ON CREE SON PREMIER ARRET D'ETAT
-            $data["house"] = $formData["house"];
-            $data["owner"] = $formData["owner"];
-            $data["state_stoped_day"] = now();
-            $state = StopHouseElectricityState::create($data);
-        } else {
-            ##S'il dispose d'un arret d'etat déjà
-
-            ##__On verifie si la date d'aujourd'hui atteint ou depasse
-            ##__la date de l'arret precedent + 20 jours
-
-            $precedent_arret_date = strtotime($this_house_state->state_stoped_day);
-            $now = strtotime(now());
-            $twenty_days = 5 * 24 * 3600;
-
-            // if ($now < ($precedent_arret_date + $twenty_days)) {
-            //     return self::sendError("La précedente date d'arrêt des états de cette maison ne depasse pas encore 5 jours! Vous ne pouvez donc pas éffectuer un nouveau arrêt d'etats pour cette maison pour le moment", 505);
-            // }
-
-            ###__ON ARRËTE LES ETATS
-
-            $data["owner"] = $formData["owner"];
-            $data["house"] = $formData["house"];
-            $data["state_stoped_day"] = now();
-            $state =  StopHouseElectricityState::create($data);
-        }
-
-        ###____ ACTUALISONS LES STATES DES FACTURES
-
-        foreach ($house->Locations as $location) {
-
-            // ACTUALISONS LES INDEX DE DEBUT EN ELECTRICITE DE CHAQUE CHAMBRE DE LA MAISON
-            $location_factures = $location->ElectricityFactures;
-
-            $location_room = Room::find($location->Room->id);
-
-            if (count($location_factures) != 0) {
-                ###__dernière facture de la location à l'arrêt de cet état
-                $last_facture = $location_factures[0];
-
-                ###___l'index de fin de la chambre revient désormais à
-                ###___ celui de la dernière facture à l'arrêt de cet état
-                $location_room->electricity_counter_start_index = $last_facture->end_index;
-                $location_room->save();
+            if ($validator->fails()) {
+                throw new \Exception($validator->errors()->first());
             }
 
-            // ACTUALISONS LES STATES DES FACTURES
-            foreach ($location_factures as $facture) {
-                $electricty_facture = LocationElectrictyFacture::find($facture->id);
-                if (!$electricty_facture->state) {
-                    $electricty_facture->state = $state->id;
-                    $electricty_facture->save();
+            // Récupération de la facture avec ses relations
+            $facture = LocationElectrictyFacture::with(['Location.Room'])
+                ->find($factureId);
+
+            if (!$facture) {
+                throw new \Exception("Cette facture n'existe pas!");
+            }
+
+            // Vérification que l'index de fin est supérieur à l'index de début
+            if ($request->end_index < $request->start_index) {
+                throw new \Exception("L'index de fin ne peut pas être inférieur à l'index de début!");
+            }
+
+            // Calcul de la consommation et du montant
+            $consomation = $request->end_index - $request->start_index;
+            $unitPrice = (int) $facture->Location->Room->electricity_unit_price;
+            $amount = $consomation * $unitPrice;
+
+            // Mise à jour de la facture
+            $facture->update([
+                "end_index" => $request->end_index,
+                "consomation" => $consomation,
+                "amount" => $amount
+            ]);
+
+            DB::commit();
+
+            alert()->success("Succès", "Index de fin modifié avec succès!");
+            return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Met à jour l'index de fin et calcule la consommation pour une facture d'eau
+     * 
+     * @param Request $request
+     * @param int $factureId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function WaterUpdateEndIndex(Request $request, $factureId)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Validation des données
+            $validator = Validator::make($request->all(), [
+                'end_index' => 'required|numeric|min:0',
+                'start_index' => 'required|numeric|min:0'
+            ], [
+                'end_index.required' => "L'index de fin est requis",
+                'end_index.numeric' => "L'index de fin doit être un nombre",
+                'end_index.min' => "L'index de fin ne peut pas être négatif",
+                'start_index.required' => "L'index de début est requis",
+                'start_index.numeric' => "L'index de début doit être un nombre",
+                'start_index.min' => "L'index de début ne peut pas être négatif"
+            ]);
+
+            if ($validator->fails()) {
+                throw new \Exception($validator->errors()->first());
+            }
+
+            // Récupération de la facture avec ses relations
+            $facture = LocationWaterFacture::with(['Location.Room'])
+                ->find($factureId);
+
+            if (!$facture) {
+                throw new \Exception("Cette facture n'existe pas!");
+            }
+
+            // Vérification que l'index de fin est supérieur à l'index de début
+            if ($request->end_index < $request->start_index) {
+                throw new \Exception("L'index de fin ne peut pas être inférieur à l'index de début!");
+            }
+
+            // Calcul de la consommation et du montant
+            $consomation = $request->end_index - $request->start_index;
+            $unitPrice = (int) $facture->Location->Room->unit_price;
+            $amount = $consomation * $unitPrice;
+
+            // Mise à jour de la facture
+            $facture->update([
+                "end_index" => $request->end_index,
+                "consomation" => $consomation,
+                "amount" => $amount
+            ]);
+
+            DB::commit();
+
+            alert()->success("Succès", "Index de fin modifié avec succès!");
+            return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Filtre les locations par superviseur
+     * 
+     * @param Request $request
+     * @param Agency $agency
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function FiltreBySupervisor(Request $request, Agency $agency)
+    {
+        try {
+            // Validation du superviseur
+            $supervisor = User::find($request->supervisor);
+            if (!$supervisor) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading
+            $locations_filtred = $agency->_Locations()
+                ->with(['House.Supervisor', 'Room', 'Locataire'])
+                ->where('status', '!=', 3)
+                ->whereHas('House.Supervisor', function ($query) use ($request) {
+                    $query->where('id', $request->supervisor);
+                })
+                ->get();
+
+            if ($locations_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            alert()->success("Succès", "Locations filtrées par superviseur avec succès!");
+            return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Filtre les locations par maison
+     * 
+     * @param Request $request
+     * @param Agency $agency
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function FiltreByHouse(Request $request, Agency $agency)
+    {
+        try {
+            // Validation de la maison
+            $house = House::find($request->house);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading
+            $locations_filtred = $agency->_Locations()
+                ->with(['House', 'Room', 'Locataire'])
+                ->where('status', '!=', 3)
+                ->where('house', $request->house)
+                ->get();
+
+            if ($locations_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            alert()->success("Succès", "Locations filtrées par maison avec succès!");
+            return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Filtre les locations par propriétaire
+     * 
+     * @param Request $request
+     * @param Agency $agency
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function FiltreByProprio(Request $request, Agency $agency)
+    {
+        try {
+            // Validation du propriétaire
+            $proprietor = Proprietor::find($request->proprio);
+            if (!$proprietor) {
+                throw new \Exception("Ce propriétaire n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading
+            $locations_filtred = $agency->_Locations()
+                ->with(['House.Proprietor', 'Room', 'Locataire'])
+                ->where('status', '!=', 3)
+                ->whereHas('House.Proprietor', function ($query) use ($request) {
+                    $query->where('id', $request->proprio);
+                })
+                ->get();
+
+            if ($locations_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            alert()->success("Succès", "Locations filtrées par propriétaire avec succès!");
+            return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Imprime toutes les locations par superviseur
+     * 
+     * @param Request $request
+     * @param string $agencyId
+     * @return \Illuminate\View\View
+     */
+    function PrintAllLocationBySupervisor(Request $request, $agencyId)
+    {
+        try {
+            Session::forget("imprimUnPaidLocations");
+
+            $agency = Agency::find(deCrypId($agencyId));
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
+
+            $superviseur = User::find($request->supervisor);
+            if (!$superviseur) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
+
+            $locations = Location::with(['House.Supervisor', 'Room', 'Locataire'])
+                ->where('visible', 1)
+                ->whereHas('House.Supervisor', function ($query) use ($request) {
+                    $query->where('id', $request->supervisor);
+                })
+                ->get();
+
+            if ($locations->isEmpty()) {
+                throw new \Exception("Aucune location trouvée pour ce superviseur");
+            }
+
+            return view("imprimer_locations", compact("locations", "superviseur"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+     // IMPRESSION
+    function Imprimer(Request $request, $locationId)
+    {
+        try {
+            // Validation de l'ID de location
+            $location = Location::with(['Room', 'Locataire', 'House', 'Type', 'Status'])
+                ->where("visible", 1)
+                ->find(deCrypId($locationId));
+
+            if (!$location) {
+                throw new \Exception("Cette location n'existe pas ou n'est plus active!");
+            }
+
+            // Vérification des relations nécessaires
+            if (!$location->Room || !$location->Locataire || !$location->House) {
+                throw new \Exception("Données de location incomplètes!");
+            }
+
+            // Génération du PDF
+            $pdf = Pdf::loadView('imprimer_location', compact("location"));
+            
+            // Configuration du PDF pour un meilleur rendu
+            $pdf->setPaper('a4');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', true);
+
+            return $pdf->stream();
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+    
+    /**
+     * Imprime les locations impayées par superviseur
+     * 
+     * @param Request $request
+     * @param string $agencyId
+     * @return \Illuminate\View\View
+     */
+    function PrintUnPaidLocationBySupervisor(Request $request, $agencyId)
+    {
+        try {
+            $agency = Agency::find(deCrypId($agencyId));
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
+
+            $superviseur = User::find($request->supervisor);
+            if (!$superviseur) {
+                throw new \Exception("Ce superviseur n'existe pas!");
+            }
+
+            $now = now();
+            $locations = Location::with(['House.Supervisor', 'Room', 'Locataire'])
+                ->where('visible', 1)
+                ->where('status', '!=', 3)
+                ->whereHas('House.Supervisor', function ($query) use ($request) {
+                    $query->where('id', $request->supervisor);
+                })
+                ->where('echeance_date', '<', $now)
+                ->get();
+
+            if ($locations->isEmpty()) {
+                throw new \Exception("Aucune location impayée trouvée pour ce superviseur");
+            }
+
+            Session::put("imprimUnPaidLocations", true);
+            return view("imprimer_locations", compact("locations", "superviseur"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Filtre les paiements après la date d'arrêt des états
+     * 
+     * @param Request $request
+     * @param string $houseId
+     * @return \Illuminate\View\View
+     */
+    function FiltreAfterStateDateStoped(Request $request, $houseId)
+    {
+        try {
+            $house = House::with(['States.Factures.Location.Locataire'])
+                ->find(deCrypId($houseId));
+
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            $last_state = $house->States->last();
+            if (!$last_state) {
+                throw new \Exception("Aucun état n'a été arrêté dans cette maison!");
+            }
+
+            $state_stop_date = $last_state->stats_stoped_day;
+            $locators_that_paid_after_state_stoped_day = [];
+            $amount_total_to_paid_after_array = [];
+
+            foreach ($last_state->Factures as $facture) {
+                if ($facture->created_at > $state_stop_date) {
+                    $data = [
+                        "name" => $facture->Location->Locataire->name,
+                        "prenom" => $facture->Location->Locataire->prenom,
+                        "email" => $facture->Location->Locataire->email,
+                        "phone" => $facture->Location->Locataire->phone,
+                        "adresse" => $facture->Location->Locataire->adresse,
+                        "comments" => $facture->Location->Locataire->comments,
+                        "payement_date" => $facture->created_at,
+                        "month" => $facture->created_at,
+                        "amount_paid" => $facture->amount
+                    ];
+
+                    $amount_total_to_paid_after_array[] = $data["amount_paid"];
+                    $locators_that_paid_after_state_stoped_day[] = $data;
                 }
             }
 
-            ###___Génerons une dernière facture pour cette maison pour actualiser les infos de la dernière facture à l'arrêt de cet etat
-            $stateFactureData = [
-                "owner" => $user->id,
-                "location" => $location->id,
-                "end_index" => $location_room->electricity_counter_start_index,
-                "amount" => 0,
-                "state_facture" => 1,
-                "state" => $state->id,
+            $locationsFiltered = [
+                "afterStopDate" => $locators_that_paid_after_state_stoped_day,
+                "afterStopDateTotal_to_paid" => array_sum($amount_total_to_paid_after_array),
+                "total_locators" => count($locators_that_paid_after_state_stoped_day)
             ];
-            LocationElectrictyFacture::create($stateFactureData);
-        }
 
-        ####___
-        alert()->success("Succès", "L'état en électricité de cette maison a été arrêté avec succès!");
-        return back()->withInput();
-    }
-
-    ####___PAIEMENTS LIES A L'ARRET DES ETATS
-    function FiltreAfterStateDateStoped(Request $request, $houseId)
-    {
-        $house = House::find(deCrypId($houseId));
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
+            return view("locators.locator-after-stop-date", compact("locationsFiltered", "house"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
             return back()->withInput();
         }
-
-        ###___DERNIERE DATE D'ARRET DES ETATS DE CETTE MAISON
-
-        $last_state = $house->States->last();
-        if (!$last_state) {
-            alert()->error("Echec", "Aucun état n'a été arrêté dans cette maison!");
-            return back()->withInput();
-        }
-
-        ###__DATE DU DERNIER ARRET DE CETTE MAISON
-        $state_stop_date_of_this_house = date("Y/m/d H:m:s", strtotime($last_state->stats_stoped_day));
-
-        ###___LES FACTURES DU DERNIER ETAT
-        $last_state_factures = $last_state->Factures;
-
-        ###__LES PAIEMENTS LIES A LA LOCATION DE CETTE MAISON
-        $locators_that_paid_after_state_stoped_day = [];
-
-        $amount_total_to_paid_before_array = [];
-        $amount_total_to_paid_after_array = [];
-
-        foreach ($last_state_factures as $key => $facture) {
-            $location_payement_date = date("Y/m/d H:m:s", strtotime($facture->created_at));
-
-            if ($state_stop_date_of_this_house  < $location_payement_date) {
-                $data["name"] = $facture->Location->Locataire->name;
-                $data["prenom"] = $facture->Location->Locataire->prenom;
-                $data["email"] = $facture->Location->Locataire->email;
-                $data["phone"] = $facture->Location->Locataire->phone;
-                $data["adresse"] = $facture->Location->Locataire->adresse;
-                $data["comments"] = $facture->Location->Locataire->comments;
-                $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->created_at; //$facture->Location->next_loyer_date;
-                $data["amount_paid"] = $facture->amount;
-
-                ##___
-                array_push($amount_total_to_paid_before_array, $data["amount_paid"]);
-                array_push($locators_that_paid_after_state_stoped_day, $data);
-            }
-        }
-
-        ###____
-        $locationsFiltered["afterStopDate"] = $locators_that_paid_after_state_stoped_day;
-
-        $locationsFiltered["afterStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_after_array);
-        $locationsFiltered["total_locators"] = count($locationsFiltered["afterStopDate"]);
-
-        // dd($locationsFiltered);
-        ####____
-        return view("locators.locator-after-stop-date", compact("locationsFiltered", "house"));
     }
 
-    ####___PAIEMENTS LIES A L'ARRET DES ETATS
+    /**
+     * Filtre les paiements avant la date d'arrêt des états
+     * 
+     * @param Request $request
+     * @param string $houseId
+     * @return \Illuminate\View\View
+     */
     function FiltreBeforeStateDateStoped(Request $request, $houseId)
     {
-        $house = House::find(deCrypId($houseId));
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            $house = House::with(['States.Factures.Location.Locataire'])
+                ->find(deCrypId($houseId));
 
-        ###___DERNIERE DATE D'ARRET DES ETATS DE CETTE MAISON
-
-        $last_state = $house->States->last();
-        if (!$last_state) {
-            alert()->error("Echec", "Aucun état n'a été arrêté dans cette maison!");
-            return back()->withInput();
-        }
-
-        ###__DATE DU DERNIER ARRET DE CETTE MAISON
-        $state_stop_date_of_this_house = date("Y/m/d H:m:s", strtotime($last_state->stats_stoped_day));
-
-        ###___LES FACTURES DU DERNIER ETAT
-        $last_state_factures = $last_state->Factures;
-
-        ###__LES PAIEMENTS LIES A LA LOCATION DE CETTE MAISON
-        $locators_that_paid_before_state_stoped_day = [];
-
-        $amount_total_to_paid_before_array = [];
-
-        foreach ($last_state_factures as $facture) {
-            $location_payement_date = date("Y/m/d H:m:s", strtotime($facture->created_at));
-
-            if ($location_payement_date < $state_stop_date_of_this_house) {
-                $data["name"] = $facture->Location->Locataire->name;
-                $data["prenom"] = $facture->Location->Locataire->prenom;
-                $data["email"] = $facture->Location->Locataire->email;
-                $data["phone"] = $facture->Location->Locataire->phone;
-                $data["adresse"] = $facture->Location->Locataire->adresse;
-                $data["comments"] = $facture->Location->Locataire->comments;
-                $data["payement_date"] = $location_payement_date;
-                $data["month"] = $facture->created_at; //$facture->Location->next_loyer_date;
-                $data["amount_paid"] = $facture->amount;
-
-                ##___
-                array_push($amount_total_to_paid_before_array, $data["amount_paid"]);
-                array_push($locators_that_paid_before_state_stoped_day, $data);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
             }
+
+            $last_state = $house->States->last();
+            if (!$last_state) {
+                throw new \Exception("Aucun état n'a été arrêté dans cette maison!");
+            }
+
+            $state_stop_date = $last_state->stats_stoped_day;
+            $locators_that_paid_before_state_stoped_day = [];
+            $amount_total_to_paid_before_array = [];
+
+            foreach ($last_state->Factures as $facture) {
+                if ($facture->created_at < $state_stop_date) {
+                    $data = [
+                        "name" => $facture->Location->Locataire->name,
+                        "prenom" => $facture->Location->Locataire->prenom,
+                        "email" => $facture->Location->Locataire->email,
+                        "phone" => $facture->Location->Locataire->phone,
+                        "adresse" => $facture->Location->Locataire->adresse,
+                        "comments" => $facture->Location->Locataire->comments,
+                        "payement_date" => $facture->created_at,
+                        "month" => $facture->created_at,
+                        "amount_paid" => $facture->amount
+                    ];
+
+                    $amount_total_to_paid_before_array[] = $data["amount_paid"];
+                    $locators_that_paid_before_state_stoped_day[] = $data;
+                }
+            }
+
+            $locationsFiltered = [
+                "beforeStopDate" => $locators_that_paid_before_state_stoped_day,
+                "beforeStopDateTotal_to_paid" => array_sum($amount_total_to_paid_before_array),
+                "total_locators" => count($locators_that_paid_before_state_stoped_day)
+            ];
+
+            return view("locators.locator-before-stop-date", compact("locationsFiltered", "house"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-
-        ###____
-        $locationsFiltered["beforeStopDate"] = $locators_that_paid_before_state_stoped_day;
-
-        $locationsFiltered["beforeStopDateTotal_to_paid"] =  array_sum($amount_total_to_paid_before_array);
-
-        $locationsFiltered["total_locators"] = count($locationsFiltered["beforeStopDate"]);
-
-        ####____
-        return view("locators.locator-before-stop-date", compact("locationsFiltered", "house"));
     }
 
+    /**
+     * Affiche les statistiques de prestation
+     * 
+     * @param Request $request
+     * @param string $agencyId
+     * @return \Illuminate\View\View
+     */
     function _ShowPrestationStatistique(Request $request, $agencyId)
     {
-        $prestations = [];
+        try {
+            $agency = Agency::find($agencyId);
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
 
-        ####____
-        $agency = Agency::find($agencyId);
-        if (!$agency) {
-            return redirect()->back()->with('error', "Cette agence n'existe pas!");
+            $locations = $agency->_Locations()
+                ->with(['Owner', 'House', 'Locataire', 'Type', 'Status', 'Room'])
+                ->get();
+
+            $prestations = $locations->pluck('prestation')->filter()->values();
+
+            return view("prestation-statistique", compact("locations", "prestations", "agency"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-
-        ####____
-        $locations = $agency->_Locations; # Location::where(["agency" => $agencyId])->with(["Owner", "House", "Locataire", "Type", "Status", "Room"])->get();
-        foreach ($locations as $location) {
-            array_push($prestations, $location->prestation);
-        }
-
-        return view("prestation-statistique", compact(["locations", "prestations", "agency"]));
     }
 
+    /**
+     * Affiche les cautions par agence
+     * 
+     * @param Request $request
+     * @param string $agencyId
+     * @return \Illuminate\View\View
+     */
     function _ShowCautionsByAgency(Request $request, $agencyId)
     {
-        if ($agencyId == "admin") {
-            $locations = Location::with(["Owner", "House", "Locataire", "Type", "Status", "Room"])->get();
-        } else {
-            $locations = Location::where(["agency" => $agencyId])->with(["Owner", "House", "Locataire", "Type", "Status", "Room"])->get();
-        }
+        try {
+            $query = Location::with(['Owner', 'House', 'Locataire', 'Type', 'Status', 'Room']);
 
-        $cautions_eau = [];
-        $cautions_electricity = [];
-        $cautions_loyer = [];
+            if ($agencyId !== "admin") {
+                $query->where('agency', $agencyId);
+            }
 
-        foreach ($locations as $location) {
-            array_push($cautions_electricity, $location->caution_electric);
-            array_push($cautions_eau, $location->caution_water);
-            array_push($cautions_loyer, ($location->caution_number * $location->loyer));
+            $locations = $query->get();
+
+            $cautions = [
+                'eau' => $locations->pluck('caution_water')->sum(),
+                'electricity' => $locations->pluck('caution_electric')->sum(),
+                'loyer' => $locations->sum(function ($location) {
+                    return $location->caution_number * $location->loyer;
+                })
+            ];
+
+            return view("cautions", compact("locations", "cautions"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-        return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
-
+    /**
+     * Affiche les cautions par période
+     * 
+     * @param Request $request
+     * @param string $first_date
+     * @param string $last_date
+     * @return \Illuminate\View\View
+     */
     function _ShowCautionsByPeriod(Request $request, $first_date, $last_date)
     {
-        ###___
-        $locations = Location::with(["Owner", "House", "Locataire", "Type", "Status", "Room"])->whereBetween('created_at', [$first_date, $last_date])->get();
+        try {
+            $locations = Location::with(['Owner', 'House', 'Locataire', 'Type', 'Status', 'Room'])
+                ->whereBetween('created_at', [$first_date, $last_date])
+                ->get();
 
-        ###_____
-        $cautions_eau = [];
-        $cautions_electricity = [];
-        $cautions_loyer = [];
+            $cautions = [
+                'eau' => $locations->pluck('caution_water')->sum(),
+                'electricity' => $locations->pluck('caution_electric')->sum(),
+                'loyer' => $locations->sum(function ($location) {
+                    return $location->caution_number * $location->loyer;
+                })
+            ];
 
-        foreach ($locations as $location) {
-            array_push($cautions_electricity, $location->caution_electric);
-            array_push($cautions_eau, $location->caution_water);
-            array_push($cautions_loyer, ($location->caution_number * $location->loyer));
+            return view("cautions", compact("locations", "cautions"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-        ###_______
-
-        return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
-
+    /**
+     * Affiche les cautions par maison
+     * 
+     * @param Request $request
+     * @param string $houseId
+     * @return \Illuminate\View\View
+     */
     function _ShowCautionsByHouse(Request $request, $houseId)
     {
-        ###___
-        $house = House::find($houseId);
-        ###___
+        try {
+            $house = House::find($houseId);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
 
-        $locations = $house->Locations;
+            $locations = $house->Locations()
+                ->with(['Owner', 'House', 'Locataire', 'Type', 'Status', 'Room'])
+                ->get();
 
-        ###_____
-        $cautions_eau = [];
-        $cautions_electricity = [];
-        $cautions_loyer = [];
+            $cautions = [
+                'eau' => $locations->pluck('caution_water')->sum(),
+                'electricity' => $locations->pluck('caution_electric')->sum(),
+                'loyer' => $locations->sum(function ($location) {
+                    return $location->caution_number * $location->loyer;
+                })
+            ];
 
-        foreach ($locations as $location) {
-            array_push($cautions_electricity, $location->caution_electric);
-            array_push($cautions_eau, $location->caution_water);
-            array_push($cautions_loyer, ($location->caution_number * $location->loyer));
+            return view("cautions", compact("locations", "cautions"));
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-        ###_______
-
-        return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
     }
 
+    /**
+     * Affiche les cautions par maison et période
+     * 
+     * @param Request $request
+     * @param string $houseId
+     * @param string $first_date
+     * @param string $last_date
+     * @return \Barryvdh\DomPDF\Facade\Pdf
+     */
     function _ShowCautionsForHouseByPeriod(Request $request, $houseId, $first_date, $last_date)
     {
-        ###___
-        $locations = Location::where(["house" => $houseId])
-            ->whereBetween("created_at", [$first_date, $last_date])
-            ->get();
+        try {
+            $locations = Location::with(['Owner', 'House', 'Locataire', 'Type', 'Status', 'Room'])
+                ->where('house', $houseId)
+                ->whereBetween('created_at', [$first_date, $last_date])
+                ->get();
 
-        ###_____
-        $cautions_eau = [];
-        $cautions_electricity = [];
-        $cautions_loyer = [];
+            $cautions = [
+                'eau' => $locations->pluck('caution_water')->sum(),
+                'electricity' => $locations->pluck('caution_electric')->sum(),
+                'loyer' => $locations->sum(function ($location) {
+                    return $location->caution_number * $location->loyer;
+                })
+            ];
 
-        foreach ($locations as $location) {
-            array_push($cautions_electricity, $location->caution_electric);
-            array_push($cautions_eau, $location->caution_water);
-            array_push($cautions_loyer, ($location->caution_number * $location->loyer));
+            $pdf = Pdf::loadView('cautions', compact("locations", "cautions"));
+            return $pdf->stream();
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-        ###_______
-
-        // return view("cautions", compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-
-        $pdf = Pdf::loadView('cautions', compact(["locations", "cautions_eau", "cautions_electricity", "cautions_loyer"]));
-
-        return $pdf->stream();
     }
 }
