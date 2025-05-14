@@ -19,25 +19,6 @@ function supervisors()
     return $users;
 }
 
-#####========= ROLES ======####
-function IS_USER_HAS_SUPERVISOR_ROLE($user)
-{
-    if (in_array(env("SUPERVISOR_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
-        return true;
-    }
-
-    return false;
-}
-
-function IS_USER_HAS_ACCOUNT_AGENT_ROLE($user)
-{
-    if (in_array(env("ACCOUNT_AGENT_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
-        return true;
-    }
-
-    return false;
-}
-
 function IS_USER_HAS_ACCOUNT_CHIEF_ROLE($user)
 {
     if (in_array(env("ACCOUNT_CHIEF_ROLE_ID"), $user->_roles->pluck("id")->toArray())) {
@@ -260,7 +241,6 @@ function Is_User_Has_A_Supervisor_Role($userId)
 }
 
 
-
 ##======== CE HELPER PERMET DE RECUPERER LES DROITS D'UN UTILISATEUR ==========## 
 function User_Rights($rangId, $profilId)
 { #
@@ -268,168 +248,121 @@ function User_Rights($rangId, $profilId)
     return $rights;
 }
 
-##======== CE HELPER PERMET DE RECUPERER TOUTS LES DROITS PAR DEFAUT ==========## 
-function All_Rights()
-{ #
-    $allrights = Right::with(["action", "profil", "rang"])->get();
-    return $allrights;
-}
-
 
 #######____GET HOUSE DETAIL ======######
 function GET_HOUSE_DETAIL($house)
 {
-    $nbr_month_paid = 0;
-    $total_amount_paid = 0;
+    $house->load(["PayementInitiations", "Supervisor"]);
 
-    $house_factures_nbr_array = [];
-    $house_amount_nbr_array = [];
-
-    ####_____DERNIER ETAT DE CETTE MAISON
+    // Get the last state once
     $house_last_state = $house->States->last();
 
+    // Get active locations
     $locations = $house->Locations->where("status", "!=", 3);
 
-    ###___DERTERMINONS LE NOMBRE DE FACTURE ASSOCIEE A CETTE MAISON
-    foreach ($locations as $key => $location) {
+    // Initialize collections for calculations
+    $house_factures = collect();
+    $house_amounts = collect();
+    $last_state_depenses = collect();
+    $current_state_depenses = collect();
+
+    // Process locations and their invoices
+    $locations->each(function ($location) use ($house_last_state, &$house_factures, &$house_amounts) {
         if ($house_last_state) {
-            ###___quand il y a arrêt d'etat
-            ###__on recupere les factures du dernier arrêt des etats de la maison
-            $last_state_date = $house_last_state->created_at;
-            $now = now();
-            $location_factures = Facture::where(["location" => $location->id, "state_facture" => 0])->whereBetween("created_at", [$last_state_date, $now])->get();
+            $location_factures = Facture::where([
+                'location' => $location->id,
+                'state_facture' => 0
+            ])->whereBetween("created_at", [$house_last_state->created_at, now()])->get();
         } else {
-            ###___s'il n'y a pas de dernier état, on prends en compte toutes les factures de la maison
             $location_factures = $location->Factures;
         }
 
-        foreach ($location_factures as $facture) {
-            array_push($house_factures_nbr_array, $facture);
+        $house_factures = $house_factures->concat($location_factures);
+        $house_amounts = $house_amounts->concat($location_factures->map(function ($facture) use ($location) {
+            return $location->prorata_amount ?
+            $location->prorata_amount:$facture->amount;
+        }));
 
-            if ($location->prorata_amount) {
-                array_push($house_amount_nbr_array, $location->prorata_amount);
-            } else {
-                array_push($house_amount_nbr_array, $facture->amount);
-            };
-        }
+        // Add tenant information
+        $location->_locataire = [
+            'nbr_month_paid' => $location->Factures->count(),
+            'nbr_facture_amount_paid' => $location->Factures->sum('amount'),
+            'houses' => $location->House,
+            'rooms' => $location->Room
+        ];
+    });
 
-        ####_____REFORMATION DU LOCATAIRE DE CETTE LOCATION
-        ###____
-        $houses = $location->House;
-        $rooms = $location->Room;
-
-        $nbr_month_paid_array = [];
-        $nbr_facture_amount_paid_array = [];
-        ####___________
-
-        ########===========     ====================####
-
-        ###__s'il n'y a pas d'état, on tient compte de tout les factures
-        ##___liées à cette location
-        foreach ($location->Factures as $facture) {
-            array_push($nbr_month_paid_array, $facture);
-            array_push($nbr_facture_amount_paid_array, $facture->amount);
-        }
-
-        ####_____
-        $locataire["nbr_month_paid_array"] = count($nbr_month_paid_array);
-        $locataire["nbr_facture_amount_paid_array"] = array_sum($nbr_facture_amount_paid_array);
-        ####____
-
-        $locataire["houses"] = $houses;
-        $locataire["rooms"] = $rooms;
-        ####___FIN FORMATION DU LOCATAIRE
-
-        ###
-        $location["_locataire"] = $locataire;
-    }
-
-    ###__ le nombre de mois payé revient au nombre de factures generées
-    $nbr_month_paid = count($house_factures_nbr_array);
-
-    ###__ le montant total payé revient à la somme totale des montants des factures generées
-    $total_amount_paid = array_sum($house_amount_nbr_array);
-
-    ####___last depenses
-    $last_state_depenses_array = [];
-    $last_state_depenses = [];
+    // Calculate expenses
     if ($house_last_state) {
-        $last_state_depenses = $house_last_state->CdrAccountSolds;
+        $last_state_depenses = collect($house_last_state->CdrAccountSolds)->pluck('sold_retrieved');
     }
+    $current_state_depenses = collect($house->CurrentDepenses)->pluck('sold_retrieved');
 
-    foreach ($last_state_depenses as $depense) {
-        array_push($last_state_depenses_array, $depense->sold_retrieved);
-    }
+    // Calculate room statistics
+    $roomStats = calculateRoomStatistics($house);
 
-    ###___current depenses
-    $current_state_depenses_array = [];
-    $current_state_depenses = $house->CurrentDepenses;
-    foreach ($current_state_depenses as $depense) {
-        array_push($current_state_depenses_array, $depense->sold_retrieved);
-    }
+    // Calculate financial metrics
+    $total_amount_paid = $house_amounts->sum();
+    $commission = ($total_amount_paid * $house->commission_percent) / 100;
+    $net_to_paid = $total_amount_paid - ($current_state_depenses->sum() + $commission);
 
-    ###__
-    $house["last_depenses"] = array_sum($last_state_depenses_array);
-    $house["actuel_depenses"] = array_sum($current_state_depenses_array);
-    $house["total_amount_paid"] = $total_amount_paid;
-    $house["house_last_state"] = $house_last_state;
-    $house["nbr_month_paid"] = $nbr_month_paid;
-    $house["commission"] = ($house["total_amount_paid"] * $house->commission_percent) / 100;
-    ####________
+    // Merge all data into house object
+    // return array_merge($house->toArray(), [
+    //     'last_depenses' => $last_state_depenses->sum(),
+    //     'actuel_depenses' => $current_state_depenses->sum(),
+    //     'total_amount_paid' => $total_amount_paid,
+    //     'house_last_state' => $house_last_state,
+    //     'nbr_month_paid' => $house_factures->count(),
+    //     'commission' => $commission,
+    //     'net_to_paid' => $net_to_paid,
+    //     'last_payement_initiation' => $house_last_state ? ($house_last_state->PaiementInitiations ? $house_last_state->PaiementInitiations->last() : []) : [],
+    //     'busy_rooms' => $roomStats['busy_rooms'],
+    //     'frees_rooms' => $roomStats['frees_rooms'],
+    //     'busy_rooms_at_first_month' => $roomStats['busy_rooms_at_first_month'],
+    //     'frees_rooms_at_first_month' => $roomStats['frees_rooms_at_first_month']
+    // ]);
 
-    $house["net_to_paid"] = $house["total_amount_paid"] - ($house["actuel_depenses"] + $house["commission"]);
-    // dd($house["actuel_depenses"]);
+    $house['last_depenses'] = $last_state_depenses->sum();
+    $house['actuel_depenses'] = $current_state_depenses->sum();
+    $house['total_amount_paid'] = $total_amount_paid;
+    $house['house_last_state'] = $house_last_state;
+    $house['nbr_month_paid'] = $house_factures->count();
+    $house['commission'] = $commission;
+    $house['net_to_paid'] = $net_to_paid;
+    $house['last_payement_initiation'] = $house_last_state ? ($house_last_state->PaiementInitiations ? $house_last_state->PaiementInitiations->last() : []) : [];
+    $house['busy_rooms'] = $roomStats['busy_rooms'];
+    $house['frees_rooms'] = $roomStats['frees_rooms'];
+    $house['busy_rooms_at_first_month'] = $roomStats['busy_rooms_at_first_month'];
+    $house['frees_rooms_at_first_month'] = $roomStats['frees_rooms_at_first_month'];
 
-    ####____RAJOUTONS LES INFOS DE TAUX DE PERFORMANCE DE LA MAISON
-    $creation_date = date("Y/m/d", strtotime($house["created_at"]));
+    return $house;
+}
+
+function calculateRoomStatistics($house)
+{
+    $creation_date = date("Y/m/d", strtotime($house->created_at));
     $creation_time = strtotime($creation_date);
     $first_month_period = strtotime("+1 month", strtotime($creation_date));
 
-    $frees_rooms = [];
-    $busy_rooms = [];
-    $frees_rooms_at_first_month = [];
-    $busy_rooms_at_first_month = [];
+    $activeLocations = $house->Locations->where("status", "!=", 3);
+    $occupiedRoomIds = $activeLocations->pluck('Room.id')->filter();
 
-    foreach ($house->Rooms as $room) {
+    $rooms = collect($house->Rooms);
+    $busy_rooms = $rooms->filter(fn($room) => $occupiedRoomIds->contains($room->id));
+    $frees_rooms = $rooms->filter(fn($room) => !$occupiedRoomIds->contains($room->id));
 
-        $is_this_room_buzy = false; #cette variable determine si cette chambre est occupée ou pas(elle est occupée lorqu'elle se retrouve dans une location de cette maison)
-        ##__parcourons les locations pour voir si cette chambre s'y trouve
+    $firstMonthRooms = $activeLocations->filter(function ($location) use ($creation_time, $first_month_period) {
+        if (!$location->Room) return false;
+        $location_create_date = strtotime(date("Y/m/d", strtotime($location->created_at)));
+        return $creation_time < $location_create_date && $location_create_date < $first_month_period;
+    });
 
-        foreach ($house->Locations->where("status", "!=", 3) as $location) {
-            if ($location->Room) {
-                if ($location->Room->id == $room->id) {
-                    $is_this_room_buzy = true;
-
-                    ###___verifions la période d'entrée de cette chambre en location
-                    ###__pour determiner les chambres vide dans le premier mois
-                    $location_create_date = strtotime(date("Y/m/d", strtotime($location["created_at"])));
-                    ##on verifie si la date de creation de la location est comprise entre le *$creation_time* et le *$first_month_period* de la maison 
-                    if ($creation_time < $location_create_date && $location_create_date < $first_month_period) {
-                        array_push($busy_rooms_at_first_month, $room);
-                    } else {
-                        array_push($frees_rooms_at_first_month, $room);
-                    }
-                }
-            }
-        }
-
-
-        ###__
-        if ($is_this_room_buzy) { ##__quand la chambre est occupée
-            array_push($busy_rooms, $room);
-        } else {
-            array_push($frees_rooms, $room); ##__quand la chambre est libre
-        }
-    }
-
-    $house["busy_rooms"] = $busy_rooms;
-    $house["frees_rooms"] = $frees_rooms;
-    $house["busy_rooms_at_first_month"] = $busy_rooms_at_first_month;
-    $house["frees_rooms_at_first_month"] = $frees_rooms_at_first_month;
-
-    $house["last_payement_initiation"] = $house_last_state ? ($house_last_state->PaiementInitiations ? $house_last_state->PaiementInitiations->last() : []) : [];
-
-    return $house;
+    return [
+        'busy_rooms' => $busy_rooms->values(),
+        'frees_rooms' => $frees_rooms->values(),
+        'busy_rooms_at_first_month' => $firstMonthRooms->pluck('Room')->values(),
+        'frees_rooms_at_first_month' => $rooms->filter(fn($room) => !$firstMonthRooms->pluck('Room.id')->contains($room->id))->values()
+    ];
 }
 
 #######____GET HOUSE DETAIL ======######
@@ -501,31 +434,4 @@ function GET_HOUSE_DETAIL_FOR_THE_LAST_STATE($house)
         'frees_rooms_at_first_month' => $roomStats['frees_rooms_at_first_month'],
         '_amount' => $net_to_paid != 0 ? $net_to_paid : ($house->PayementInitiations->last()?->amount ?? 0)
     ]);
-}
-
-function calculateRoomStatistics($house)
-{
-    $creation_date = date("Y/m/d", strtotime($house->created_at));
-    $creation_time = strtotime($creation_date);
-    $first_month_period = strtotime("+1 month", strtotime($creation_date));
-
-    $activeLocations = $house->Locations->where("status", "!=", 3);
-    $occupiedRoomIds = $activeLocations->pluck('Room.id')->filter();
-
-    $rooms = collect($house->Rooms);
-    $busy_rooms = $rooms->filter(fn($room) => $occupiedRoomIds->contains($room->id));
-    $frees_rooms = $rooms->filter(fn($room) => !$occupiedRoomIds->contains($room->id));
-
-    $firstMonthRooms = $activeLocations->filter(function ($location) use ($creation_time, $first_month_period) {
-        if (!$location->Room) return false;
-        $location_create_date = strtotime(date("Y/m/d", strtotime($location->created_at)));
-        return $creation_time < $location_create_date && $location_create_date < $first_month_period;
-    });
-
-    return [
-        'busy_rooms' => $busy_rooms->values(),
-        'frees_rooms' => $frees_rooms->values(),
-        'busy_rooms_at_first_month' => $firstMonthRooms->pluck('Room')->values(),
-        'frees_rooms_at_first_month' => $rooms->filter(fn($room) => !$firstMonthRooms->pluck('Room.id')->contains($room->id))->values()
-    ];
 }

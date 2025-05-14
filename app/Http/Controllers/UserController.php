@@ -31,14 +31,6 @@ class UserController extends Controller
             "UpdateCompte",
             "DeleteAccount"
         ]);
-
-        $this->middleware(["Check_If_User_Has_A_Master_Role"])->only([
-            // "UpdateCompte",
-            "AttachRightToUser",
-            "DesAttachRightToUser",
-            "ArchiveAccount",
-            "DuplicatAccount"
-        ]);
     }
 
     #########################======= LES VALIDATIONS ============##########

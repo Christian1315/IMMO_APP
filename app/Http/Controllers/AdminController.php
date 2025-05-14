@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -299,24 +300,23 @@ class AdminController extends Controller
         )->validate();
 
         // dd($request->date);
-        $factures = Facture::get()->filter(function ($facture) use ($request){
-            $facture_date = date("Y-m-d",$facture->created_date);
-            return $request->date===$facture_date;
-            
+        $factures = Facture::get()->filter(function ($facture) use ($request) {
+            $facture_date = date("Y-m-d", $facture->created_date);
+            return $request->date === $facture_date;
         });
 
         // dd($factures);
-        $locations = Location::where("agency",deCrypId($agencyId))->whereIn("id",$factures->pluck("location"))->get();
+        $locations = Location::where("agency", deCrypId($agencyId))->whereIn("id", $factures->pluck("location"))->get();
         // dd($locations);
 
         $locators = [];
 
         foreach ($locations as $location) {
-            array_push($locators,$location->Locataire);
+            array_push($locators, $location->Locataire);
         }
 
         ###___
-        session()->flash("any_date",$request->date);
+        session()->flash("any_date", $request->date);
         alert()->success("Succès", "Filtre éffectué avec succès!");
         return back()->withInput()->with(["locators" => $locators]);
     }
@@ -395,36 +395,59 @@ class AdminController extends Controller
 
         return view("admin.decaisser", compact("agency"));
     }
-    
+
     function LocationFactures(Request $request, $agencyId)
     {
-        $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
-        if (!$agency) {
+        try {
+            $agency = Agency::where("visible", 1)->findOrFail(deCrypId($agencyId));
+
+            $query = Facture::whereIn("location", $agency->_Locations->pluck("id"));
+
+            if ($request->isMethod('POST')) {
+                $validated = $request->validate([
+                    'user' => 'required|exists:users,id',
+                    'debut' => 'required|date',
+                    'fin' => 'required|date|after_or_equal:debut'
+                ], [
+                    'user.required' => 'Veuillez sélectionner un utilisateur',
+                    'user.exists' => 'L\'utilisateur sélectionné n\'existe pas',
+                    'debut.required' => 'La date de début est requise',
+                    'fin.required' => 'La date de fin est requise',
+                    'fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début'
+                ]);
+
+                $factures = $query
+                    ->where("owner", $validated['user'])
+                    ->whereBetween("created_at", [$validated['debut'], $validated['fin']])
+                    ->get();
+
+                if ($factures->isEmpty()) {
+                    alert()->error("Echec", "Aucun résultat trouvé pour les critères sélectionnés!");
+                    return back()
+                        ->withInput();
+                }
+
+                alert()->success("Succès", "Filtre effectué avec succès");
+                return back()
+                    ->withInput();
+            } else {
+                $factures = $query->get();
+            }
+
+            $montantTotal = $factures->sum("amount");
+            $users = User::select('id', 'name')->get();
+
+            return view("admin.factures", compact("agency", "factures", "montantTotal", "users"));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             alert()->error("Echec", "Cette agence n'existe pas!");
             return back()->withInput();
-        };
-
-        $locationIds = $agency->_Locations->pluck("id");
-
-        $query = Facture::whereIn("location", $locationIds);
-        if ($request->method() == "POST") {
-            $factures = $query
-                ->where("owner", $request->user)
-                ->whereBetween("created_at", [$request->debut, $request->fin])
-                ->get();
-
-            if (count($factures) == 0) {
-                alert()->error("Echec", "Aucun résultat trouvé!");
-                return back()->withInput();
-            }
-            alert()->success("Succès", "Filtre éffectué avec succès");
-        } else {
-            $factures = $query->get();
+        } catch (ValidationException $e) {
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            alert()->error("Echec", "Une erreur est survenue lors du traitement de votre demande");
+            return back()->withInput();
         }
-
-        $montantTotal = $factures->sum("amount");
-        $users = User::all();
-
-        return view("admin.factures", compact(["agency", "factures", "montantTotal", "users"]));
     }
 }

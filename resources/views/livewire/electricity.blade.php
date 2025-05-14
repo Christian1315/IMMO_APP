@@ -29,7 +29,7 @@
                     <p class="" id="exampleModalLabel">Filtre par superviseur</p>
                 </div>
                 <div class="modal-body">
-                    <form class="serchBySupervisor" action="{{route('location.FiltreBySupervisor',$current_agency->id)}}" method="POST">
+                    <form class="serchBySupervisor" action="{{route('location.ElectricityFiltreBySupervisor',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -56,7 +56,7 @@
                     <p class="" id="exampleModalLabel">Filtre par maison</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('location.FiltreByHouse',$current_agency->id)}}" method="POST">
+                    <form action="{{route('location.ElectricityFiltreByHouse',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -83,7 +83,7 @@
                     <p class="" id="exampleModalLabel">Filtrer par proprietaire</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('location.FiltreByProprio',$current_agency->id)}}" method="POST">
+                    <form action="{{route('location.ElectricityFiltreByProprio',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -212,7 +212,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($locations as $location)
+                        @foreach(session()->get("locations_filtred") ? session()->get("locations_filtred"):$locations as $location)
                         <tr class="align-items-center">
                             <td class="text-center">{{$loop->iteration}}</td>
                             <td class="text-center"> <span class="badge bg-dark text-white">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} </span> </td>
@@ -258,8 +258,6 @@
             </div>
         </div>
     </div>
-
-    <!-- MODAL -->
 
     <!-- ###### FACTURES D4ELECTRICITE -->
     <div class="modal fade" id="factures" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">

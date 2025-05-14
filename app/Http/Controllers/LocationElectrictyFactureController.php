@@ -2,27 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agency;
 use App\Models\AgencyAccount;
 use App\Models\AgencyAccountSold;
 use App\Models\House;
 use App\Models\Location;
 use App\Models\LocationElectrictyFacture;
-use App\Models\Room;
+use App\Models\Proprietor;
 use App\Models\StopHouseElectricityState;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\QueryException;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class LocationElectrictyFactureController extends Controller
 {
+    private const DAYS_BETWEEN_STATE_STOPS = 5;
+    private const SECONDS_IN_DAY = 86400;
+
     #VERIFIONS SI LE USER EST AUTHENTIFIE
     public function __construct()
     {
         $this->middleware(['auth']);
     }
-
-
-    ###########============= VALIDATION DES DATAS =========================#########
-    ##======== ELECTRICITY FACTURE VALIDATION =======##
 
     static function electricity_factures_rules(): array
     {
@@ -43,259 +49,469 @@ class LocationElectrictyFactureController extends Controller
         ];
     }
 
-    function _GenerateFacture(Request $request)
+    function _GenerateFacture(Request $request): RedirectResponse
     {
-        $formData = $request->all();
+        try {
+            DB::beginTransaction();
+            
+            $formData = $request->all();
+            $this->validateElectricityFacture($formData);
 
-        $rules = self::electricity_factures_rules();
-        $messages = self::electricity_factures_messages();
+            $location = $this->getLocation($formData['location']);
+            if (!$location) {
+                DB::rollBack();
+                return $this->handleError("Cette location n'existe pas!");
+            }
 
-        Validator::make($formData, $rules, $messages)->validate();
+            $factureData = $this->prepareFactureData($formData, $location);
+            if (!$factureData) {
+                DB::rollBack();
+                return back()->withInput();
+            }
 
-        $user = request()->user();
+            LocationElectrictyFacture::create($factureData);
+            
+            DB::commit();
+            alert()->success("Succès", "Facture d'électricité générée avec succès!!");
 
-        ###___TRAITEMENT DES DATAS
-        $location = Location::where(["visible" => 1])->find($formData["location"]);
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
             return back()->withInput();
+        } catch (QueryException $e) {
+            DB::rollBack();
+            Log::error('Erreur de base de données lors de la génération de facture: ' . $e->getMessage());
+            return $this->handleError("Une erreur est survenue lors de la génération de la facture. Veuillez réessayer.");
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur inattendue lors de la génération de facture: ' . $e->getMessage());
+            return $this->handleError("Une erreur inattendue est survenue. Veuillez réessayer.");
         }
-
-        ####___VOYONS D'ABORD S'IL Y AVAIT UNE FACTURE PRECEDENTE
-        $factures = $location->ElectricityFactures; ## LocationElectrictyFacture::all();
-
-        ###__En cas d'existance d efacture précedente, l'index de debut
-        ###___ de l'actuelle facture revient à l'index de fin de l'ancienne facture
-        if (count($factures) != 0) {
-            $last_facture = $factures[0];
-            $formData["start_index"] = $last_facture->end_index;
-        } else {
-            ##__dans le cas contraire
-            ###___L'index de debut revient à l'index de debut de la chambre liée à cette location
-            $formData["start_index"] = $location->Room->electricity_counter_start_index;
-        }
-
-
-        $formData["consomation"] = $formData["end_index"] - $formData["start_index"];
-
-        // dd($formData["consomation"]);
-        if ($formData["consomation"] <= 0) {
-            alert()->error("Echec", "Désolé! L'index de fin doit être superieur à celui de début");
-            return back()->withInput();
-        }
-
-        // ######_________
-        $kilowater_unit_price = $location->Room->electricity_unit_price;
-        $formData["amount"] = $formData["consomation"] * $kilowater_unit_price;
-
-        // dd($formData["amount"]);
-        $formData["comments"] = "Géneration de facture d'électricité pour le locataire << " . $location->Locataire->name . " " . $location->Locataire->prenom . ">> de la maison << " . $location->House->name . " >> à la date " . now() . " par << $user->name >>";
-
-        ###___
-        $formData["owner"] = $user->id;
-
-        ###____
-        LocationElectrictyFacture::create($formData);
-
-        ####____
-        alert()->success("Succès", "Facture d'électricité géneréé avec succès!!");
-        return back()->withInput();
     }
 
 
     ######____PAYEMENT DE FACTURE D'ELECTRICITE
-    function _FacturePayement(Request $request, $id)
+    function _FacturePayement(Request $request, int $id): RedirectResponse
     {
-        $user = request()->user();
-        $facture = LocationElectrictyFacture::where("visible", 1)->find($id);
-        if (!$facture) {
-            alert()->error("Echec", "Cette facture n'existe pas!");
-            return back()->withInput();
-        }
+        try {
+            DB::beginTransaction();
 
-        #####____determination de l'agence
-        $location = $facture->Location;
-        $agency = $location->_Agency;
-
-        ###____MENTIONNONS LA FACTURE COMME payée
-        $facture->paid = true;
-
-        ##__
-        $agency_account = AgencyAccount::where(["agency" => $agency->id])->find(env("ELECTRICITY_WATER_ACCOUNT_ID"));
-        if (!$agency_account) {
-            alert()->error("Echec", "Ce compte d'agence n'existe pas! Vous ne pouvez pas le créditer!");
-            return back()->withInput();
-        }
-
-
-        $account = $agency_account->_Account;
-
-        $formData["sold_added"] = $facture->amount;
-
-        ###___VERIFIONS LE SOLD ACTUEL DU COMPTE ET VOYONS SI ça DEPPASE OU PAS LE PLAFOND
-        $agencyAccountSold = AgencyAccountSold::where(["agency_account" => $agency_account->id, "visible" => 1])->first();
-
-        if ($agencyAccountSold) { ##__Si ce compte dispose déjà d'un sold
-            $formData["old_sold"] = $agencyAccountSold->sold;
-
-            ##__voyons si le sold atteint déjà le plafond de ce compte
-            if ($agencyAccountSold->sold >= $account->plafond_max) {
-                alert()->error("Echec", "Le sold de ce compte (" . $account->name . ") a déjà atteint son plafond! Vous ne pouvez plus le créditer");
-                return back()->withInput();
-            } else {
-                # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-                # ça depasserait le plafond maximum du compte
-
-                if (($agencyAccountSold->sold + $facture->amount) > $account->plafond_max) {
-                    alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
-                    return back()->withInput();
-                }
+            $facture = $this->getFacture($id);
+            if (!$facture) {
+                DB::rollBack();
+                return $this->handleError("Cette facture n'existe pas!");
             }
 
-            ###__creditation proprement dite du compte
-            #__Deconsiderons l'ancien sold
-            $agencyAccountSold->visible = 0;
-            $agencyAccountSold->delete_at = now();
-            ####__
-            $agencyAccountSold->save();
+            $agency = $facture->Location->_Agency;
+            $agencyAccount = $this->getAgencyAccount($agency->id);
+            if (!$agencyAccount) {
+                DB::rollBack();
+                return $this->handleError("Ce compte d'agence n'existe pas! Vous ne pouvez pas le créditer!");
+            }
 
-            #__Construisons un nouveau sold(en se basant sur les datas de l'ancien sold)
-            $formData["agency_account"] = $agencyAccountSold->agency_account; ##__ça revient à l'ancien compte
-            $formData["sold"] = $agencyAccountSold->sold + $facture->amount;
-            $formData["description"] = "Paiement de la facture d'éléctricité de montant (" . $facture->amount . " ) pour la maison " . $location->House->name . " !!";
-
-            AgencyAccountSold::create($formData);
-        } else {
-            # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-            # ça depasserait le plafond maximum du compte
-            $formData["old_sold"] = 0;
-            $formData["agency_account"] = $agency_account->id; ##__ça revient à l'ancien compte
-            $formData["sold"] = $facture->amount;
-            $formData["description"] = "Paiement de la facture d'éléctricité de montant (" . $facture->amount . " ) pour la maison " . $location->House->name . "!!";
-
-
-            if ($facture->amount > $account->plafond_max) {
-                alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
+            if (!$this->canCreditAccount($agencyAccount, $facture->amount)) {
+                DB::rollBack();
                 return back()->withInput();
             }
 
-            # on le crée
-            AgencyAccountSold::create($formData);
+            $this->processPayment($facture, $agencyAccount);
+            
+            DB::commit();
+            alert()->success("Succès", "La facture d'électricité de montant ({$facture->amount}) a été payée avec succès!!");
+
+            return back()->withInput();
+        } catch (QueryException $e) {
+            DB::rollBack();
+            Log::error('Erreur de base de données lors du paiement de facture: ' . $e->getMessage());
+            return $this->handleError("Une erreur est survenue lors du paiement de la facture. Veuillez réessayer.");
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur inattendue lors du paiement de facture: ' . $e->getMessage());
+            return $this->handleError("Une erreur inattendue est survenue. Veuillez réessayer.");
         }
-
-        ###___MARQUONS QUE LA FACTURE EST PAYEE
-        $facture->save();
-
-        #####_______
-        alert()->success("Succès", "La facture d'éléctricité de montant (" . $facture->amount . " ) a été payée avec succès!!");
-        return back()->withInput();
     }
 
     ####____ ARRET D'ETAT
-    function _StopStatsOfHouse(Request $request)
+    function _StopStatsOfHouse(Request $request): RedirectResponse
     {
+        try {
+            DB::beginTransaction();
 
-        #####____
-        $user = request()->user();
-        $formData = $request->all();
+            $formData = $request->all();
+            $this->validateHouseData($formData);
 
-        #####____VALIDATION DES DATAS
-        Validator::make($formData, [
-            'house' => ['required', "integer"],
-        ], [
-            'house.required' => 'La maison est réquise!',
-            'house.integer' => "Ce champ doit être de type entier!",
-        ])->validate();
-
-
-        if ($user) {
-            $formData["owner"] = $user->id;
-        }
-
-        $house = House::where(["visible" => 1])->find($formData["house"]);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        };
-
-        if (count($house->Locations) == 0) {
-            alert()->error("Echec", "Cette maison n'appartient à aucune location! Son arrêt d'état ne peut donc être éffectué");
-            return back()->withInput();
-        }
-
-        ###_____VERIFIONS D'ABORD SI CETTE HOUSE DISPOSAIT DEJA D'UN ETAT
-        $this_house_state = StopHouseElectricityState::orderBy("id", "desc")->where(["house" => $formData["house"]])->first();
-
-        if (!$this_house_state) { ##Si cette maison ne dispose pas d'arrêt d'etat
-            ##__ON CREE SON PREMIER ARRET D'ETAT
-            $data["house"] = $formData["house"];
-            $data["owner"] = $formData["owner"];
-            $data["state_stoped_day"] = now();
-            $state = StopHouseElectricityState::create($data);
-        } else {
-            ##S'il dispose d'un arret d'etat déjà
-
-            ##__On verifie si la date d'aujourd'hui atteint ou depasse
-            ##__la date de l'arret precedent + 20 jours
-
-            $precedent_arret_date = strtotime($this_house_state->state_stoped_day);
-            $now = strtotime(now());
-            $twenty_days = 5 * 24 * 3600;
-
-            // if ($now < ($precedent_arret_date + $twenty_days)) {
-            //     return self::sendError("La précedente date d'arrêt des états de cette maison ne depasse pas encore 5 jours! Vous ne pouvez donc pas éffectuer un nouveau arrêt d'etats pour cette maison pour le moment", 505);
-            // }
-
-            ###__ON ARRËTE LES ETATS
-            $data["owner"] = $formData["owner"];
-            $data["house"] = $formData["house"];
-            $data["state_stoped_day"] = now();
-            $state =  StopHouseElectricityState::create($data);
-        }
-
-        ###____ ACTUALISONS LES STATES DES FACTURES
-
-        foreach ($house->Locations as $location) {
-
-            // ACTUALISONS LES INDEX DE DEBUT EN ELECTRICITE DE CHAQUE CHAMBRE DE LA MAISON
-            $location_factures = $location->ElectricityFactures;
-
-            $location_room = Room::find($location->Room->id);
-
-            if (count($location_factures) != 0) {
-                ###__dernière facture de la location à l'arrêt de cet état
-                $last_facture = $location_factures[0];
-
-                ###___l'index de fin de la chambre revient désormais à
-                ###___ celui de la dernière facture à l'arrêt de cet état
-                $location_room->electricity_counter_start_index = $last_facture->end_index;
-                $location_room->save();
+            $house = $this->getHouse($formData['house']);
+            if (!$house || $house->Locations->isEmpty()) {
+                DB::rollBack();
+                return $this->handleError("Cette maison n'existe pas ou n'appartient à aucune location!");
             }
 
-            // ACTUALISONS LES STATES DES FACTURES
-            foreach ($location_factures as $facture) {
-                $electricty_facture = LocationElectrictyFacture::find($facture->id);
-                if (!$electricty_facture->state) {
-                    $electricty_facture->state = $state->id;
-                    $electricty_facture->save();
-                }
+            $state = $this->createOrUpdateHouseState($house, $formData);
+            $this->updateHouseLocations($house, $state);
+
+            DB::commit();
+            alert()->success("Succès", "L'état en électricité de cette maison a été arrêté avec succès!");
+            return back()->withInput();
+        } catch (QueryException $e) {
+            DB::rollBack();
+            Log::error('Erreur de base de données lors de l\'arrêt des états: ' . $e->getMessage());
+            return $this->handleError("Une erreur est survenue lors de l'arrêt des états. Veuillez réessayer.");
+        } catch (Exception $e) {
+            // dd($e);
+            DB::rollBack();
+            Log::error('Erreur inattendue lors de l\'arrêt des états: ' . $e->getMessage());
+            return $this->handleError("Une erreur inattendue est survenue. Veuillez réessayer.");
+        }
+    }
+
+
+    /**
+     * Filtre les locations par superviseur
+     * 
+     * @param Request $request
+     * @param Agency $agency
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function ElectricityFiltreBySupervisor(Request $request, Agency $agency)
+    {
+        try {
+            // Validation du superviseur
+            $supervisor = User::find($request->supervisor);
+            if (!$supervisor) {
+                throw new \Exception("Ce superviseur n'existe pas!");
             }
 
-            ###___Génerons une dernière facture pour cette maison pour actualiser les infos de la dernière facture à l'arrêt de cet etat
+            // Récupération des locations avec eager loading
+            $locations_filtred = $agency->_Locations()
+                ->where('status', '!=', 3)
+                ->whereHas('Room', function ($query){
+                    $query->where('electricity', true);
+                })
+                ->whereHas('House.Supervisor', function ($query) use ($request) {
+                    $query->where('id', $request->supervisor);
+                })
+                ->get();
 
-            $stateFactureData = [
-                "owner" => $user->id,
-                "location" => $location->id,
-                "end_index" => $location_room->electricity_counter_start_index,
-                "amount" => 0,
-                "state_facture" => 1,
-                "state" => $state->id,
+            if ($locations_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            alert()->success("Succès", "Locations filtrées par superviseur avec succès!");
+            return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Filtre les locations par maison
+     * 
+     * @param Request $request
+     * @param Agency $agency
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function ElectricityFiltreByHouse(Request $request, Agency $agency)
+    {
+        try {
+            // Validation de la maison
+            $house = House::find($request->house);
+            if (!$house) {
+                throw new \Exception("Cette maison n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading
+            $locations_filtred = $agency->_Locations()
+                ->with(['House', 'Room', 'Locataire'])
+                ->where('status', '!=', 3)
+                ->where('house', $request->house)
+                ->whereHas('Room', function ($query){
+                    $query->where('electricity', true);
+                })
+                ->get();
+
+            if ($locations_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            alert()->success("Succès", "Locations filtrées par maison avec succès!");
+            return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Filtre les locations par propriétaire
+     * 
+     * @param Request $request
+     * @param Agency $agency
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function ElectricityFiltreByProprio(Request $request, Agency $agency)
+    {
+        try {
+            // Validation du propriétaire
+            $proprietor = Proprietor::find($request->proprio);
+            if (!$proprietor) {
+                throw new \Exception("Ce propriétaire n'existe pas!");
+            }
+
+            // Récupération des locations avec eager loading
+            $locations_filtred = $agency->_Locations()
+                ->with(['House.Proprietor', 'Room', 'Locataire'])
+                ->where('status', '!=', 3)
+                ->whereHas('Room', function ($query){
+                    $query->where('electricity', true);
+                })
+                ->whereHas('House.Proprietor', function ($query) use ($request) {
+                    $query->where('id', $request->proprio);
+                })
+                ->get();
+
+            if ($locations_filtred->isEmpty()) {
+                throw new \Exception("Aucun résultat trouvé");
+            }
+
+            alert()->success("Succès", "Locations filtrées par propriétaire avec succès!");
+            return back()->withInput()->with(["locations_filtred" => $locations_filtred]);
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    private function validateElectricityFacture(array $data): void
+    {
+        try {
+            Validator::make($data, self::electricity_factures_rules(), self::electricity_factures_messages())->validate();
+        } catch (Exception $e) {
+            Log::error('Erreur de validation des données de facture: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function validateHouseData(array $data): void
+    {
+        try {
+            Validator::make($data, [
+                'house' => ['required', 'integer'],
+            ], [
+                'house.required' => 'La maison est requise!',
+                'house.integer' => "Ce champ doit être de type entier!",
+            ])->validate();
+        } catch (Exception $e) {
+            Log::error('Erreur de validation des données de maison: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function getLocation(int $locationId): ?Location
+    {
+        try {
+            return Location::where(['visible' => 1])->find($locationId);
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la récupération de la location: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function getFacture(int $id): ?LocationElectrictyFacture
+    {
+        try {
+            return LocationElectrictyFacture::where('visible', 1)->find($id);
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la récupération de la facture: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function getHouse(int $houseId): ?House
+    {
+        try {
+            return House::where(['visible' => 1])->find($houseId);
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la récupération de la maison: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function getAgencyAccount(int $agencyId): ?AgencyAccount
+    {
+        try {
+            return AgencyAccount::where(['agency' => $agencyId])->find(env('ELECTRICITY_WATER_ACCOUNT_ID'));
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la récupération du compte d\'agence: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function prepareFactureData(array $formData, Location $location): ?array
+    {
+        try {
+            $factures = $location->ElectricityFactures;
+            $startIndex = $factures->isNotEmpty()
+                ? $factures->first()->end_index
+                : $location->Room->electricity_counter_start_index;
+
+            $consumption = $formData['end_index'] - $startIndex;
+            if ($consumption <= 0) {
+                $this->handleError("Désolé! L'index de fin doit être supérieur à celui de début");
+                return null;
+            }
+
+            $amount = $consumption * $location->Room->electricity_unit_price;
+            $user = request()->user();
+
+            return [
+                'location' => $formData['location'],
+                'start_index' => $startIndex,
+                'end_index' => $formData['end_index'],
+                'consomation' => $consumption,
+                'amount' => $amount,
+                'comments' => "Génération de facture d'électricité pour le locataire << {$location->Locataire->name} {$location->Locataire->prenom}>> de la maison << {$location->House->name} >> à la date " . now() . " par << {$user->name}>>",
+                'owner' => $user->id,
             ];
-            LocationElectrictyFacture::create($stateFactureData);
+        } catch (Exception $e) {
+            Log::error('Erreur lors de la préparation des données de facture: ' . $e->getMessage());
+            throw $e;
         }
+    }
 
-        ####___
-        alert()->success("Succès", "L'état en électricité de cette maison a été arrêté avec succès!");
+    private function canCreditAccount(AgencyAccount $account, float $amount): bool
+    {
+        try {
+            $agencyAccountSold = AgencyAccountSold::where(['agency_account' => $account->id, 'visible' => 1])->first();
+            $currentSold = $agencyAccountSold ? $agencyAccountSold->sold : 0;
+            $maxSold = $account->_Account->plafond_max;
+
+            if ($currentSold >= $maxSold) {
+                $this->handleError("Le sold de ce compte ({$account->_Account->name}) a déjà atteint son plafond!");
+                return false;
+            }
+
+            if (($currentSold + $amount) > $maxSold) {
+                $this->handleError("L'ajout de ce montant au sold de ce compte ({$account->_Account->name}) dépasserait son plafond!");
+                return false;
+            }
+
+            return true;
+        } catch (Exception $e) {
+            Log::error('Erreur lors de la vérification du crédit du compte: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function processPayment(LocationElectrictyFacture $facture, AgencyAccount $agencyAccount): void
+    {
+        try {
+            $facture->paid = true;
+            $facture->save();
+
+            $agencyAccountSold = AgencyAccountSold::where(['agency_account' => $agencyAccount->id, 'visible' => 1])->first();
+            $currentSold = $agencyAccountSold ? $agencyAccountSold->sold : 0;
+
+            if ($agencyAccountSold) {
+                $agencyAccountSold->visible = 0;
+                $agencyAccountSold->delete_at = now();
+                $agencyAccountSold->save();
+            }
+
+            AgencyAccountSold::create([
+                'agency_account' => $agencyAccount->id,
+                'old_sold' => $currentSold,
+                'sold' => $currentSold + $facture->amount,
+                'sold_added' => $facture->amount,
+                'description' => "Paiement de la facture d'électricité de montant ({$facture->amount}) pour la maison {$facture->Location->House->name}!!"
+            ]);
+        } catch (QueryException $e) {
+            Log::error('Erreur lors du traitement du paiement: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function createOrUpdateHouseState(House $house, array $formData): StopHouseElectricityState
+    {
+        try {
+
+            return StopHouseElectricityState::create([
+                'house' => $house->id,
+                'owner' => auth()->user()->id,
+                'state_stoped_day' => now(),
+            ]);
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la création/mise à jour de l\'état de la maison: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function updateHouseLocations(House $house, StopHouseElectricityState $state): void
+    {
+        try {
+            $house->Locations->each(function ($location) use ($state) {
+                if (!$location->Room) {
+                    return;
+                }
+
+                $this->updateLocationRoom($location, $state);
+                $this->updateLocationFactures($location, $state);
+                $this->createStateFacture($location, $state);
+            });
+        } catch (Exception $e) {
+            Log::error('Erreur lors de la mise à jour des locations de la maison: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function updateLocationRoom(Location $location, StopHouseElectricityState $state): void
+    {
+        try {
+            $locationRoom = $location->Room;
+            $lastFacture = $location->ElectricityFactures->first();
+
+            if ($lastFacture) {
+                $locationRoom->electricity_counter_start_index = $lastFacture->end_index;
+                $locationRoom->save();
+            }
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la mise à jour de la chambre: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function updateLocationFactures(Location $location, StopHouseElectricityState $state): void
+    {
+        try {
+            $location->ElectricityFactures->each(function ($facture) use ($state) {
+                if (!$facture->state) {
+                    $facture->state = $state->id;
+                    $facture->save();
+                }
+            });
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la mise à jour des factures: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function createStateFacture(Location $location, StopHouseElectricityState $state): void
+    {
+        try {
+            LocationElectrictyFacture::create([
+                'owner' => request()->user()->id,
+                'location' => $location->id,
+                'end_index' => $location->Room->electricity_counter_start_index,
+                'amount' => 0,
+                'state_facture' => 1,
+                'state' => $state->id,
+            ]);
+        } catch (QueryException $e) {
+            Log::error('Erreur lors de la création de la facture d\'état: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function handleError(string $message): RedirectResponse
+    {
+        alert()->error("Echec", $message);
         return back()->withInput();
     }
 }

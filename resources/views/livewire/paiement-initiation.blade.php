@@ -1,9 +1,8 @@
 <div>
-
     <!-- TABLEAU DE LISTE -->
     <div class="row">
         <div class="col-12">
-            <h4 class="">Total: <strong class="text-red"> {{count($initiations)}} </strong> | Légende: <button class="btn btn-sm bg-light border" >En cours(s) <i class="text-warning bi bi-geo-alt"></i></button> <button class="btn btn-sm bg-light border" >Traité(s) <i class="text-success bi bi-geo-alt"></i></button>  </h4>
+            <h4 class="">Total: <strong class="text-red"> {{count($initiations)}} </strong> | Légende: <button class="btn btn-sm bg-light border">En cours(s) <i class="text-warning bi bi-geo-alt"></i></button> <button class="btn btn-sm bg-light border">Traité(s) <i class="text-success bi bi-geo-alt"></i></button> </h4>
 
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm shadow-lg">
@@ -52,37 +51,51 @@
 
                                 @can("proprio.payement.cancel")
                                 @if($initiation->state!=null)
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#payement_rejet_{{$initiation->id}}" class="btn btn-sm btn-danger" title="Rejeter"><i class="bi bi-x-circle"></i> </a>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#payement_rejet" data-initiation-id="{{crypId($initiation->id)}}" class="btn btn-sm btn-danger" title="Rejeter"><i class="bi bi-x-circle"></i> </a>
                                 @endcan
                                 @endif
                                 @endif
                             </td>
                         </tr>
 
-                        <!-- REJET D'UN PAIEMENT -->
-                        @can("proprio.payement.cancel")
-                        <div class="modal fade" id="payement_rejet_{{$initiation->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-body">
-                                        <p class="">Rejet de paiement</p>
-                                        <form action="{{route('payement_initiation.RejetPayementInitiation',crypId($initiation->id))}}" method="post">
-                                            @csrf
-                                            <textarea required name="rejet_comments" value="{{old('rejet_comments')}}" class="form-control" placeholder="Pourquoi voulez-vous effectuer ce rejet"></textarea>
-                                            <br>
-                                            <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-x-circle"></i> Rejeter</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endcan
                         @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-</div>
 
+    <!-- REJET D'UN PAIEMENT -->
+    @can("proprio.payement.cancel")
+    <div class="modal fade" id="payement_rejet" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p class="">Rejet de paiement</p>
+                    <form id="rejetForm"  action="#" method="post">
+                        @csrf
+                        <textarea required name="rejet_comments" value="{{old('rejet_comments')}}" class="form-control" placeholder="Pourquoi voulez-vous effectuer ce rejet"></textarea>
+                        <br>
+                        <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-x-circle"></i> Rejeter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endcan
+
+    @push("scripts")
+    <script type="text/javascript">
+        document.querySelectorAll('[data-bs-target="#payement_rejet"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const initiationId = this.dataset.initiationId;
+                validation(initiationId);
+            });
+        });
+        
+        async function validation(initiationId) {
+            $("#rejetForm").attr("action",`/payement_initiation/${initiationId}/rejet`)
+        }
+    </script>
+    @endpush
 </div>

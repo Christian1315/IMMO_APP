@@ -2,155 +2,17 @@
 
 namespace App\Livewire;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-
 use Livewire\Component;
+use App\Models\Location;
+use Illuminate\Database\Eloquent\Collection;
 
 class Electricity extends Component
 {
     public $current_agency;
-    public $locations = [];
+    public Collection $locations;
+    public Collection $houses;
 
-    public $houses = [];
-    public $current_house = [];
-    public $house;
-    public $houseId = 0;
-    public $state = 0;
-
-
-    ###__LOCATIONS
-    function refreshThisAgencyLocations()
-    {
-        // seuls les locations non démenagées
-        $locations = $this->current_agency->_Locations->where("status", "!=", 3)->filter(function ($location) {
-            return $location->Room?
-            $location->Room->electricity:null;
-        });
-        ##___
-        $agency_locations = [];
-
-        foreach ($locations as $location) {
-            if (count($location->ElectricityFactures) != 0) {
-                $latest_facture = $location->ElectricityFactures[0]; ##__dernier facture de cette location
-                // dd($latest_facture);
-
-                ##___Cette variable determine si la derniere facture est pour un arrêt de state
-
-                $is_latest_facture_a_state_facture = false;
-                if ($latest_facture->state_facture) {
-                    $is_latest_facture_a_state_facture = true; ###__la derniere facture est pour un arrêt de state
-                }
-
-                ###___l'index de fin de cette location revient à l'index de fin de sa dernière facture
-                $location["end_index"] = $latest_facture->end_index;
-
-                ###___le montant actuel à payer pour cette location revient au montant de sa dernière facture
-                ###__quand la dernière facture est payée, le current_amount devient 0 
-                // dd($latest_facture);
-                $location["current_amount"] = $latest_facture["paid"] ? 0 : $latest_facture["amount"];
-
-                #####______montant payé
-                $paid_factures_array = [];
-
-                ###__determinons les arrièrees
-                $unpaid_factures_array = [];
-                $nbr_unpaid_factures_array = [];
-                $total_factures_to_pay_array = [];
-
-                foreach ($location->ElectricityFactures as $facture) {
-
-                    ###__on recupere toutes les factures sauf la dernière(correspondante à l'arrêt d'état)
-                    if ($facture["id"] != $latest_facture["id"]) {
-                        ###__on recupere les factures non payés
-                        if (!$facture["paid"]) {
-                            if (!$facture->state_facture) { ##sauf la dernière(correspondante à l'arrêt d'état)
-                                array_push($unpaid_factures_array, $facture["amount"]);
-                                array_push($nbr_unpaid_factures_array, $facture);
-                            }
-                        }
-                    }
-
-                    ###__on recupere les factures  payées
-                    if ($facture->paid) {
-                        array_push($paid_factures_array, $facture["amount"]);
-                    }
-                    ###____
-                    array_push($total_factures_to_pay_array, $facture["amount"]);
-                }
-
-                ###__Nbr d'arrieres
-                $location["nbr_un_paid_facture_amount"] = $is_latest_facture_a_state_facture ? 0 : count($nbr_unpaid_factures_array);
-                ###__Montant d'arrieres
-                $location["un_paid_facture_amount"] = $is_latest_facture_a_state_facture ? 0 : array_sum($unpaid_factures_array);
-
-                ###__Montant payés
-                $location["paid_facture_amount"] = $is_latest_facture_a_state_facture ? 0 : array_sum($paid_factures_array);
-
-                ##__total amount to paid
-                $location["total_un_paid_facture_amount"] = $is_latest_facture_a_state_facture ? 0 : array_sum($total_factures_to_pay_array);
-
-                ###__Montant dû
-                $location["rest_facture_amount"] = $location["total_un_paid_facture_amount"] - $location["paid_facture_amount"];
-                // dd($location);
-            } else {
-                ###___l'index de fin de cette location revient à l'index de fin de sa dernière facture
-                $location["end_index"] = 0;
-
-                ###___le montant actuel à payer pour cette location revient montant de sa dernière facture
-                ###__quand la dernière facture est payée, le current_amount devient 0 
-                $location["current_amount"] =  0;
-
-                ###__Nbr d'arrieres
-                $location["nbr_un_paid_facture_amount"] = 0;
-
-                ###__Montant d'arrieres
-                $location["un_paid_facture_amount"] = 0;
-
-                ###___
-                $location["water_factures"] = [];
-
-                ###__Montant payés
-                $location["paid_facture_amount"] = 0;
-
-                ##__total amount to paid
-                $location["total_un_paid_facture_amount"] = 0;
-
-                ###__Montant dû
-                $location["rest_facture_amount"] = 0;
-            }
-
-            // 
-            $location["house_name"] = $location->House->name;
-            $location["start_index"] = count($location->ElectricityFactures) != 0 ? $location->ElectricityFactures->first()->end_index : ($location->Room?$location->Room->electricity_counter_start_index:null);
-            // $location["end_index"] = $location->end_index;
-            $location["locataire"] = $location->Locataire->name ." ". $location->Locataire->prenom;
-            $location["electricity_factures"] = $location->ElectricityFactures;
-            $location["electricity_factures_states"] = $location->House->ElectricityFacturesStates;
-            $location["lastFacture"] = $location->ElectricityFactures()?$location->ElectricityFactures()->first():null;
-            // 
-            array_push($agency_locations, $location);
-        }
-
-        ####___
-        $this->locations = $agency_locations;
-    }
-
-    ###___HOUSES
-    function refreshThisAgencyHouses()
-    {
-        $locations = $this->current_agency->_Locations->where("status", "!=", 3);
-        $houses = [];
-        foreach ($locations as $location) {
-            if ($location->Room && $location->Room->electricity) {
-                array_push($houses, $location->House);
-            }
-        }
-        $this->houses = collect($houses)->unique()->values();
-    }
-
-    function mount($agency)
+    public function mount($agency): void
     {
         set_time_limit(0);
         $this->current_agency = $agency;
@@ -158,8 +20,106 @@ class Electricity extends Component
         $this->refreshThisAgencyHouses();
     }
 
+    private function refreshThisAgencyLocations(): void
+    {
+        $locations = $this->getActiveLocations();
+        $this->locations = Collection::make(
+            $locations->map(function ($location) {
+                return $this->processLocation($location);
+            })->all()
+        );
+
+    }
+
+    private function getActiveLocations(): Collection
+    {
+        return $this->current_agency->_Locations
+            ->where("status", "!=", 3)
+            ->filter(fn($location) => $location->Room?->electricity);
+    }
+
+    private function processLocation(Location $location): Location
+    {
+        $location->load([
+            "_Agency","Owner","House","Locataire","Room",
+            "Factures","StateFactures","AllFactures","Paiements","ElectricityFactures"
+        ]);
+
+        $location['house_name'] = $location->House->name;
+        $location['locataire'] = $location->Locataire->name . " " . $location->Locataire->prenom;
+        $location['electricity_factures'] = $location->ElectricityFactures;
+        $location['electricity_factures_states'] = $location->House->ElectricityFacturesStates;
+        $location['lastFacture'] = $location->ElectricityFactures()->first();
+        $location['start_index'] = $this->getStartIndex($location);
+
+        if ($location->ElectricityFactures->isNotEmpty()) {
+            $latestFacture = $location->ElectricityFactures->first();
+            $isLatestFactureStateFacture = $latestFacture->state_facture;
+
+            $this->calculateFactureData($location, $latestFacture, $isLatestFactureStateFacture);
+        } else {
+            $this->getEmptyFactureData($location);
+        }
+
+        return $location;
+    }
+
+    private function getStartIndex(Location $location): ?int
+    {
+        if ($location->ElectricityFactures->isNotEmpty()) {
+            return $location->ElectricityFactures->first()->end_index;
+        }
+        return $location->Room?->electricity_counter_start_index;
+    }
+
+    private function calculateFactureData(Location $location, $latestFacture, bool $isLatestFactureStateFacture): Location
+    {
+        $unpaidFactures = $location->ElectricityFactures
+            ->where('id', '!=', $latestFacture->id)
+            ->where('paid', false)
+            ->where('state_facture', false);
+
+        $paidFactures = $location->ElectricityFactures->where('paid', true);
+        $totalFactures = $location->ElectricityFactures;
+
+        $location['end_index'] = $latestFacture->end_index;
+        $location['current_amount'] = $latestFacture->paid ? 0 : $latestFacture->amount;
+        $location['nbr_un_paid_facture_amount'] = $isLatestFactureStateFacture ? 0 : $unpaidFactures->count();
+        $location['un_paid_facture_amount'] = $isLatestFactureStateFacture ? 0 : $unpaidFactures->sum('amount');
+        $location['paid_facture_amount'] = $isLatestFactureStateFacture ? 0 : $paidFactures->sum('amount');
+        $location['total_un_paid_facture_amount'] = $isLatestFactureStateFacture ? 0 : $totalFactures->sum('amount');
+        $location['rest_facture_amount'] = $isLatestFactureStateFacture ? 0 : ($totalFactures->sum('amount') - $paidFactures->sum('amount'));
+
+        return $location;
+    }
+
+    private function getEmptyFactureData($location): Location
+    {
+        $location['end_index'] = 0;
+        $location['current_amount'] = 0;
+        $location['nbr_un_paid_facture_amount'] = 0;
+        $location['un_paid_facture_amount'] = 0;
+        $location['water_factures'] = [];
+        $location['paid_facture_amount'] = 0;
+        $location['total_un_paid_facture_amount'] = 0;
+        $location['rest_facture_amount'] = 0;
+
+        return $location;
+    }
+
+    private function refreshThisAgencyHouses(): void
+    {
+        $this->houses = Collection::make(
+            $this->getActiveLocations()
+                ->map(fn($location) => $location->House)
+                ->unique()
+                ->values()
+                ->all()
+        );
+    }
+
     public function render()
     {
         return view('livewire.electricity');
     }
-};
+}

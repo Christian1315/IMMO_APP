@@ -15,15 +15,6 @@ class Check_If_User_Has_An_Agent_Accountant_Role
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Is_User_Has_An_Agent_Accountant_Role(request()->user()->id)) {
-            return response()->json(
-                [
-                    "status" => false,
-                    "message" => "Vous n'avez pas le rôle d'un Agent comptable! Vous ne pouvez donc pas éffectuer cette opération",
-                ],
-                505
-            );
-        }
         return $next($request);
     }
 }

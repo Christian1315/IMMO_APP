@@ -15,6 +15,7 @@ use App\Http\Controllers\PaiementInitiationController;
 use App\Http\Controllers\ProprietorController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoleController;
+use App\Models\Location;
 use App\Models\Room;
 
 use Illuminate\Support\Facades\Route;
@@ -31,19 +32,19 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get("/debug", function () {
-    // Location::where("status", 3)->update(["room" => null]);
+    Location::where("status", 3)->update(["room" => null]);
     // House::where("visible", 0)->update(["deleted_at" => now()]);
     // Locataire::where("visible", 0)->update(["deleted_at" => now()]);
     // Room::where("visible", 0)->update(["deleted_at" => now()]);
 
-    $rooms = Room::get();
-    // MISE A JOUR DES LOYER DES LOCATIONS LIEES A CETTE CHAMBRE
+    // $rooms = Room::get();
+    // // MISE A JOUR DES LOYER DES LOCATIONS LIEES A CETTE CHAMBRE
 
-    foreach ($rooms as $room) {
-        foreach ($room->Locations as $location) {
-            $location->update(["loyer" => $room->total_amount]);
-        }
-    }
+    // foreach ($rooms as $room) {
+    //     foreach ($room->Locations as $location) {
+    //         $location->update(["loyer" => $room->total_amount]);
+    //     }
+    // }
 
     return "Opération éffectuée avec succès....";
 });
@@ -334,6 +335,11 @@ Route::prefix("electricity_facture")->group(function () {
 
         ###____impression des etats de factures eau-electricité
         Route::get("{state}/show_electricity_state_html", [StopHouseElectricityStateController::class, "ShowStateImprimeHtml"])->name("house_state.ImprimeElectricityHouseState");
+
+         // FILTRE LOCATION
+        Route::post('{agency}/electricity_location_filtre_by_supervisor', 'ElectricityFiltreBySupervisor')->name("location.ElectricityFiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
+        Route::post('{agency}/electricity_location_filtre_by_house', 'ElectricityFiltreByHouse')->name("location.ElectricityFiltreByHouse"); #FILTRER PAR MAISON
+        Route::post('{agency}/electricity_location_filtre_by_proprio', 'ElectricityFiltreByProprio')->name("location.ElectricityFiltreByProprio"); #FILTRER PAR PROPRIETAIRE
     });
 });
 
