@@ -17,8 +17,8 @@
                     <tbody>
                         @foreach($houses as $house)
                         <tr class="align-items-center">
-                            <td class="text-center"><span class="badge bg-light text-dark">{{$house["name"]}} </span> </td>
-                            <td class="text-center"><strong class="badge bg-light text-dark">{{count($house["rooms"])}} </strong> </td>
+                            <td class="text-center"><span class="badge bg-light text-dark">{{$house->name}} </span> </td>
+                            <td class="text-center"><strong class="badge bg-light text-dark">{{$house->Rooms->count()}} </strong> </td>
                             <td class="text-center"><span class="badge bg-light text-red">{{$house->Supervisor->name}} </span> </td>
                             <td class="text-center"><span class="badge bg-light text-red"> {{count($house["frees_rooms_at_first_month"])}} </span></td>
                             <td class="text-center"><strong class="badge bg-light text-success"> {{count($house["frees_rooms"])}} </strong> </td>

@@ -88,8 +88,6 @@
                 </table>
             </div>
             <br>
-            <!-- <br>
-            <br> -->
 
             @php
             $recovery_date = $house->post_paid?

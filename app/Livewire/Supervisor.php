@@ -4,11 +4,9 @@ namespace App\Livewire;
 
 use App\Models\User;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class Supervisor extends Component
 {
-    use WithFileUploads;
     public $compteAgents = [];
     public function mount()
     {

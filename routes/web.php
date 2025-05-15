@@ -346,16 +346,21 @@ Route::prefix("electricity_facture")->group(function () {
 ###___GESTION DES FACTURES D'ELECTRICITE DANS UNE LOCATION
 Route::prefix("water_facture")->group(function () {
     Route::controller(LocationWaterFactureController::class)->group(function () {
-        Route::post("generate", "_GenerateWateracture")->name("water_facture._GenerateFacture"); ##__generer la facture
-        Route::any("{id}/payement", "_FactureWaterPayement")->name("water_facture._FactureWaterPayement"); ##__Payement d'une facture d'electricité
+        Route::post("generate", "_GenerateFacture")->name("water_facture._GenerateFacture"); ##__generer la facture
+        Route::any("{id}/payement", "_FacturePayement")->name("water_facture._FactureWaterPayement"); ##__Payement d'une facture d'electricité
 
         ##=========__ ARRETER LES ETATS D'ELECTRICITE DES MAISON ======
         Route::prefix("house_state")->group(function () {
-            Route::post('stop', '_StopWaterStatsOfHouse')->name("house_state._StopWaterStatsOfHouse"); ###___ARRETER LES ETATS EN ELECTRICITE D'UNE MAISON
+            Route::post('stop', '_StopStatsOfHouse')->name("house_state._StopWaterStatsOfHouse"); ###___ARRETER LES ETATS EN ELECTRICITE D'UNE MAISON
         });
 
         ###____impression des etats de factures eau-electricité
         Route::get("{state}/show_water_state_html", [StopHouseWaterStateController::class, "ShowWaterStateImprimeHtml"])->name("house_state.ShowWaterStateImprimeHtml");
+
+         // FILTRE LOCATION
+        Route::post('{agency}/water_location_filtre_by_supervisor', 'WaterFiltreBySupervisor')->name("location.WaterFiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
+        Route::post('{agency}/water_location_filtre_by_house', 'WaterFiltreByHouse')->name("location.WaterFiltreByHouse"); #FILTRER PAR MAISON
+        Route::post('{agency}/water_location_filtre_by_proprio', 'WaterFiltreByProprio')->name("location.WaterFiltreByProprio"); #FILTRER PAR PROPRIETAIRE
     });
 });
 

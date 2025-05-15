@@ -306,22 +306,6 @@ function GET_HOUSE_DETAIL($house)
     $commission = ($total_amount_paid * $house->commission_percent) / 100;
     $net_to_paid = $total_amount_paid - ($current_state_depenses->sum() + $commission);
 
-    // Merge all data into house object
-    // return array_merge($house->toArray(), [
-    //     'last_depenses' => $last_state_depenses->sum(),
-    //     'actuel_depenses' => $current_state_depenses->sum(),
-    //     'total_amount_paid' => $total_amount_paid,
-    //     'house_last_state' => $house_last_state,
-    //     'nbr_month_paid' => $house_factures->count(),
-    //     'commission' => $commission,
-    //     'net_to_paid' => $net_to_paid,
-    //     'last_payement_initiation' => $house_last_state ? ($house_last_state->PaiementInitiations ? $house_last_state->PaiementInitiations->last() : []) : [],
-    //     'busy_rooms' => $roomStats['busy_rooms'],
-    //     'frees_rooms' => $roomStats['frees_rooms'],
-    //     'busy_rooms_at_first_month' => $roomStats['busy_rooms_at_first_month'],
-    //     'frees_rooms_at_first_month' => $roomStats['frees_rooms_at_first_month']
-    // ]);
-
     $house['last_depenses'] = $last_state_depenses->sum();
     $house['actuel_depenses'] = $current_state_depenses->sum();
     $house['total_amount_paid'] = $total_amount_paid;

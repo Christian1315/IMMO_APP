@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class Recovery05 extends Component
 {
@@ -34,30 +35,30 @@ class Recovery05 extends Component
 
     private function getLocatorsThatPaidAfterStateStopped(): array
     {
-        $locators = [];
+        return collect($this->houses)
+            ->filter(fn($house) => $house->States->isNotEmpty())
+            ->flatMap(function ($house) {
+                $lastState = $house->States->last();
+                $lastStateDate = Carbon::parse($lastState->stats_stoped_day)->format(self::DATE_FORMAT);
 
-        foreach ($this->houses as $house) {
-            $lastState = $house->States->last();
-            
-            if (!$lastState) {
-                continue;
-            }
+                return $lastState->Factures
+                    ->map(function ($facture) use ($lastStateDate) {
+                        $location = $facture->Location;
+                        $echeanceDate = Carbon::parse($facture->echeance_date)->format(self::DATE_FORMAT);
+                        $previousEcheanceDate = Carbon::parse($location->previous_echeance_date)->format(self::DATE_FORMAT);
 
-            $lastStateDate = Carbon::parse($lastState->stats_stoped_day)->format(self::DATE_FORMAT);
-            
-            foreach ($lastState->Factures as $facture) {
-                $location = $facture->Location;
-                $echeanceDate = Carbon::parse($facture->echeance_date)->format(self::DATE_FORMAT);
-                $previousEcheanceDate = Carbon::parse($location->previous_echeance_date)->format(self::DATE_FORMAT);
-                
-                if ($this->isValidPaymentDate($lastStateDate, $echeanceDate, $previousEcheanceDate)) {
-                    $location->Locataire["locator_location"] = $location;
-                    $locators[] = $location->Locataire;
-                }
-            }
-        }
-
-        return $locators;
+                        if ($this->isValidPaymentDate($lastStateDate, $echeanceDate, $previousEcheanceDate)) {
+                            $location->Locataire["locator_location"] = $location;
+                            return $location->Locataire;
+                        }
+                        return null;
+                    })
+                    ->filter()
+                    ->values();
+            })
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     private function isValidPaymentDate(string $stateDate, string $echeanceDate, string $previousEcheanceDate): bool

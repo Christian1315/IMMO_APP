@@ -1,6 +1,6 @@
 <div>
     <!-- TABLEAU DE LISTE -->
-    <h4 class="">Total: <strong class="text-red"> {{count($houses)}} </strong> </h4>
+    <h4 class="">Total: <strong class="text-red"> {{$houses->count()}} </strong> </h4>
     <div class="row">
         <div class="col-12">
             <div class="table-responsive table-responsive-list shadow-lg p-3">

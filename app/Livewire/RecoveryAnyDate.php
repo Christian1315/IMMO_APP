@@ -2,70 +2,40 @@
 
 namespace App\Livewire;
 
-use Illuminate\Support\Facades\Http;
+use App\Models\Facture;
+use App\Models\Location;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class RecoveryAnyDate extends Component
 {
     public $agency;
 
-    public $BASE_URL = "";
-    public $token = "";
-    public $userId;
-
-    public $hearders = [];
-
-    public $locators = [];
-    public $date;
-    public $date_error;
-
-    public $generalError = "";
-    public $generalSuccess = "";
-
-    function refresh($message)
-    {
-        $this->generalSuccess = $message;
-        $this->generalError = "";
-        $this->date = "";
-        $this->date_error = "";
-    }
+    public array $locators;
 
     function mount($agency)
     {
         set_time_limit(0);
-
         $this->agency = $agency;
-       
-        $this->locators = [];
-    }
+        // Filtrage des factures avec une requête plus efficace
+        $factures = Facture::whereDate('created_at', now())->get();
 
-    function filtreByDate()
-    {
-        $data = [
-            "date" => $this->date,
-        ];
-
-        $this->date = $this->date;
-
-        $agencyId = $this->agency["id"];
-        $response = Http::withHeaders($this->hearders)->post($this->BASE_URL . "immo/paiement/$agencyId/filtre_at_any_date", $data)->json();
-
-        if (!$response) {
-            $this->generalError = "Une erreure est survenue! Veuillez réessayez plus tard!";
-        } else {
-            if (!$response["status"]) {
-                $errors = $response["erros"];
-                if (gettype($errors) == "array") {
-                    if (array_key_exists("date", $errors)) {
-                        $this->date_error = $errors["date"][0];
-                    }
-                }
-            } else {
-                $this->refresh($response["message"]);
-                $this->locators = $response["data"];
-            }
+        if ($factures->isEmpty()) {
+            alert()->info("Information", "Aucune facture trouvée pour cette date");
+            return back()->withInput();
         }
+
+        // Récupération des locations avec eager loading
+        $locations = Location::where("agency", $this->agency->id)
+            ->whereIn("id", $factures->pluck("location"))
+            ->with('Locataire') // Eager loading pour éviter le N+1 problem
+            ->get();
+
+        // Récupération des locataires de manière plus efficace
+        $this->locators = $locations->pluck('Locataire')
+            ->filter()
+            ->values()
+            ->toArray();
     }
 
     public function render()

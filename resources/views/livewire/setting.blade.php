@@ -106,7 +106,7 @@
                     <tbody>
                         @foreach($users as $user)
                         <!-- le compte admin -->
-                        @if($user->id==1 && auth()->user()->hasRole('Super Administrateur'))
+                        @if(auth()->user()->hasRole('Super Administrateur'))
                         <tr class="align-items-center my-2 ">
                             <td class="text-center">{{$loop->index + 1}} </td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{$user["name"]}}</span> </td>

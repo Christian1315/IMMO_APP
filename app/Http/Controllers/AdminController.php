@@ -9,8 +9,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
@@ -284,41 +282,57 @@ class AdminController extends Controller
 
     function FiltreByDateInAgency(Request $request, $agencyId)
     {
-        $user = request()->user();
-        $formData = $request->all();
-
-        ###__VALIDATION
-        Validator::make(
-            $formData,
-            [
+        try {
+            $user = request()->user();
+            
+            // Validation des données
+            $validated = $request->validate([
                 "date" => ["required", "date"],
-            ],
-            [
+            ], [
                 "date.required" => "Veuillez préciser la date",
                 "date.date" => "Le champ doit être de format date",
-            ]
-        )->validate();
+            ]);
 
-        // dd($request->date);
-        $factures = Facture::get()->filter(function ($facture) use ($request) {
-            $facture_date = date("Y-m-d", $facture->created_date);
-            return $request->date === $facture_date;
-        });
+            // Récupération de l'agence
+            $agency = Agency::where("visible", 1)->find(deCrypId($agencyId));
+            if (!$agency) {
+                throw new \Exception("Cette agence n'existe pas!");
+            }
 
-        // dd($factures);
-        $locations = Location::where("agency", deCrypId($agencyId))->whereIn("id", $factures->pluck("location"))->get();
-        // dd($locations);
+            // Filtrage des factures avec une requête plus efficace
+            $factures = Facture::whereDate('created_at', $validated['date'])->get();
+            
+            if ($factures->isEmpty()) {
+                alert()->info("Information", "Aucune facture trouvée pour cette date");
+                return back()->withInput();
+            }
 
-        $locators = [];
+            // Récupération des locations avec eager loading
+            $locations = Location::where("agency", deCrypId($agencyId))
+                ->whereIn("id", $factures->pluck("location"))
+                ->with('Locataire') // Eager loading pour éviter le N+1 problem
+                ->get();
 
-        foreach ($locations as $location) {
-            array_push($locators, $location->Locataire);
+            // Récupération des locataires de manière plus efficace
+            $locators = $locations->pluck('Locataire')->filter()->values();
+
+            if ($locators->isEmpty()) {
+                alert()->info("Information", "Aucun locataire trouvé pour cette date");
+                return back()->withInput();
+            }
+
+            session()->flash("any_date", $validated['date']);
+            alert()->success("Succès", "Filtre effectué avec succès!");
+            return back()->withInput()->with(["locators" => $locators]);
+
+        } catch (ValidationException $e) {
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
         }
-
-        ###___
-        session()->flash("any_date", $request->date);
-        alert()->success("Succès", "Filtre éffectué avec succès!");
-        return back()->withInput()->with(["locators" => $locators]);
     }
 
     function PaiementAll(Request $request)

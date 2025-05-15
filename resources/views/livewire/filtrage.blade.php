@@ -18,21 +18,21 @@
                     </thead>
                     <tbody>
                         <tr class="align-items-center">
-                            <td class="text-center">{{count($proprietors)}}</td>
-                            <td class="text-center">{{count($houses)}}</td>
-                            <td class="text-center">{{count($locators)}}</td>
+                            <td class="text-center">{{$proprietors->count()}}</td>
+                            <td class="text-center">{{$houses->count()}}</td>
+                            <td class="text-center">{{$locators->count()}}</td>
                             <td class="text-center">
-                                <button data-bs-toggle="modal" data-bs-target="#ShowMovedLocators" class="btn btn-sm  shadow-lg bg-red"> {{count($moved_locators)}} <i class="bi bi-eye-fill"></i> Voir </button>
+                                <button data-bs-toggle="modal" data-bs-target="#ShowMovedLocators" class="btn btn-sm  shadow-lg bg-red"> {{$moved_locators->count()}} <i class="bi bi-eye-fill"></i> Voir </button>
                             </td>
-                            <td class="text-center">{{count($locations)}}</td>
-                            <td class="text-center">{{count($rooms)}}</td>
+                            <td class="text-center">{{$locations->count()}}</td>
+                            <td class="text-center">{{$rooms->count()}}</td>
                             <td class="text-center">
-                                <button data-bs-toggle="modal" data-bs-target="#ShowFactures" class="btn btn-sm  shadow-lg bg-red"> {{count($factures)}} <i class="bi bi-eye-fill"></i> Voir</button>
+                                <button data-bs-toggle="modal" data-bs-target="#ShowFactures" class="btn btn-sm  shadow-lg bg-red"> {{$factures->count()}} <i class="bi bi-eye-fill"></i> Voir</button>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2" class="bg-warning p-3"> <strong>Montant total en facture: </strong> </td>
-                            <td class="p-3 bg-red">= {{number_format(array_sum($factures_total_amount),2,","," ")}} fcfa </td>
+                            <td class="p-3 bg-red">= {{number_format($factures_total_amount,2,","," ")}} fcfa </td>
                         </tr>
                     </tbody>
 
@@ -56,28 +56,23 @@
                                     <th class="text-center">Maison</th>
                                     <th class="text-center">Chambre</th>
                                     <th class="text-center">Locataire</th>
-                                    <!-- <th class="text-center">Facture</th> -->
                                     <th class="text-center">Montant</th>
                                     <th class="text-center">Commentaire</th>
-                                    <!-- <th class="text-center">Type</th> -->
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($factures as $facture)
                                 <tr class="align-items-center">
                                     <td class="text-center">{{$loop->index+1}}</td>
-                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Owner"]["name"]}} </span></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Location"]["House"]["name"]}} </span></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Location"]["Room"]["number"]}}  </span></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture["Location"]["Locataire"]["name"]}} {{$facture["Location"]["Locataire"]["prenom"]}} </span></td>
-                                    <!-- <td class="text-center">
-                                        <a href="{{$facture['facture']}}" class="btn btn-sm btn-light"><i class="bi bi-eye"></i> </a>
-                                    </td> -->
-                                    <td class="text-center"><span class="bg-light badge text-red"> {{number_format($facture['amount'],2,","," ")}}</span> </td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture->Owner->name}} </span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture->Location->House->name}} </span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture->Location->Room?->number}}  </span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark"> {{$facture->Location->Locataire->name}} {{$facture->Location->Locataire->prenom}} </span></td>
+                                
+                                    <td class="text-center"><span class="bg-light badge text-red"> {{number_format($facture->amount,2,","," ")}}</span> </td>
                                     <td class="text-center">
-                                        <textarea name="" rows="1" class="form-control" placeholder="{{$facture['comments']}}"></textarea>
+                                        <textarea name="" rows="1" class="form-control" placeholder="{{$facture->comments}}"></textarea>
                                     </td>
-                                    <!-- <td class="text-center">{{$facture['Type']['name']}}</td> -->
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -90,13 +85,13 @@
 
     <!-- MODAL DES LOCATAIRES DEMENAGES -->
     <div class="modal fade" id="ShowMovedLocators" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body">
                     <table class="table table-striped table-sm">
-                        <h4 class="">Locataires demenagés: <strong class="text-red"> {{count($moved_locators)}} </strong> </h4>
+                        <h4 class="">Locataires demenagés: <strong class="text-red"> {{$moved_locators->count()}} </strong> </h4>
 
-                        @if(count($moved_locators)>0)
+                        @if($moved_locators->count()>0)
                         <thead class="bg_dark">
                             <tr>
                                 <th class="text-center">N°</th>

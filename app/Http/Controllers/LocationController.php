@@ -1055,8 +1055,10 @@ class LocationController extends Controller
     function FiltreAfterStateDateStoped(Request $request, $houseId)
     {
         try {
-            $house = House::with(['States.Factures.Location.Locataire'])
-                ->find(deCrypId($houseId));
+            // Récupération de la maison avec ses relations
+            $house = House::with(['States.Factures' => function($query) {
+                $query->with(['Location.Locataire']);
+            }])->find(deCrypId($houseId));
 
             if (!$house) {
                 throw new \Exception("Cette maison n'existe pas!");
@@ -1068,32 +1070,34 @@ class LocationController extends Controller
             }
 
             $state_stop_date = $last_state->stats_stoped_day;
-            $locators_that_paid_after_state_stoped_day = [];
-            $amount_total_to_paid_after_array = [];
 
-            foreach ($last_state->Factures as $facture) {
-                if ($facture->created_at > $state_stop_date) {
-                    $data = [
-                        "name" => $facture->Location->Locataire->name,
-                        "prenom" => $facture->Location->Locataire->prenom,
-                        "email" => $facture->Location->Locataire->email,
-                        "phone" => $facture->Location->Locataire->phone,
-                        "adresse" => $facture->Location->Locataire->adresse,
-                        "comments" => $facture->Location->Locataire->comments,
-                        "payement_date" => $facture->created_at,
-                        "month" => $facture->created_at,
-                        "amount_paid" => $facture->amount
-                    ];
+            // Utilisation des collections pour un traitement plus efficace
+            $factures = $last_state->Factures->filter(function($facture) use ($state_stop_date) {
+                return $facture->created_at > $state_stop_date;
+            });
 
-                    $amount_total_to_paid_after_array[] = $data["amount_paid"];
-                    $locators_that_paid_after_state_stoped_day[] = $data;
-                }
-            }
+            // Transformation des données avec map
+            $locators_that_paid_after_state_stoped_day = $factures->map(function($facture) {
+                return [
+                    "name" => $facture->Location->Locataire->name,
+                    "prenom" => $facture->Location->Locataire->prenom,
+                    "email" => $facture->Location->Locataire->email,
+                    "phone" => $facture->Location->Locataire->phone,
+                    "adresse" => $facture->Location->Locataire->adresse,
+                    "comments" => $facture->Location->Locataire->comments,
+                    "payement_date" => $facture->created_at,
+                    "month" => $facture->created_at,
+                    "amount_paid" => $facture->amount
+                ];
+            })->values();
+
+            // Calcul des totaux avec les méthodes de collection
+            $amount_total_to_paid_after = $locators_that_paid_after_state_stoped_day->sum('amount_paid');
 
             $locationsFiltered = [
                 "afterStopDate" => $locators_that_paid_after_state_stoped_day,
-                "afterStopDateTotal_to_paid" => array_sum($amount_total_to_paid_after_array),
-                "total_locators" => count($locators_that_paid_after_state_stoped_day)
+                "afterStopDateTotal_to_paid" => $amount_total_to_paid_after,
+                "total_locators" => $locators_that_paid_after_state_stoped_day->count()
             ];
 
             return view("locators.locator-after-stop-date", compact("locationsFiltered", "house"));
@@ -1113,8 +1117,10 @@ class LocationController extends Controller
     function FiltreBeforeStateDateStoped(Request $request, $houseId)
     {
         try {
-            $house = House::with(['States.Factures.Location.Locataire'])
-                ->find(deCrypId($houseId));
+            // Récupération de la maison avec ses relations
+            $house = House::with(['States.Factures' => function($query) {
+                $query->with(['Location.Locataire']);
+            }])->find(deCrypId($houseId));
 
             if (!$house) {
                 throw new \Exception("Cette maison n'existe pas!");
@@ -1126,32 +1132,34 @@ class LocationController extends Controller
             }
 
             $state_stop_date = $last_state->stats_stoped_day;
-            $locators_that_paid_before_state_stoped_day = [];
-            $amount_total_to_paid_before_array = [];
 
-            foreach ($last_state->Factures as $facture) {
-                if ($facture->created_at < $state_stop_date) {
-                    $data = [
-                        "name" => $facture->Location->Locataire->name,
-                        "prenom" => $facture->Location->Locataire->prenom,
-                        "email" => $facture->Location->Locataire->email,
-                        "phone" => $facture->Location->Locataire->phone,
-                        "adresse" => $facture->Location->Locataire->adresse,
-                        "comments" => $facture->Location->Locataire->comments,
-                        "payement_date" => $facture->created_at,
-                        "month" => $facture->created_at,
-                        "amount_paid" => $facture->amount
-                    ];
+            // Utilisation des collections pour un traitement plus efficace
+            $factures = $last_state->Factures->filter(function($facture) use ($state_stop_date) {
+                return $facture->created_at < $state_stop_date;
+            });
 
-                    $amount_total_to_paid_before_array[] = $data["amount_paid"];
-                    $locators_that_paid_before_state_stoped_day[] = $data;
-                }
-            }
+            // Transformation des données avec map
+            $locators_that_paid_before_state_stoped_day = $factures->map(function($facture) {
+                return [
+                    "name" => $facture->Location->Locataire->name,
+                    "prenom" => $facture->Location->Locataire->prenom,
+                    "email" => $facture->Location->Locataire->email,
+                    "phone" => $facture->Location->Locataire->phone,
+                    "adresse" => $facture->Location->Locataire->adresse,
+                    "comments" => $facture->Location->Locataire->comments,
+                    "payement_date" => $facture->created_at,
+                    "month" => $facture->created_at,
+                    "amount_paid" => $facture->amount
+                ];
+            })->values();
+
+            // Calcul des totaux avec les méthodes de collection
+            $amount_total_to_paid_before = $locators_that_paid_before_state_stoped_day->sum('amount_paid');
 
             $locationsFiltered = [
                 "beforeStopDate" => $locators_that_paid_before_state_stoped_day,
-                "beforeStopDateTotal_to_paid" => array_sum($amount_total_to_paid_before_array),
-                "total_locators" => count($locators_that_paid_before_state_stoped_day)
+                "beforeStopDateTotal_to_paid" => $amount_total_to_paid_before,
+                "total_locators" => $locators_that_paid_before_state_stoped_day->count()
             ];
 
             return view("locators.locator-before-stop-date", compact("locationsFiltered", "house"));
@@ -1196,6 +1204,7 @@ class LocationController extends Controller
      * @param string $agencyId
      * @return \Illuminate\View\View
      */
+
     function _ShowCautionsByAgency(Request $request, $agencyId)
     {
         try {

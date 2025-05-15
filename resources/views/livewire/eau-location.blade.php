@@ -30,7 +30,7 @@
                     <p class="" id="exampleModalLabel">Filtre par superviseur</p>
                 </div>
                 <div class="modal-body">
-                    <form class="serchBySupervisor" action="{{route('location.FiltreBySupervisor',$current_agency->id)}}" method="POST">
+                    <form class="serchBySupervisor" action="{{route('location.WaterFiltreBySupervisor',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -57,7 +57,7 @@
                     <p class="" id="exampleModalLabel">Filtre par maison</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('location.FiltreByHouse',$current_agency->id)}}" method="POST">
+                    <form action="{{route('location.WaterFiltreByHouse',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -86,7 +86,7 @@
                     <p class="" id="exampleModalLabel">Filtrer par proprietaire</p>
                 </div>
                 <div class="modal-body">
-                    <form action="{{route('location.FiltreByProprio',$current_agency->id)}}" method="POST">
+                    <form action="{{route('location.WaterFiltreByProprio',$current_agency->id)}}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-12">
@@ -195,7 +195,7 @@
             $locations = session("locations_filtred")?session("locations_filtred"):$locations;
             @endphp
             <h5 class="text-center">Liste des <span class="text-red">locations ayant d'eau</span> dans cette agence</h5>
-            <h4 class="">Total: <strong class="text-red"> {{count($locations)}} </strong> </h4>
+            <h4 class="">Total: <strong class="text-red"> {{$locations->count()}} </strong> </h4>
 
             <div class="table-responsive table-responsive-list shadow-lg">
                 <table id="myTable" class="table table-striped table-sm">
@@ -343,13 +343,14 @@
                             <form id="updateIndexForm" action="/location/water/${location.lastFacture.id}/update_end_index" method="post">
                                 @csrf
                                 @method("PATCH")
+                                <input type="hidden" name="start_index" class="form-control" value="${location.lastFacture.start_index}" id="">
                                 <input type="number" name="end_index" class="form-control" value="${location.lastFacture.end_index}" id="">
                                 <hr>
                                 <button type="submit" class="btn btn-sm bg-red w-100"><i class="bi bi-pencil-square"></i> Enregistrer</button>
                             </form>
                 `
             } else {
-                content += `<p class="text-center text-red">Aucun état disponible</p>`
+                content += `<p class="text-center text-red">Aucune facture disponible</p>`
             }
 
             $(".index-body").append(content)

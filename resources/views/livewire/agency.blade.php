@@ -9,77 +9,6 @@
         </div>
     </div>
 
-    <small>
-        <button wire:click="displayCautionOptions" class="btn btn-sm bg-light text-uppercase"><i class="bi bi-file-earmark-pdf-fill"></i>@if($display_caution_options) Fermer @else Génerer les états des cautions @endif</button> &nbsp;
-
-        @if($display_caution_options)
-        <button wire:click="GenerateAllAgencyiesCaution" class="btn btn-sm bg-light d-block"><i class="bi bi-file-earmark-pdf-fill"></i> Pour toutes les agences </button>
-        <button wire:click="showGenerateCautionByPeriodeForm" class="btn btn-sm bg-light d-block"><i class="bi bi-calendar-minus"></i> @if($generate_caution_by_periode) Fermer @else Par période @endif</button>
-        <button wire:click="ShowGenerateCautionByHouseForm" class="btn btn-sm bg-light d-block"><i class="bi bi-house-check-fill"></i>@if($generate_caution_by_house) Fermer @else Par maison @endif </button>
-        @endif
-    </small>
-    <br><br>
-
-    @if($generate_caution_by_periode)
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-6">
-                <div class="shadow p-2">
-                    <form wire:submit="generateCautionByPeriode">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <span>Date de début</span>
-                                <input wire:model="first_date" type="date" required name="first_date" class="form-control" id="">
-                            </div>
-                            <div class="col-md-6">
-                                <span class="">Date de fin</span>
-                                <input wire:model="last_date" type="date" required name="last_date" class="form-control" id="">
-                            </div>
-                            <br>
-                        </div>
-                        <br>
-                        <div class="text-center">
-                            <button class="w-100 text-center bg-red btn btn-sm">Génerer</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="col-md-3"></div>
-        </div>
-    </div>
-    @endif
-
-    @if($generate_caution_by_house)
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-6">
-                <div class="shadow p-2">
-                    <form wire:submit="generateCautionByHouse">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <!-- <span>Choisissez une maison</span> -->
-                                <select required wire:model="house" name="house" class="form-control">
-                                    @foreach($houses as $house)
-                                    <option value="{{$house->id}}"> {{$house->name}} </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <br>
-                        </div>
-                        <br>
-                        <div class="text-center">
-                            <button class="w-100 text-center bg-red btn btn-sm">Génerer</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="col-md-3"></div>
-        </div>
-    </div>
-    @endif
-
     @if($showCautions)
     <div class="container">
         <div class="row">
@@ -206,7 +135,7 @@
     <br>
 
     <!-- TABLEAU DE LISTE -->
-    <h4 class="my-2">Total: <strong class="text-red"> {{$agencies_count}} </strong> </h4>
+    <h4 class="my-2">Total: <strong class="text-red"> {{$agencies->count()}} </strong> </h4>
 
     <div class="row">
         <div class="col-md-12">
@@ -225,7 +154,7 @@
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
-                    @if($agencies_count>0)
+                    @if($agencies->count()>0)
                     <tbody>
                         @foreach($agencies as $agency)
                         <tr class="align-items-center text-center">
