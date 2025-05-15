@@ -336,13 +336,14 @@
                             <form id="updateIndexForm" action="/location/electricity/${location.lastFacture.id}/update_end_index" method="post">
                                 @csrf
                                 @method("PATCH")
+                                <input type="hidden"  name="start_index" class="form-control" value="${location.lastFacture.start_index}" id="">
                                 <input type="number" name="end_index" class="form-control" value="${location.lastFacture.end_index}" id="">
                                 <hr>
                                 <button type="submit" class="btn btn-sm bg-red w-100"><i class="bi bi-pencil-square"></i> Enregistrer</button>
                             </form>
                 `
             } else {
-                content += `<p class="text-center text-red">Aucun état disponible</p>`
+                content += `<p class="text-center text-red">Aucune facture disponible</p>`
             }
 
             $(".index-body").append(content)

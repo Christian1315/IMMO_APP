@@ -12,254 +12,320 @@ use App\Models\Room;
 use App\Models\StopHouseWaterState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
+use Exception;
+use Illuminate\Database\QueryException;
 
 class LocationWaterFactureController extends Controller
 {
+    private const WATER_STATE_DAYS = 5;
+    private const WATER_STATE_SECONDS = 5 * 24 * 3600;
+
     #VERIFIONS SI LE USER EST AUTHENTIFIE
     public function __construct()
     {
         $this->middleware(['auth']);
     }
 
-    function _GenerateWateracture(Request $request)
+    /**
+     * Generate a water bill for a location
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function generateWaterBill(Request $request): RedirectResponse
     {
-        $formData = $request->all();
-        $user = request()->user();
+        try {
+            DB::beginTransaction();
 
-        ###___TRAITEMENT DES DATAS
-        $location = Location::where(["visible" => 1])->find($formData["location"]);
-        if (!$location) {
-            alert()->error("Echec", "Cette location n'existe pas!");
-            return back()->withInput();
-        }
+            $user = $request->user();
+            $location = Location::where(["visible" => 1])->find($request->location);
 
-        ####___VOYONS D'ABORD S'IL Y AVAIT UNE FACTURE PRECEDENTE
-        $factures = $location->WaterFactures; ## LocationWaterFacture::all();
-
-        ###__En cas d'existance d efacture précedente, l'index de debut
-        ###___ de l'actuelle facture revient à l'index de fin de l'ancienne facture
-        if (count($factures) != 0) {
-            $last_facture = $factures[0];
-            $formData["start_index"] = $last_facture->end_index;
-        } else {
-            ##__dans le cas contraire
-            ###___L'index de debut revient à l'index de debut de la chambre liée à cette location
-            $formData["start_index"] = $location->Room->water_counter_start_index;
-        }
-
-        $formData["consomation"] = $formData["end_index"] - $formData["start_index"];
-        if ($formData["consomation"] < 0) {
-            alert()->error("Echec", "Désolé! L'index de fin est est inférieur à celui de début");
-            return back()->withInput();
-        }
-
-        // return $location->Room->unit_price;
-
-        $kilowater_unit_price = (int) $location->Room->unit_price;
-        $formData["amount"] = $formData["consomation"] * $kilowater_unit_price;
-
-        $formData["comments"] = "Géneration de facture d'eau pour le locataire << " . $location->Locataire->name . " " . $location->Locataire->prenom . ">> de la maison << " . $location->House->name . " >> à la date " . now() . " par << $user->name >>";
-
-        ###___
-        if ($user) {
-            $formData["owner"] = $user->id;
-        }
-
-        LocationWaterFacture::create($formData);
-
-        alert()->success("Succès", "Facture d'eau géneréé avec succès!!");
-        return back()->withInput();
-    }
-
-    function _FactureWaterPayement(Request $request, $id)
-    {
-        $user = request()->user();
-
-        $facture = LocationWaterFacture::where("visible", 1)->find($id);
-        if (!$facture) {
-            alert()->error("Echec", "Cette facture n'existe pas!");
-            return back()->withInput();
-        }
-
-        #####____determination de l'agence
-        $location = $facture->Location;
-        $agency = $location->_Agency;
-
-        ###____MENTIONNONS LA FACTURE COMME payée
-        $facture->paid = true;
-
-        ##__
-        $agency_account = AgencyAccount::where(["agency" => $agency->id])->find(env("ELECTRICITY_WATER_ACCOUNT_ID"));
-        if (!$agency_account) {
-            alert()->error("Echec", "Ce compte d'agence n'existe pas! Vous ne pouvez pas le créditer!");
-            return back()->withInput();
-        }
-
-
-        $account = $agency_account->_Account;
-
-        $formData["sold_added"] = $facture->amount;
-
-        ###___VERIFIONS LE SOLD ACTUEL DU COMPTE ET VOYONS SI ça DEPPASE OU PAS LE PLAFOND
-        $agencyAccountSold = AgencyAccountSold::where(["agency_account" => $agency_account->id, "visible" => 1])->first();
-
-        if ($agencyAccountSold) { ##__Si ce compte dispose déjà d'un sold
-            $formData["old_sold"] = $agencyAccountSold->sold;
-
-            ##__voyons si le sold atteint déjà le plafond de ce compte
-            if ($agencyAccountSold->sold >= $account->plafond_max) {
-                alert()->error("Echec", "Le sold de ce compte (" . $account->name . ") a déjà atteint son plafond! Vous ne pouvez plus le créditer");
-                return back()->withInput();
-            } else {
-                # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-                # ça depasserait le plafond maximum du compte
-
-                if (($agencyAccountSold->sold + $facture->amount) > $account->plafond_max) {
-                    alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
-                    return back()->withInput();
-                }
+            if (!$location) {
+                throw new Exception("Cette location n'existe pas!");
             }
 
-            ###__creditation proprement dite du compte
-            #__Deconsiderons l'ancien sold
-            $agencyAccountSold->visible = 0;
-            $agencyAccountSold->delete_at = now();
-            ####__
-            $agencyAccountSold->save();
+            $startIndex = $this->getStartIndex($location);
+            $endIndex = $request->end_index;
+            $consumption = $endIndex - $startIndex;
 
-            #__Construisons un nouveau sold(en se basant sur les datas de l'ancien sold)
-            $formData["agency_account"] = $agencyAccountSold->agency_account; ##__ça revient à l'ancien compte
-            $formData["sold"] = $agencyAccountSold->sold + $facture->amount;
-            $formData["description"] = "Paiement de la facture d'eau de montant (" . $facture->amount . " ) pour la maison " . $location->House->name . " !!";
-
-            AgencyAccountSold::create($formData);
-        } else {
-            # voyons si en ajoutant le montant actuel **$formData["sold"]** au sold du compte
-            # ça depasserait le plafond maximum du compte
-            $formData["old_sold"] = 0;
-            $formData["agency_account"] = $agency_account->id; ##__ça revient à l'ancien compte
-            $formData["sold"] = $facture->amount;
-            $formData["description"] = "Paiement de la facture d'eau de montant (" . $facture->amount . " ) pour la maison " . $location->House->name . "!!";
-
-
-            if ($facture->amount > $account->plafond_max) {
-                alert()->error("Echec", "L'ajout de ce montant au sold de ce compte (" . $account->name . ") dépasserait son plafond! Veuillez diminuer le montant");
-                return back()->withInput();
+            if ($consumption < 0) {
+                throw new Exception("Désolé! L'index de fin est inférieur à celui de début");
             }
 
-            # on le crée
-            AgencyAccountSold::create($formData);
+            $amount = $this->calculateAmount($consumption, $location->Room->unit_price);
+            $comments = $this->generateComments($location, $user);
+
+            LocationWaterFacture::create([
+                'location' => $location->id,
+                'start_index' => $startIndex,
+                'end_index' => $endIndex,
+                'consomation' => $consumption,
+                'amount' => $amount,
+                'comments' => $comments,
+                'owner' => $user->id
+            ]);
+
+            DB::commit();
+            return $this->handleSuccess("Facture d'eau générée avec succès!");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->handleError($e->getMessage());
         }
-
-        ###___MARQUONS QUE LA FACTURE EST PAYEE
-        $facture->save();
-
-        #####_______
-        alert()->success("Succès", "La facture d'eau de montant (" . $facture->amount . " ) a été payée avec succès!!");
-        return back()->withInput();
     }
 
-    ####____ ARRET D'ETAT
-    function _StopWaterStatsOfHouse(Request $request)
+    /**
+     * Process water bill payment
+     *
+     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function processWaterBillPayment(Request $request, int $id): RedirectResponse
     {
-        #####____
-        $user = request()->user();
-        $formData = $request->all();
+        try {
+            DB::beginTransaction();
 
-        #####____VALIDATION DES DATAS
-        Validator::make($formData, [
-            'house' => ['required', "integer"],
-        ], [
-            'house.required' => 'La maison est réquise!',
-            'house.integer' => "Ce champ doit être de type entier!",
-        ])->validate();
+            $user = $request->user();
+            $facture = LocationWaterFacture::where("visible", 1)->findOrFail($id);
+            $location = $facture->Location;
+            $agency = $location->_Agency;
 
+            $agencyAccount = AgencyAccount::where([
+                "agency" => $agency->id,
+                "id" => env("ELECTRICITY_WATER_ACCOUNT_ID")
+            ])->first();
 
-        if ($user) {
-            $formData["owner"] = $user->id;
+            if (!$agencyAccount) {
+                throw new Exception("Ce compte d'agence n'existe pas! Vous ne pouvez pas le créditer!");
+            }
+
+            if (!$this->canProcessPayment($facture, $agencyAccount)) {
+                throw new Exception("Impossible de traiter le paiement. Vérifiez les plafonds du compte.");
+            }
+
+            $this->updateAgencyAccountSold($facture, $agencyAccount, $location);
+            $facture->update(['paid' => true]);
+
+            DB::commit();
+            return $this->handleSuccess("La facture d'eau de montant ({$facture->amount}) a été payée avec succès!");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->handleError($e->getMessage());
         }
+    }
 
-        $house = House::where(["visible" => 1])->find($formData["house"]);
-        if (!$house) {
-            alert()->error("Echec", "Cette maison n'existe pas!");
-            return back()->withInput();
-        };
+    /**
+     * Stop water stats for a house
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function stopWaterStatsOfHouse(Request $request): RedirectResponse
+    {
+        try {
+            DB::beginTransaction();
 
-        if (count($house->Locations) == 0) {
-            alert()->error("Echec", "Cette maison n'appartient à aucune location! Son arrêt d'état ne peut donc être éffectué");
-            return back()->withInput();
+            $user = $request->user();
+            $this->validateHouseRequest($request);
+
+            $house = House::where(["visible" => 1])->findOrFail($request->house);
+
+            if (count($house->Locations) === 0) {
+                throw new Exception("Cette maison n'appartient à aucune location! Son arrêt d'état ne peut donc être effectué");
+            }
+
+            $state = $this->createOrUpdateHouseState($house, $user);
+            $this->updateHouseWaterStats($house, $state, $user);
+
+            DB::commit();
+            return $this->handleSuccess("L'état en eau de cette maison a été arrêté avec succès!");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->handleError($e->getMessage());
         }
+    }
 
-        ###_____VERIFIONS D'ABORD SI CETTE HOUSE DISPOSAIT DEJA D'UN ETAT
-        $this_house_state = StopHouseWaterState::orderBy("id", "desc")->where(["house" => $formData["house"]])->first();
-
-        if (!$this_house_state) { ##Si cette maison ne dispose pas d'arrêt d'etat
-            ##__ON CREE SON PREMIER ARRET D'ETAT
-            $data["house"] = $formData["house"];
-            $data["owner"] = $formData["owner"];
-            $data["state_stoped_day"] = now();
-            $state = StopHouseWaterState::create($data);
-        } else {
-            ##S'il dispose d'un arret d'etat déjà
-            ##__On verifie si la date d'aujourd'hui atteint ou depasse
-            ##__la date de l'arret precedent + 20 jours
-
-            $precedent_arret_date = strtotime($this_house_state->state_stoped_day);
-            $now = strtotime(now());
-            $twenty_days = 5 * 24 * 3600;
-
-            // if ($now < ($precedent_arret_date + $twenty_days)) {
-            //     return self::sendError("La précedente date d'arrêt des états de cette maison ne depasse pas encore 5 jours! Vous ne pouvez donc pas éffectuer un nouveau arrêt d'etats pour cette maison pour le moment", 505);
-            // }
-
-            ###__ON ARRËTE LES ETATS
-            $data["owner"] = $formData["owner"];
-            $data["house"] = $formData["house"];
-            $data["state_stoped_day"] = now();
-            $state =  StopHouseWaterState::create($data);
+    private function getStartIndex(Location $location): int
+    {
+        try {
+            $factures = $location->WaterFactures;
+            return count($factures) > 0 
+                ? $factures[0]->end_index 
+                : $location->Room->water_counter_start_index;
+        } catch (Exception $e) {
+            throw new Exception("Erreur lors de la récupération de l'index de départ: " . $e->getMessage());
         }
+    }
 
-        ###____ ACTUALISONS LES STATES DES FACTURES
+    private function calculateAmount(int $consumption, int $unitPrice): int
+    {
+        try {
+            return $consumption * $unitPrice;
+        } catch (Exception $e) {
+            throw new Exception("Erreur lors du calcul du montant: " . $e->getMessage());
+        }
+    }
 
-        foreach ($house->Locations as $location) {
+    private function generateComments(Location $location, $user): string
+    {
+        try {
+            return "Génération de facture d'eau pour le locataire << {$location->Locataire->name} {$location->Locataire->prenom}>> " .
+                   "de la maison << {$location->House->name} >> à la date " . now() . " par << {$user->name}>>";
+        } catch (Exception $e) {
+            throw new Exception("Erreur lors de la génération des commentaires: " . $e->getMessage());
+        }
+    }
+
+    private function canProcessPayment(LocationWaterFacture $facture, AgencyAccount $agencyAccount): bool
+    {
+        try {
+            $account = $agencyAccount->_Account;
+            $agencyAccountSold = AgencyAccountSold::where([
+                "agency_account" => $agencyAccount->id, 
+                "visible" => 1
+            ])->first();
+
+            if ($agencyAccountSold && $agencyAccountSold->sold >= $account->plafond_max) {
+                throw new Exception("Le sold de ce compte ({$account->name}) a déjà atteint son plafond!");
+            }
+
+            $newSold = ($agencyAccountSold ? $agencyAccountSold->sold : 0) + $facture->amount;
+            if ($newSold > $account->plafond_max) {
+                throw new Exception("L'ajout de ce montant au sold de ce compte ({$account->name}) dépasserait son plafond!");
+            }
+
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Erreur lors de la vérification du paiement: " . $e->getMessage());
+        }
+    }
+
+    private function updateAgencyAccountSold(LocationWaterFacture $facture, AgencyAccount $agencyAccount, Location $location): void
+    {
+        try {
+            $agencyAccountSold = AgencyAccountSold::where([
+                "agency_account" => $agencyAccount->id, 
+                "visible" => 1
+            ])->first();
+
+            $oldSold = $agencyAccountSold ? $agencyAccountSold->sold : 0;
+            
+            if ($agencyAccountSold) {
+                $agencyAccountSold->update([
+                    'visible' => 0,
+                    'delete_at' => now()
+                ]);
+            }
+
+            AgencyAccountSold::create([
+                'agency_account' => $agencyAccount->id,
+                'old_sold' => $oldSold,
+                'sold' => $oldSold + $facture->amount,
+                'sold_added' => $facture->amount,
+                'description' => "Paiement de la facture d'eau de montant ({$facture->amount}) pour la maison {$location->House->name}!!"
+            ]);
+        } catch (QueryException $e) {
+            throw new Exception("Erreur lors de la mise à jour du solde du compte: " . $e->getMessage());
+        }
+    }
+
+    private function validateHouseRequest(Request $request): void
+    {
+        try {
+            Validator::make($request->all(), [
+                'house' => ['required', "integer"],
+            ], [
+                'house.required' => 'La maison est requise!',
+                'house.integer' => "Ce champ doit être de type entier!",
+            ])->validate();
+        } catch (Exception $e) {
+            throw new Exception("Erreur de validation: " . $e->getMessage());
+        }
+    }
+
+    private function createOrUpdateHouseState(House $house, $user): StopHouseWaterState
+    {
+        try {
+            $this_house_state = StopHouseWaterState::orderBy("id", "desc")
+                ->where(["house" => $house->id])
+                ->first();
+
+            if (!$this_house_state) {
+                return StopHouseWaterState::create([
+                    'house' => $house->id,
+                    'owner' => $user->id,
+                    'state_stoped_day' => now()
+                ]);
+            }
+
+            return StopHouseWaterState::create([
+                'owner' => $user->id,
+                'house' => $house->id,
+                'state_stoped_day' => now()
+            ]);
+        } catch (QueryException $e) {
+            throw new Exception("Erreur lors de la création/mise à jour de l'état de la maison: " . $e->getMessage());
+        }
+    }
+
+    private function updateHouseWaterStats(House $house, StopHouseWaterState $state, $user): void
+    {
+        try {
+            foreach ($house->Locations as $location) {
+                $this->updateLocationWaterStats($location, $state, $user);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Erreur lors de la mise à jour des statistiques d'eau: " . $e->getMessage());
+        }
+    }
+
+    private function updateLocationWaterStats(Location $location, StopHouseWaterState $state, $user): void
+    {
+        try {
             $location_factures = $location->WaterFactures;
-            $location_room = Room::find($location->Room->id);
+            $location_room = $location->Room;
 
-            // ACTUALISONS LES STATES DES FACTURES
             foreach ($location_factures as $facture) {
-                $electricty_facture = LocationWaterFacture::find($facture->id);
-                if (!$electricty_facture->state) {
-                    $electricty_facture->state = $state->id;
-                    $electricty_facture->save();
+                if (!$facture->state) {
+                    $facture->update(['state' => $state->id]);
                 }
             }
 
-            // ACTUALISONS LES INDEX DE DEBUT EN ELECTRICITE DE CHAQUE CHAMBRE DE LA MAISON
-            if (count($location_factures) != 0) {
-                ###__dernière facture de la location à l'arrêt de cet état
+            if (count($location_factures) > 0) {
                 $last_facture = $location_factures[0];
-
-                ###___l'index de fin de la chambre revient désormais à
-                ###___ celui de la dernière facture à l'arrêt de cet état
-                $location_room->water_counter_start_index = $last_facture->end_index;
-                $location_room->save();
+                $location_room->update([
+                    'water_counter_start_index' => $last_facture->end_index
+                ]);
             }
 
-            ###___Génerons une dernière facture pour cette maison pour actualiser les infos de la dernière facture à l'arrêt de cet etat
-            $stateFactureData = [
-                "owner" => $user->id,
-                "location" => $location->id,
-                "end_index" => $location_room->water_counter_start_index,
-                "amount" => 0,
-                "state_facture" => 1,
-                "state" => $state->id,
-            ];
-
-            LocationWaterFacture::create($stateFactureData);
+            LocationWaterFacture::create([
+                'owner' => $user->id,
+                'location' => $location->id,
+                'end_index' => $location_room->water_counter_start_index,
+                'amount' => 0,
+                'state_facture' => 1,
+                'state' => $state->id,
+            ]);
+        } catch (QueryException $e) {
+            throw new Exception("Erreur lors de la mise à jour des statistiques de location: " . $e->getMessage());
         }
+    }
 
-        ####___
-        alert()->success("Succès", "L'état en eau de cette maison a été arrêté avec succès!");
+    private function handleError(string $message): RedirectResponse
+    {
+        alert()->error("Echec", $message);
+        return back()->withInput();
+    }
+
+    private function handleSuccess(string $message): RedirectResponse
+    {
+        alert()->success("Succès", $message);
         return back()->withInput();
     }
 }

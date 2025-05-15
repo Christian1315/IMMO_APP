@@ -27,11 +27,11 @@ use Carbon\Carbon;
 class LocationController extends Controller
 {
     use LocationValidationTrait, LocationPaymentTrait, LocationStateTrait;
-// Constants
+    // Constants
     const STATUS_MOVED = 3;
     const STATUS_SUSPENDED = 2;
     const STATUS_ACTIVE = 1;
-    
+
     #VERIFIONS SI LE USER EST AUTHENTIFIE
     public function __construct()
     {
@@ -742,8 +742,13 @@ class LocationController extends Controller
 
             DB::commit();
 
-            alert()->success("Succès", "Index de fin modifié avec succès!");
+            alert()->success("Succès", "Index de fin de modifié avec succès pour la dernière facture!");
             return back()->withInput();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());;
         } catch (\Exception $e) {
             DB::rollBack();
             alert()->error("Echec", $e->getMessage());
@@ -965,7 +970,7 @@ class LocationController extends Controller
         }
     }
 
-     // IMPRESSION
+    // IMPRESSION
     function Imprimer(Request $request, $locationId)
     {
         try {
@@ -985,7 +990,7 @@ class LocationController extends Controller
 
             // Génération du PDF
             $pdf = Pdf::loadView('imprimer_location', compact("location"));
-            
+
             // Configuration du PDF pour un meilleur rendu
             $pdf->setPaper('a4');
             $pdf->setOption('isHtml5ParserEnabled', true);
@@ -997,7 +1002,7 @@ class LocationController extends Controller
             return back()->withInput();
         }
     }
-    
+
     /**
      * Imprime les locations impayées par superviseur
      * 
