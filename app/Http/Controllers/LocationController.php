@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agency;
+use App\Models\HomeStopState;
 use App\Models\House;
 use App\Models\Locataire;
 use App\Models\Location;
@@ -11,6 +12,7 @@ use App\Models\LocationStatus;
 use App\Models\LocationType;
 use App\Models\LocationWaterFacture;
 use App\Models\PaiementType;
+use App\Models\Payement;
 use App\Models\Proprietor;
 use App\Models\Room;
 use App\Models\User;
@@ -630,6 +632,79 @@ class LocationController extends Controller
 
             alert()->success("Succès", "Location modifiée avec succès!");
             return back()->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            alert()->error("Echec", $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+    /**
+     * Gère le déménagement d'un locataire
+     * 
+     * @param Request $request
+     * @param int $locationId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    function DemenageLocation(Request $request, $locationId)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Validation des données
+            $validator = Validator::make($request->all(), [
+                'move_comments' => 'required|string'
+            ], [
+                'move_comments.required' => 'Le commentaire est requis!',
+                'move_comments.string' => 'Le commentaire doit être une chaîne de caractères'
+            ]);
+
+            if ($validator->fails()) {
+                throw new \Exception($validator->errors()->first());
+            }
+
+            // Récupération de la location avec ses relations
+            $location = Location::with(['House', 'Locataire'])
+                ->where('visible', 1)
+                ->find($locationId);
+
+            if (!$location) {
+                throw new \Exception("Cette location n'existe pas!");
+            }
+
+            // Vérification des paiements après arrêt des états
+            $lastStateStop = HomeStopState::where('house', $location->house)
+                ->latest()
+                ->first();
+
+            if ($lastStateStop) {
+                $hasPaymentsAfterStop = Payement::where('location', $location->id)
+                    ->where('created_at', '>', $lastStateStop->stats_stoped_day)
+                    ->exists();
+
+                if ($hasPaymentsAfterStop) {
+                    throw new \Exception("Ce locataire a effectué des paiements après l'arrêt des états! Vous ne pouvez pas le démenager!");
+                }
+            }
+
+            // Mise à jour de la location
+            $location->update([
+                'move_date' => now(),
+                'status' => self::STATUS_MOVED,
+                'moved_by' => auth()->id(),
+                'room' => null,
+                'move_comments' => $request->move_comments
+            ]);
+
+            DB::commit();
+
+            alert()->success("Succès", "Locataire déménagé avec succès");
+            return back();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
         } catch (\Exception $e) {
             DB::rollBack();
             alert()->error("Echec", $e->getMessage());

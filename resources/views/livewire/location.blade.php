@@ -413,14 +413,14 @@
                         $now = strtotime(date("Y/m/d", strtotime(now())));
                         $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                         @endphp
-                        <tr class="align-items-center @if($location->status==3) bg-secondary text-white @elseif($location_echeance_date < $now) bg-warning @endif ">
+                        <tr class="align-items-center bg-secondary text-white ">
                             <!-- <td class="text-center">{{$loop->index+1}} </td> -->
                             <td class="text-left"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
                             <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span> </td>
                             <td class="text-center">{{$location["Room"]?$location["Room"]["number"]:"---"}}</td>
                             <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
-                            <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
+                            <td class="text-center "><small class="text-white"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{number_format($location["loyer"],2,","," ") }}</span></td>
                             <td class="text-center">
                                 @if($location->status!=3)
