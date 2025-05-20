@@ -413,14 +413,14 @@
                         $now = strtotime(date("Y/m/d", strtotime(now())));
                         $location_echeance_date = strtotime(date("Y/m/d", strtotime($location->echeance_date)));
                         @endphp
-                        <tr class="align-items-center bg-secondary text-white ">
+                        <tr class="align-items-center @if($location->status==3) bg-secondary text-white @elseif($location_echeance_date < $now) bg-warning @endif ">
                             <!-- <td class="text-center">{{$loop->index+1}} </td> -->
                             <td class="text-left"><span class="badge bg-dark"> {{$location["House"]["name"]}} / {{$location->House->Proprietor->firstname}} {{$location->House->Proprietor->lastname}} </span></td>
-                            <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} </span> </td>
+                            <td class="text-center"> <span class="text-uppercase badge bg-light text-dark">{{ $location->House->Supervisor->name }} {{$location->id}} </span> </td>
                             <td class="text-center">{{$location["Room"]?$location["Room"]["number"]:"---"}}</td>
                             <td class="text-center"><span class="text-uppercase badge bg-light text-dark">{{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}} ({{$location["Locataire"]['phone']}})</span></td>
 
-                            <td class="text-center "><small class="text-white"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
+                            <td class="text-center text-red"><small class="@if($location->status==3) text-white @endif"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }}</small> </td>
                             <td class="text-center"><span class="badge bg-light text-dark"> {{number_format($location["loyer"],2,","," ") }}</span></td>
                             <td class="text-center">
                                 @if($location->status!=3)
@@ -513,7 +513,7 @@
                                                     <strong>Montant: </strong> {{$facture->amount}};
                                                     <strong>Fichier: </strong> <a href="{{$facture->facture}}" class="btn btn-sm btn-light" rel="noopener noreferrer"><i class="bi bi-eye"></i></a>;
                                                     <strong>Date d'écheance: </strong> {{Change_date_to_text($facture->echeance_date)}};
-                                                    <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea> 
+                                                    <strong>Description: </strong> <textarea class="form-control" name="" rows="1" placeholder="{{$facture->comments}}" id=""></textarea>
                                                 </li>
                                                 @endforeach
                                             </ul>
@@ -629,6 +629,7 @@
                 </div>
                 <form id="demenageForm" method="POST" class="shadow-lg p-3 animate__animated animate__bounce p-3">
                     @csrf
+                    @method("POST")
                     <div class="p-2">
                         <textarea name="move_comments" id="move_comments" required class="form-control" placeholder="Donner une raison justifiant ce déménagement"></textarea>
                     </div>
@@ -681,7 +682,7 @@
                                 <div class="mb-3">
                                     <label class="d-block" for="">Locataire</label>
                                     <select class="form-select form-control locataire" name="locataire" aria-label="Default select example">
-                                       @foreach($locators as $locator)
+                                        @foreach($locators as $locator)
                                         <option value="{{$locator['id']}}">{{$locator->name}} {{$locator->prenom}}</option>
                                         @endforeach
                                     </select>
@@ -764,6 +765,7 @@
         })
 
         function demenage(location) {
+            alert(location.id)
             $(".location_name").html(location.house.name)
             $(".location_room").html(location.room.number)
             $(".location_locataire").html(location.locataire.name + " " + location.locataire.prenom)

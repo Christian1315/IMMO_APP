@@ -648,6 +648,7 @@ class LocationController extends Controller
      */
     function DemenageLocation(Request $request, $locationId)
     {
+        // dd($request->method());
         try {
             DB::beginTransaction();
 

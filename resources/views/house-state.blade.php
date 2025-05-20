@@ -108,19 +108,19 @@
                         <tr>
                             <td class="text">
                                 <div class="mt-3">
-                                    <h6 class="">Mois de recouvrement: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
-                                    <h6 class="">Mois récouvré: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($state->recovery_date)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                                    <h6 class="">Mois de recouvrement: <strong> <em class=""> {{ \Carbon\Carbon::parse($state->created_at)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                                    <h6 class="">Mois récouvré: <strong> <em class=""> {{ \Carbon\Carbon::parse($state->recovery_date)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                                     <div class="mr-5 p-1" style="border: 2px solid #000;">
-                                        <div class=""><strong class="">Taux = <em class="bg-warning">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div>
+                                        <div class=""><strong class="">Taux = <em class="">{{NumersDivider(count($paid_locataires),count($un_paid_locataires))}} % </em> </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="text">
                                 <div class="">
-                                    <h6 class="">Maison : <strong> <em class="text-red"> {{$house["name"]}} </em> </strong> </h6>
-                                    <h6 class="">Superviseur : <strong> <em class="text-red"> {{$house->Supervisor->name}} </em> </strong> </h6>
-                                    <h6 class="">Propriétaire : <strong> <em class="text-red"> {{$house->Proprietor->lastname}} {{$house->Proprietor->firstname}} ({{$house->Proprietor->phone}})</em> </strong> </h6>
-                                    <h6 class="">Date d'arrêt: <strong> <em class="text-red"> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
+                                    <h6 class="">Maison : <strong> <em class=""> {{$house["name"]}} </em> </strong> </h6>
+                                    <h6 class="">Superviseur : <strong> <em class=""> {{$house->Supervisor->name}} </em> </strong> </h6>
+                                    <h6 class="">Propriétaire : <strong> <em class=""> {{$house->Proprietor->lastname}} {{$house->Proprietor->firstname}} ({{$house->Proprietor->phone}})</em> </strong> </h6>
+                                    <h6 class="">Date d'arrêt: <strong> <em class=""> {{ \Carbon\Carbon::parse($house->PayementInitiations->last()?->state_stoped_day)->locale('fr')->isoFormat('D MMMM YYYY') }} </em> </strong> </h6>
                                 </div>
                             </td>
                         </tr>
@@ -151,23 +151,23 @@
                     <tr class="align-items-center">
                         <td class="text-center"> {{$house["name"]}}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($total_revenue,2,","," ") }} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg "><i class="bi bi-currency-exchange"></i> <strong> {{ number_format($total_revenue,2,","," ") }} fcfa </strong> </button>
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($total_commission,2,","," ")}} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg "><i class="bi bi-currency-exchange"></i> <strong> {{number_format($total_commission,2,","," ")}} fcfa </strong> </button>
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-red"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($total_expenses,2,","," ")}} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg "><i class="bi bi-currency-exchange"></i> <strong> {{number_format($total_expenses,2,","," ")}} fcfa </strong> </button>
                         </td>
 
                         <td class="text-center">
-                            <strong class="text-red">{{number_format($locativeCharge,2,","," ")}} fcfa</strong>
+                            <strong class="">{{number_format($locativeCharge,2,","," ")}} fcfa</strong>
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-sm btn-light shadow-lg text-success"><i class="bi bi-currency-exchange"></i> <strong> {{number_format($net_amount,2,","," ")}} fcfa </strong> </button>
+                            <button class="btn btn-sm btn-light shadow-lg "><i class="bi bi-currency-exchange"></i> <strong> {{number_format($net_amount,2,","," ")}} fcfa </strong> </button>
                         </td>
                     </tr>
                 </tbody>
@@ -200,19 +200,19 @@
                         <td class="text-center"> <small class="btn-light"> <strong> {{$location["Locataire"]["name"]}} {{$location["Locataire"]["prenom"]}}</strong> </small> </td>
                         <td class="text-center">{{$location->Locataire->phone}}</td>
                         <td class="text-center">{{$location->Room->number}}</td>
-                        <td class="text-center"><span class="badge bg-light text-red"> {{number_format($location->Room->total_amount,2,","," ")}} </span></td>
-                        <td class="text-center"><span class="badge bg-light text-red">{{$location->prorata_amount>0?number_format($location->prorata_amount,2,","," "):'--'}} </span></td>
+                        <td class="text-center"><span class="badge bg-light "> {{number_format($location->Room->total_amount,2,","," ")}} </span></td>
+                        <td class="text-center"><span class="badge bg-light ">{{$location->prorata_amount>0?number_format($location->prorata_amount,2,","," "):'--'}} </span></td>
                         <td class="text-center">{{$location["_locataire"]?($location->prorata_amount>0?'--':$location["nbr_facture_amount_paid"]):00}}</td>
-                        <td class="text-center"><span class="badge bg-light text-red">{{number_format($location["_locataire"]?
+                        <td class="text-center"><span class="badge bg-light ">{{number_format($location["_locataire"]?
                                                 ($location->prorata_amount>0?
                                                     $location->prorata_amount:
                                                     $location["facture_amount_paid"]
                                                 ):00,2,","," ")}}</span></td>
                         <td class="text-left">
-                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </small>
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="">{{ \Carbon\Carbon::parse($location["latest_loyer_date"])->locale('fr')->isoFormat('MMMM YYYY') }} </strong> </small>
                         </td>
                         <td class="text-left">
-                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </small>
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="">{{ \Carbon\Carbon::parse($location["effet_date"])->locale('fr')->isoFormat('D MMMM YYYY') }} </strong> </small>
                         </td>
                     </tr>
                     @endforeach
@@ -223,25 +223,25 @@
                         <td class="text-center"> <small class="btn-light"> <strong> Vide </strong> </small> </td>
                         <td class="text-center">--</td>
                         <td class="text-center">{{$room->number}}</td>
-                        <td class="text-center"><span class="badge bg-light text-red"> {{number_format($room->total_amount,2,","," ")}} </span></td>
-                        <td class="text-center"><span class="badge bg-light text-red">-- </span></td>
+                        <td class="text-center"><span class="badge bg-light "> {{number_format($room->total_amount,2,","," ")}} </span></td>
+                        <td class="text-center"><span class="badge bg-light ">-- </span></td>
                         <td class="text-center">--</td>
-                        <td class="text-center"><span class="badge bg-light text-red">--</span></td>
+                        <td class="text-center"><span class="badge bg-light ">--</span></td>
                         <td class="text-left">
-                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">--</strong> </small>
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="">--</strong> </small>
                         </td>
                         <td class="text-left">
-                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="text-red">--</strong> </small>
+                            <small class="btn-light shadow-lg"> <i class="bi bi-calendar-check-fill"></i> <strong class="">--</strong> </small>
                         </td>
                     </tr>
                     @endforeach
 
                     <tr>
-                        <td colspan="3" class="bg-warning text-center"><strong> Détails des dépenses: </strong></td>
+                        <td colspan="3" class=" text-center"><strong> Détails des dépenses: </strong></td>
                         <td colspan="5" class="text-left">
                             <ul class="">
                                 @forelse($house->CurrentDepenses as $depense)
-                                <li class=""><strong class="text-red">{{number_format($depense->sold_retrieved,2,","," ")}} fcfa</strong> - {{$depense->description}}</li>
+                                <li class=""><strong class="">{{number_format($depense->sold_retrieved,2,","," ")}} fcfa</strong> - {{$depense->description}}</li>
                                 @empty
                                 <li>Aucune dépense éffectuée dans la maison!</li>
                                 @endforelse
@@ -250,7 +250,7 @@
                     </tr>
                 </tbody>
                 @else
-                <p class="text-center text-red">Aucune location!</p>
+                <p class="text-center ">Aucune location!</p>
                 @endif
             </table>
         </div>

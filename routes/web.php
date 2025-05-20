@@ -32,7 +32,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get("/debug", function () {
-    Location::where("status", 3)->update(["room" => null]);
+    Location::where("status", 3)
+        ->orWhereNull("room")
+        ->update(["status" => 3, "room" => null]);
+
     // House::where("visible", 0)->update(["deleted_at" => now()]);
     // Locataire::where("visible", 0)->update(["deleted_at" => now()]);
     // Room::where("visible", 0)->update(["deleted_at" => now()]);
@@ -336,7 +339,7 @@ Route::prefix("electricity_facture")->group(function () {
         ###____impression des etats de factures eau-electricité
         Route::get("{state}/show_electricity_state_html", [StopHouseElectricityStateController::class, "ShowStateImprimeHtml"])->name("house_state.ImprimeElectricityHouseState");
 
-         // FILTRE LOCATION
+        // FILTRE LOCATION
         Route::post('{agency}/electricity_location_filtre_by_supervisor', 'ElectricityFiltreBySupervisor')->name("location.ElectricityFiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
         Route::post('{agency}/electricity_location_filtre_by_house', 'ElectricityFiltreByHouse')->name("location.ElectricityFiltreByHouse"); #FILTRER PAR MAISON
         Route::post('{agency}/electricity_location_filtre_by_proprio', 'ElectricityFiltreByProprio')->name("location.ElectricityFiltreByProprio"); #FILTRER PAR PROPRIETAIRE
@@ -357,7 +360,7 @@ Route::prefix("water_facture")->group(function () {
         ###____impression des etats de factures eau-electricité
         Route::get("{state}/show_water_state_html", [StopHouseWaterStateController::class, "ShowWaterStateImprimeHtml"])->name("house_state.ShowWaterStateImprimeHtml");
 
-         // FILTRE LOCATION
+        // FILTRE LOCATION
         Route::post('{agency}/water_location_filtre_by_supervisor', 'WaterFiltreBySupervisor')->name("location.WaterFiltreBySupervisor"); #FILTRER PAR SUPERVISEUR
         Route::post('{agency}/water_location_filtre_by_house', 'WaterFiltreByHouse')->name("location.WaterFiltreByHouse"); #FILTRER PAR MAISON
         Route::post('{agency}/water_location_filtre_by_proprio', 'WaterFiltreByProprio')->name("location.WaterFiltreByProprio"); #FILTRER PAR PROPRIETAIRE
