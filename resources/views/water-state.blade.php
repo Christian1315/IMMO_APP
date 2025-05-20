@@ -105,8 +105,8 @@
 
                             <td class="text">
                                 <div class="">
-                                    <h6 class="">Maison : <em class="text-red"> {{$state->House->name}} </em> </h6>
-                                    <h6 class="">Superviseur : <strong> <em class="text-red"> {{$state->House->Supervisor->name}} </em> </h6>
+                                    <h6 class="">Maison : <em class=""> {{$state->House->name}} </em> </h6>
+                                    <h6 class="">Superviseur : <strong> <em class=""> {{$state->House->Supervisor->name}} </em> </h6>
                                 </div>
                             </td>
                         </tr>
@@ -115,7 +115,7 @@
             </div>
 
             <br>
-            <h5 class="text-center">Date d'arrêt: <strong class="text-red"> {{Change_date_to_text($state->state_stoped_day) }} </strong> </h5>
+            <h5 class="text-center">Date d'arrêt: <strong class=""> {{Change_date_to_text($state->state_stoped_day) }} </strong> </h5>
             <br>
 
             @if(count($state->StatesFactures)>0)
@@ -141,14 +141,14 @@
                         <td class="text-center">{{$loop->index+1}}</td>
                         <td class="text-center">{{$facture->Location->Room->number}}</td>
 
-                        <td class="text-center bg-warning">{{$facture->Location->Locataire->name}}</td>
-                        <td class="text-center bg-warning">{{$facture->Location->Locataire->prenom}}</td>
-                        <td class="text-center bg-warning">{{$facture->Location->Locataire->phone}}</td>
+                        <td class="text-center ">{{$facture->Location->Locataire->name}}</td>
+                        <td class="text-center ">{{$facture->Location->Locataire->prenom}}</td>
+                        <td class="text-center ">{{$facture->Location->Locataire->phone}}</td>
 
                         <td class="text-center"> {{$facture["start_index"]}} </td>
                         <td class="text-center"> {{$facture["end_index"]}} </td>
                         <td class="text-center"> {{$facture["consomation"]}} </td>
-                        <td class="text-center"> <strong class="shadow text-red">{{$facture->Location->Room->unit_price}} </strong> </td>
+                        <td class="text-center"> <strong class="shadow ">{{$facture->Location->Room->unit_price}} </strong> </td>
                         <td class="text-center">{{$facture['amount']}}</td>
 
                         <td class="text-center">
@@ -162,10 +162,10 @@
                     @endif
                     @endforeach
                     <tr>
-                        <td class="bg-danger text-white" colspan="2">Totaux: </td>
+                        <td class="bg-secondary text-white" colspan="2">Totaux: </td>
                         <td colspan="7"></td>
-                        <td class="bg-warning"> <strong class="text-center">= {{$factures_sum}} fcfa</strong></td>
-                        <td class="bg-warning"> <strong class="text-center">= {{$paid_factures_sum}} fcfa</strong></td>
+                        <td class=""> <strong class="text-center">= {{$factures_sum}} fcfa</strong></td>
+                        <td class=""> <strong class="text-center">= {{$paid_factures_sum}} fcfa</strong></td>
                     </tr>
                     <tr>
                         <td colspan="9"></td>
@@ -175,12 +175,12 @@
                 </tbody>
             </table>
             @else
-            <p class="text-center text-red">Aucune facture disponible!</p>
+            <p class="text-center ">Aucune facture disponible!</p>
             @endif
 
             <br>
             <p class="text-center">
-                Arrêté le présent état à la somme de <em class="text-red">{{$factures_sum}} francs cfa</em>
+                Arrêté le présent état à la somme de <em class="">{{$factures_sum}} francs cfa</em>
             </p>
 
             <br>
