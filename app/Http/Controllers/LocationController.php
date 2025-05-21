@@ -1132,7 +1132,7 @@ class LocationController extends Controller
     {
         try {
             // Récupération de la maison avec ses relations
-            $house = House::with(['States.Factures' => function($query) {
+            $house = House::with(['States.Factures' => function ($query) {
                 $query->with(['Location.Locataire']);
             }])->find(deCrypId($houseId));
 
@@ -1148,12 +1148,12 @@ class LocationController extends Controller
             $state_stop_date = $last_state->stats_stoped_day;
 
             // Utilisation des collections pour un traitement plus efficace
-            $factures = $last_state->Factures->filter(function($facture) use ($state_stop_date) {
+            $factures = $last_state->Factures->filter(function ($facture) use ($state_stop_date) {
                 return $facture->created_at > $state_stop_date;
             });
 
             // Transformation des données avec map
-            $locators_that_paid_after_state_stoped_day = $factures->map(function($facture) {
+            $locators_that_paid_after_state_stoped_day = $factures->map(function ($facture) {
                 return [
                     "name" => $facture->Location->Locataire->name,
                     "prenom" => $facture->Location->Locataire->prenom,
@@ -1194,7 +1194,7 @@ class LocationController extends Controller
     {
         try {
             // Récupération de la maison avec ses relations
-            $house = House::with(['States.Factures' => function($query) {
+            $house = House::with(['States.Factures' => function ($query) {
                 $query->with(['Location.Locataire']);
             }])->find(deCrypId($houseId));
 
@@ -1210,12 +1210,12 @@ class LocationController extends Controller
             $state_stop_date = $last_state->stats_stoped_day;
 
             // Utilisation des collections pour un traitement plus efficace
-            $factures = $last_state->Factures->filter(function($facture) use ($state_stop_date) {
+            $factures = $last_state->Factures->filter(function ($facture) use ($state_stop_date) {
                 return $facture->created_at < $state_stop_date;
             });
 
             // Transformation des données avec map
-            $locators_that_paid_before_state_stoped_day = $factures->map(function($facture) {
+            $locators_that_paid_before_state_stoped_day = $factures->map(function ($facture) {
                 return [
                     "name" => $facture->Location->Locataire->name,
                     "prenom" => $facture->Location->Locataire->prenom,
@@ -1397,6 +1397,10 @@ class LocationController extends Controller
             ];
 
             $pdf = Pdf::loadView('cautions', compact("locations", "cautions"));
+
+            // Set PDF orientation to landscape
+            // $pdf->setPaper('a4', 'landscape');
+
             return $pdf->stream();
         } catch (\Exception $e) {
             alert()->error("Echec", $e->getMessage());

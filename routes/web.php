@@ -36,19 +36,6 @@ Route::get("/debug", function () {
         ->orWhereNull("room")
         ->update(["status" => 3, "room" => null]);
 
-    // House::where("visible", 0)->update(["deleted_at" => now()]);
-    // Locataire::where("visible", 0)->update(["deleted_at" => now()]);
-    // Room::where("visible", 0)->update(["deleted_at" => now()]);
-
-    // $rooms = Room::get();
-    // // MISE A JOUR DES LOYER DES LOCATIONS LIEES A CETTE CHAMBRE
-
-    // foreach ($rooms as $room) {
-    //     foreach ($room->Locations as $location) {
-    //         $location->update(["loyer" => $room->total_amount]);
-    //     }
-    // }
-
     return "Opération éffectuée avec succès....";
 });
 

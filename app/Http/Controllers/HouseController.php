@@ -544,6 +544,7 @@ class HouseController extends Controller
      * @param int $houseId
      * @return mixed
      */
+    
     public function ShowHouseStateImprimeHtml(Request $request, $houseId)
     {
         try {
@@ -564,6 +565,10 @@ class HouseController extends Controller
                 "un_paid_locataires" => $data["un_paid_locataires"],
                 "free_rooms" => $data["free_rooms"],
             ]));
+            
+            // Set PDF orientation to landscape
+            // $pdf->setPaper('a4', 'landscape');
+            
             return $pdf->stream();
         } catch (\Exception $e) {
             Log::error('Error showing house state: ' . $e->getMessage());

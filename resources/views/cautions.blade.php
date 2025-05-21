@@ -111,26 +111,26 @@
                             <td class="text-center">{{$location->House->name}}</td>
                             <td class="text-center">{{$location->Room?->number}}</td>
                             <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
-                            <td class="text-center text-red"><small class="text-red"> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location->integration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</small> </td>
+                            <td class="text-center "><small class=""> <i class="bi bi-calendar2-check-fill"></i> {{ \Carbon\Carbon::parse($location->integration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</small> </td>
                             <td class="text-center"> <strong class="d-block">{{number_format($location->caution_number*$location->loyer,0," "," ")}} </strong> ({{$location->caution_number}}X{{$location->loyer}})</td>
                             <td class="text-center">{{number_format($location->caution_water+$location->caution_electric,0," "," ")}} ({{$location->caution_water}}+{{$location->caution_electric}})</td>
                             <td class="text-center">{{number_format($location->frais_peiture,0," "," ") }}</td>
-                            <td class="text-center bg-warning"> <strong> {{number_format($location->caution_number*$location->loyer + $location->caution_water+$location->caution_electric + $location->frais_peiture,0,""," ") }} </strong> </td>
+                            <td class="text-center bg-secondary"> <strong> {{number_format($location->caution_number*$location->loyer + $location->caution_water+$location->caution_electric + $location->frais_peiture,0,""," ") }} </strong> </td>
                         </tr>
                         @endforeach
                         <tr>
-                            <td class="bg-red shadow-lg">Totaux: </td>
+                            <td class=" shadow-lg">Totaux: </td>
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td class="bg-warning"> <strong>{{number_format($cautions["loyer"],0," "," ") }} </strong> </td>
-                            <td class="bg-warning"> <strong>{{number_format($cautions["electricity"]+$cautions["eau"],0," "," ") }} </strong> </td>
-                            <td class="bg-warning"> <strong>{{number_format($cautions["eau"],0," "," ") }} </strong> </td>
+                            <td class="bg-secondary"> <strong>{{number_format($cautions["loyer"],0," "," ") }} </strong> </td>
+                            <td class="bg-secondary"> <strong>{{number_format($cautions["electricity"]+$cautions["eau"],0," "," ") }} </strong> </td>
+                            <td class="bg-secondary"> <strong>{{number_format($cautions["eau"],0," "," ") }} </strong> </td>
                         </tr>
                     </tbody>
                 </table>
                 @else
-                <p class="text-red text-center">Aucune location disponible!</p>
+                <p class=" text-center">Aucune location disponible!</p>
                 @endif
 
                 <br>

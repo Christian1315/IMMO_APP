@@ -60,8 +60,8 @@
 </head>
 
 <body>
-    <div class="container bg-light">
-        <div class="row shadow-lg" style="padding-inline: 20px;">
+    <div class="container-fluid bg-light">
+        <div class="shadow-lg" style="">
             <!-- HEADER -->
             <div class="row _header px-5">
                 <table>
