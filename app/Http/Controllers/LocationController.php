@@ -1266,7 +1266,13 @@ class LocationController extends Controller
 
             $prestations = $locations->pluck('prestation')->filter()->values();
 
-            return view("prestation-statistique", compact("locations", "prestations", "agency"));
+            // return view("prestation-statistique", compact("locations", "prestations", "agency"));
+            $pdf = Pdf::loadView("prestation-statistique", compact("locations", "prestations", "agency"));
+
+            // Set PDF orientation to landscape
+            $pdf->setPaper('a4', 'landscape');
+
+            return $pdf->stream();
         } catch (\Exception $e) {
             alert()->error("Echec", $e->getMessage());
             return back()->withInput();

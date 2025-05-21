@@ -53,7 +53,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
             <div class="col-1"></div>
             <div class="col-10 shadow-lg bg-light">
@@ -69,7 +69,7 @@
                 <br>
 
                 <div class="text-center">
-                    <h4 class="">Agence: <em class="text-red"> {{$agency["name"]}} </em> </h4>
+                    <h4 class="">Agence: <em class=""> {{$agency["name"]}} </em> </h4>
                 </div>
                 
                 @if(count($locations))
@@ -88,19 +88,19 @@
                             <td class="text-center">{{$location->House->name}}</td>
                             <td class="text-center">{{$location->Room?$location->Room->number:"demenagé"}}</td>
                             <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
-                            <td class="text-center bg-warning">{{$location->prestation}}</td>
+                            <td class="text-center bg-secondary">{{$location->prestation}}</td>
                         </tr>
                         @endforeach
                         <tr>
-                            <td class="bg-red shadow-lg">Totaux: </td>
+                            <td class="bg-secondary shadow-lg">Totaux: </td>
                             <td></td>
                             <td></td>
-                            <td class="bg-warning text-center">= &nbsp; <strong>{{$locations->sum('prestation')}} fcfa</strong> </td>
+                            <td class="bg-secondary text-center">= &nbsp; <strong>{{$locations->sum('prestation')}} fcfa</strong> </td>
                         </tr>
                     </tbody>
                 </table>
                 @else
-                <p class="text-red text-center">Aucune location disponible!</p>
+                <p class=" text-center">Aucune location disponible!</p>
                 @endif
 
                 <br>
