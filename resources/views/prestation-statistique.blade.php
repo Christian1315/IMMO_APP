@@ -55,23 +55,37 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-1"></div>
-            <div class="col-10 shadow-lg bg-light">
-                <!-- HEADER -->
-                <div class="row header">
-                    <div class="col-3">
-                        <img src="{{asset('edou_logo.png')}}" alt="" style="width: 100px;" class="rounded img-fluid">
-                    </div>
-                    <div class="col-9 px-0 mx-0 d-flex align-items-center ">
-                        <h3 class="rapport-title text-uppercase">état de récouvrement</h3>
-                    </div>
+            <div class="col-12 shadow-lg bg-light">
+                <div class="row _header px-5">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text">
+                                    <img src="{{asset('edou_logo.png')}}" alt="" style="width: 70px;" class="rounded img-fluid">
+                                </td>
+                                <td class="text"></td>
+                                <td class="text"></td>
+                                <td class="text"></td>
+                                <td class="text">
+                                    <h3 class="rapport-title text-uppercase">états des cautions</h3>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
                 <br>
 
                 <div class="text-center">
                     <h4 class="">Agence: <em class=""> {{$agency["name"]}} </em> </h4>
                 </div>
-                
+
                 @if(count($locations))
                 <table class="table">
                     <thead class="table-dark">
@@ -84,7 +98,7 @@
                     </thead>
                     <tbody>
                         @foreach($locations as $location)
-                        <tr >
+                        <tr>
                             <td class="text-center">{{$location->House->name}}</td>
                             <td class="text-center">{{$location->Room?$location->Room->number:"demenagé"}}</td>
                             <td class="text-center">{{$location->Locataire->name}} {{$location->Locataire->prenom}}</td>
@@ -112,7 +126,6 @@
                     <br>
                 </div>
             </div>
-            <div class="col-1"></div>
         </div>
     </div>
 </body>
