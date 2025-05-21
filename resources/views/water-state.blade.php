@@ -62,7 +62,7 @@
 </head>
 
 <body>
-    <div class="container-fluid bg-light" style="padding-inline: 30px!important;">
+    <div class="container-fluid bg-light" style="">
         <div class="row shadow-lg">
             <!-- HEADER -->
             <div class="row _header px-5">

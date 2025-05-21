@@ -544,7 +544,7 @@ class HouseController extends Controller
      * @param int $houseId
      * @return mixed
      */
-    
+
     public function ShowHouseStateImprimeHtml(Request $request, $houseId)
     {
         try {
@@ -567,7 +567,7 @@ class HouseController extends Controller
             ]));
             
             // Set PDF orientation to landscape
-            // $pdf->setPaper('a4', 'landscape');
+            $pdf->setPaper('a4', 'landscape');
             
             return $pdf->stream();
         } catch (\Exception $e) {

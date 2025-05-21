@@ -51,6 +51,8 @@ class StopHouseElectricityStateController extends Controller
                 'umpaid_factures_sum' => $unpaidFacturesSum
             ]);
 
+            $pdf->setPaper('a4', 'landscape');
+
             return $pdf->stream();
 
         } catch (ModelNotFoundException $e) {
