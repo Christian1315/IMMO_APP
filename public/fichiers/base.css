@@ -2,6 +2,13 @@
     font-family: "Montserat";
 }
 
+.body-div{
+    background-image: url("bg-img.png")!important;
+    background-repeat: no-repeat!important;
+    background-size: cover!important;
+    background-position: center!important;
+}
+
 .badge {
     font-size: 15px !important;
 }

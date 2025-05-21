@@ -39,7 +39,6 @@
     </head>
 
     <body>
-
         <nav class="navbar navbar-dark fixed-top bg-red flex-md-nowrap p-0 shadow">
             <a class="navbar-brand col-sm-3 col-md-2 mr-0 justify-content-between" href="#">
                 <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
@@ -50,27 +49,19 @@
                 <span>EDOU SERVICES</span>
             </a>
 
-            <marquee behavior="alternate" style="font-size: 15px;font-weight: bold;"> GESTION DE L'AGENCE :
+            <marquee class="text-uppercase" behavior="alternate" style="font-size: 15px;font-weight: bold;">
                 {{ $agency['name'] }}
             </marquee>
-            <ul class="navbar-nav px-3">
-                <li class="nav-item text-nowrap text-center">
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            {{ auth()->user()->username }}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark">
-                            <li><a class="dropdown-item" href="{{route('logout')}}">Se Déconnecter</a></li>
-                            <li><a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                    data-bs-target="#updatePassword">Mot de passe</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-            </ul>
+
+            <li style="list-style-type: none;"><a class="btn btn-sm btn-light" onclick="return confirm('Voulez-vous vraiment vous déconnecter!?')" href="{{route('logout')}}"><i class="bi bi-power"></i> Se Déconnecter</a></li>
+            <li style="list-style-type: none;"> <a href="#" class="btn btn-sm btn-light" data-bs-toggle="modal"
+                    data-bs-target="#updatePassword"><i class="bi bi-key"></i> Mot de passe</a>
+            </li>
+            <li style="list-style-type: none;">
+                <span class="border-white text-uppercase rounded-circle btn bnt-sm btn-dark">
+                    {{ auth()->user()->username }}
+                </span>
+            </li>
         </nav>
 
         <div class="container-fluid">
@@ -326,14 +317,6 @@
 
                     {{ $slot }}
 
-                    <div class="container-fluid bg-white shadow-lg py-3 bg-white mt-5">
-                        <div class="row">
-                            <div class="col-md-12 px-0 mx-0">
-                                <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- MODAL DE CHANGEMENT DE MOT DE PASE --}}
                     <!-- Modal -->
                     <div class="modal fade" id="updatePassword" tabindex="-1" aria-labelledby="exampleModalLabel"
@@ -349,16 +332,21 @@
                                     @csrf
                                     @method('PATCH')
                                     <div class="modal-body">
-                                        <input type="text" required name="password" class="form-control" id="">
+                                        <input type="password" placeholder="**********" required name="password" class="form-control" id="">
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="submit" class="w-100 btn btn-sm bg-red">Enregistrer</button>
+                                        <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Enregistrer</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </main>
+            </div>
+            <div class="row">
+                <div class="col-md-12 bg-white shadow-lg py-2 bg-white mt-5">
+                    <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
+                </div>
             </div>
         </div>
         @livewireScripts

@@ -1312,7 +1312,14 @@ class LocationController extends Controller
                 })
             ];
 
-            return view("cautions", compact("locations", "cautions"));
+            // return view("cautions", compact("locations", "cautions"));
+
+            $pdf = Pdf::loadView("cautions", compact("locations", "cautions"));
+
+            // Set PDF orientation to landscape
+            $pdf->setPaper('a4', 'landscape');
+
+            return $pdf->stream();
         } catch (\Exception $e) {
             alert()->error("Echec", $e->getMessage());
             return back()->withInput();

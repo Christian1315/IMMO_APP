@@ -43,22 +43,18 @@
                 <span>EDOU SERVICES </span>
             </a>
 
-            <input class="form-control form-control-dark w-100 bg-light search--bar" type="text" placeholder="Recherche" aria-label="searh">
-            <ul class="navbar-nav px-3">
-                <li class="nav-item text-nowrap text-center">
-                    <a class="btn btn-sm btn-light text-center" href="{{route('logout')}}">
-                        SE DECONNECTER
-                        &nbsp;
-                        @if(auth()->user())
-                        <span class="text-red">
-                            ({{auth()->user()->username}})
-                        </span>
-                        @endif
-                    </a>
-                </li>
-            </ul>
-        </nav>
+            <input class="mx-2 rounded form-control form-control-dark w-100 bg-light search--bar" type="text" placeholder="Recherche" aria-label="searh">
 
+            <li style="list-style-type: none;"><a class="btn btn-sm btn-light" onclick="return confirm('Voulez-vous vraiment vous déconnecter!?')" href="{{route('logout')}}"><i class="bi bi-power"></i> Se Déconnecter</a></li>
+            <li style="list-style-type: none;"> <a href="#" class="btn btn-sm btn-light" data-bs-toggle="modal"
+                    data-bs-target="#updatePassword"><i class="bi bi-key"></i> Mot de passe</a>
+            </li>
+            <li style="list-style-type: none;">
+                <span class="border-white text-uppercase rounded-circle btn bnt-sm btn-dark">
+                    {{ auth()->user()->username }}
+                </span>
+            </li>
+        </nav>
 
         <div class="container-fluid">
             <div class="row">
@@ -166,15 +162,39 @@
                     <x-alert />
 
                     {{$slot}}
-
-                    <div class="container-fluid bg-white shadow-lg py-3 bg-white mt-5">
-                        <div class="row">
-                            <div class="col-md-12 px-0 mx-0">
-                                <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
-                            </div>
-                        </div>
-                    </div>
                 </main>
+            </div>
+
+            {{-- MODAL DE CHANGEMENT DE MOT DE PASE --}}
+            <!-- Modal -->
+            <div class="modal fade" id="updatePassword" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title fs-5" id="exampleModalLabel">Modification de mot de passe
+                            </h5>
+                        </div>
+                        <form action="{{ route('user.UpdateCompte', auth()->user()->id) }}"
+                            method="post">
+                            @csrf
+                            @method('PATCH')
+                            <div class="modal-body">
+                                <input type="password" placeholder="**********" required name="password" class="form-control" id="">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="w-100 btn btn-sm bg-red"><i class="bi bi-check-circle"></i> Enregistrer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!--  -->
+            <div class="row">
+                <div class="col-md-12 bg-white shadow-lg py-2 bg-white mt-5">
+                    <p class="text-center">© Copyright - <strong class="text-red">{{date("Y")}}</strong> - Réalisé par <strong class="text-red">Code4Christ </strong> </p>
+                </div>
             </div>
         </div>
 
@@ -200,7 +220,6 @@
 
     <!-- #### DATA TABLES -->
     <script>
-       
         // In your Javascript (external .js resource or <script> tag)
         $(document).ready(function() {
             $('.select2').select2();
