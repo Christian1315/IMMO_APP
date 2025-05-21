@@ -246,7 +246,14 @@ class LocationController extends Controller
             $total_cautions = array_sum($cautions);
 
             alert()->success('Succès', "Cautions générées avec succès!");
-            return view("location_cautions", compact("location", "cautions", "total_cautions"));
+            // return view("location_cautions", compact("location", "cautions", "total_cautions"));
+
+            $pdf = Pdf::loadView("location_cautions", compact("location", "cautions", "total_cautions"));
+
+            // Set PDF orientation to landscape
+            $pdf->setPaper('a4', 'landscape');
+
+            return $pdf->stream();
         } catch (\Exception $e) {
             alert()->error("Echec", $e->getMessage());
             return back();
@@ -1068,9 +1075,8 @@ class LocationController extends Controller
             $pdf = Pdf::loadView('imprimer_location', compact("location"));
 
             // Configuration du PDF pour un meilleur rendu
-            $pdf->setPaper('a4');
-            $pdf->setOption('isHtml5ParserEnabled', true);
-            $pdf->setOption('isRemoteEnabled', true);
+            // Set PDF orientation to landscape
+            $pdf->setPaper('a4', 'landscape');
 
             return $pdf->stream();
         } catch (\Exception $e) {
